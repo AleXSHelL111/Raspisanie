@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- мягкое свечение -->
+    <path
+        android:fillColor="#3300E5FF"
+        android:pathData="M54,22a32,32 0 1,0 0.01,0z" />
+    <!-- неоновый циферблат -->
+    <path
+        android:strokeColor="#FF00E5FF"
+        android:strokeWidth="4"
+        android:fillColor="#00000000"
+        android:pathData="M54,28a26,26 0 1,0 0.01,0z" />
+    <!-- стрелки -->
+    <path
+        android:strokeColor="#FFFF2E97"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,54L54,37M54,54L66,61" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,50.5a3.5,3.5 0 1,0 0.01,0z" />
+    <!-- метки часов -->
+    <path
+        android:strokeColor="#FFB026FF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,31L54,34M77,54L74,54M54,77L54,74M31,54L34,54" />
+</vector>
