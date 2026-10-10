@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NeonRaspisanie"
+rootProject.name = "KgmuRaspisanie"
 include(":app")

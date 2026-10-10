@@ -64,6 +64,9 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         item { SectionTitle("Моя группа", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
 
+        item { SectionTitle("Уведомления", color = Neon.Cyan) }
+        item { NotificationsCard(vm) }
+
         val electives = schedule?.electives.orEmpty()
         if (electives.isNotEmpty()) {
             item { SectionTitle("Дисциплины по выбору", color = Neon.Lime) }

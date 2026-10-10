@@ -29,9 +29,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -56,7 +53,10 @@ import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.data.Lesson
 import com.alexshell.raspisanie.ui.components.LessonEditor
 import com.alexshell.raspisanie.ui.components.LessonSheet
+import com.alexshell.raspisanie.ui.components.NavItem
 import com.alexshell.raspisanie.ui.components.NeonBackground
+import com.alexshell.raspisanie.ui.components.NeonBottomBar
+import com.alexshell.raspisanie.notify.Notifier
 import com.alexshell.raspisanie.ui.screens.AddHomeworkDialog
 import com.alexshell.raspisanie.ui.screens.GroupGrid
 import com.alexshell.raspisanie.ui.screens.HomeworkScreen
@@ -76,12 +76,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        Notifier.createChannels(this)
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
             NeonTheme {
                 NeonBackground { App(vm) }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.refreshPermissions()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -138,7 +144,7 @@ private fun Onboarding(vm: AppViewModel) {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            "NEON\nРАСПИСАНИЕ",
+            "КГМУ\nРАСПИСАНИЕ",
             fontSize = 40.sp,
             lineHeight = 44.sp,
             fontWeight = FontWeight.Black,
@@ -169,6 +175,16 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     var addDialog by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
+    // Android 13+: один раз спрашиваем разрешение на уведомления.
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        vm.refreshPermissions()
+    }
+    LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= 33 && !vm.askedNotifications()) {
+            notifPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     LaunchedEffect(vm.message) {
         vm.message?.let {
             snackbar.showSnackbar(it)
@@ -190,34 +206,23 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
             }
         },
         bottomBar = {
-            NavigationBar(containerColor = Neon.Surface.copy(alpha = 0.96f), tonalElevation = 0.dp) {
-                Tab.entries.forEachIndexed { i, t ->
+            NeonBottomBar(
+                items = Tab.entries.map { t ->
                     val pending = if (t == Tab.HOMEWORK) vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() } else 0
-                    NavigationBarItem(
-                        selected = tab == i,
-                        onClick = { tab = i },
-                        icon = {
-                            Icon(
-                                when (t) {
-                                    Tab.TODAY -> Icons.Filled.Home
-                                    Tab.WEEK -> Icons.Filled.DateRange
-                                    Tab.HOMEWORK -> Icons.Filled.Edit
-                                    Tab.SETTINGS -> Icons.Filled.Settings
-                                },
-                                contentDescription = t.title,
-                            )
+                    NavItem(
+                        title = t.title,
+                        icon = when (t) {
+                            Tab.TODAY -> Icons.Filled.Home
+                            Tab.WEEK -> Icons.Filled.DateRange
+                            Tab.HOMEWORK -> Icons.Filled.Edit
+                            Tab.SETTINGS -> Icons.Filled.Settings
                         },
-                        label = { Text(if (pending > 0) "${t.title} · $pending" else t.title) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.Black,
-                            indicatorColor = Neon.Cyan,
-                            selectedTextColor = Neon.Cyan,
-                            unselectedIconColor = Neon.Muted,
-                            unselectedTextColor = Neon.Muted,
-                        ),
+                        badge = pending,
                     )
-                }
-            }
+                },
+                selected = tab,
+                onSelect = { tab = it },
+            )
         },
     ) { padding ->
         AnimatedContent(

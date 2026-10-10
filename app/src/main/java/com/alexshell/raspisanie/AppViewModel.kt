@@ -12,6 +12,8 @@ import com.alexshell.raspisanie.data.Homework
 import com.alexshell.raspisanie.data.HomeworkStore
 import com.alexshell.raspisanie.data.Lesson
 import com.alexshell.raspisanie.data.LessonEdit
+import com.alexshell.raspisanie.data.Repository
+import com.alexshell.raspisanie.notify.Notifier
 import com.alexshell.raspisanie.data.Schedule
 import com.alexshell.raspisanie.data.ScheduleParser
 import kotlinx.coroutines.Dispatchers
@@ -23,10 +25,10 @@ import java.time.LocalDateTime
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val prefs = app.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+    private val prefs = Repository.prefs(app)
     private val hwStore = HomeworkStore(app)
     private val editStore = EditStore(app)
-    private val importedFile = File(app.filesDir, "schedule.xlsx")
+    private val importedFile = Repository.importedFile(app)
 
     var schedule by mutableStateOf<Schedule?>(null)
         private set
@@ -39,6 +41,38 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var message by mutableStateOf<String?>(null)
     var edits by mutableStateOf(editStore.load())
         private set
+    var notif by mutableStateOf(Notifier.settings(app))
+        private set
+
+    // Состояние разрешений (обновляется в onResume).
+    var canNotify by mutableStateOf(Notifier.canPost(app))
+        private set
+    var canExact by mutableStateOf(Notifier.canExact(app))
+        private set
+    var batteryUnrestricted by mutableStateOf(Notifier.ignoresBattery(app))
+        private set
+
+    fun refreshPermissions() {
+        val app = getApplication<Application>()
+        canNotify = Notifier.canPost(app)
+        canExact = Notifier.canExact(app)
+        batteryUnrestricted = Notifier.ignoresBattery(app)
+        Notifier.reschedule(app)
+    }
+
+    /** true, если уже спрашивали разрешение на уведомления (спрашиваем один раз). */
+    fun askedNotifications(): Boolean {
+        val asked = prefs.getBoolean("asked_notif", false)
+        if (!asked) prefs.edit().putBoolean("asked_notif", true).apply()
+        return asked
+    }
+
+    fun updateNotif(n: Notifier.Settings) {
+        notif = n
+        Notifier.saveSettings(getApplication(), n)
+        Notifier.reschedule(getApplication())
+    }
+
     /** Выбранные дисциплины по выбору (пусто — показывать все). */
     var chosenElectives by mutableStateOf(prefs.getStringSet("electives", emptySet())!!.toSet())
         private set
@@ -57,9 +91,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val stream = if (importedFile.exists()) importedFile.inputStream()
-                    else getApplication<Application>().assets.open("schedule.xlsx")
-                    stream.use { ScheduleParser.parse(it) }
+                    Repository.loadSchedule(getApplication())
                 }
             }
             result.onSuccess {
@@ -76,16 +108,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun refreshLessons() {
         val g = group
         val sch = schedule
-        if (g == null || sch == null) {
-            lessons = emptyList(); return
-        }
-        val chosen = chosenElectives.filter { it in sch.electives }.toSet()
-        val mine = edits.filter { it.group == g }
-        val replaced = mine.mapNotNull { it.origKey }.toSet()
-        lessons = (sch.lessonsFor(g).filter { it.key !in replaced } + mine.mapNotNull { it.lesson })
-            .filter { it.elective == null || chosen.isEmpty() || it.elective in chosen }
-            .distinctBy { it.key }
-            .sortedWith(compareBy({ it.date }, { it.start }, { it.end }))
+        lessons = if (g == null || sch == null) emptyList()
+        else Repository.lessonsFor(sch, g, edits, chosenElectives)
+        // Любое изменение расписания/ДЗ/настроек — пересчитываем ближайшее уведомление.
+        Notifier.reschedule(getApplication())
     }
 
     // ---------- Дисциплины по выбору ----------
@@ -268,6 +294,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun updateHomework(list: List<Homework>) {
         homework = list
         hwStore.save(list)
+        Notifier.reschedule(getApplication())
     }
 
     fun lessonByKey(key: String): Lesson? = lessons.firstOrNull { it.key == key }
