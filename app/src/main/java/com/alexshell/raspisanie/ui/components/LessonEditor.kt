@@ -1,7 +1,5 @@
 package com.alexshell.raspisanie.ui.components
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,7 +55,6 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, onDismiss: () -> Unit) {
-    val context = LocalContext.current
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val subjects = remember(vm.lessons) { vm.subjects() }
     val lastDate = remember(vm.lessons) { vm.lessons.lastOrNull()?.date ?: initialDate.plusMonths(3) }
@@ -77,20 +73,17 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
     val until = LocalDate.ofEpochDay(untilEpoch)
     val similar = remember(original, vm.lessons) { original?.let { vm.similarLessons(it).size } ?: 0 }
 
+    // Свои неоновые диалоги выбора даты и времени.
+    var datePick by remember { mutableStateOf<Pair<LocalDate, (LocalDate) -> Unit>?>(null) }
+    var timePick by remember { mutableStateOf<Pair<Int, (Int) -> Unit>?>(null) }
+    val lessonDays = remember(vm.lessons) { vm.lessons.map { it.date }.toSet() }
+
     fun pickDate(initial: LocalDate, set: (LocalDate) -> Unit) {
-        DatePickerDialog(
-            context, android.R.style.Theme_Material_Dialog_Alert,
-            { _, y, m, d -> set(LocalDate.of(y, m + 1, d)) },
-            initial.year, initial.monthValue - 1, initial.dayOfMonth,
-        ).show()
+        datePick = initial to set
     }
 
     fun pickTime(initial: Int, set: (Int) -> Unit) {
-        TimePickerDialog(
-            context, android.R.style.Theme_Material_Dialog_Alert,
-            { _, h, m -> set(h * 60 + m) },
-            initial / 60, initial % 60, true,
-        ).show()
+        timePick = initial to set
     }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
@@ -253,6 +246,24 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
             ) { Text("Сохранить", fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             Spacer(Modifier.height(24.dp))
         }
+    }
+
+    datePick?.let { (initial, set) ->
+        NeonDatePickerDialog(
+            title = "Дата",
+            initial = initial,
+            marked = lessonDays,
+            onDismiss = { datePick = null },
+            onConfirm = { set(it); datePick = null },
+        )
+    }
+    timePick?.let { (initial, set) ->
+        NeonTimePickerDialog(
+            title = "Время",
+            initial = initial,
+            onDismiss = { timePick = null },
+            onConfirm = { set(it); timePick = null },
+        )
     }
 }
 

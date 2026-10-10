@@ -52,16 +52,7 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item {
-            Text(
-                "Настройки",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
-                modifier = Modifier.padding(top = 8.dp, start = 4.dp),
-            )
-        }
-        item { SectionTitle("Моя группа", color = Neon.Cyan) }
+        item { SectionTitle("Номер группы", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
 
         item { SectionTitle("Уведомления", color = Neon.Cyan) }

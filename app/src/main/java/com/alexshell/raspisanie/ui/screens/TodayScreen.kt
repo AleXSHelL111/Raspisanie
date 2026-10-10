@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.AppViewModel
 import com.alexshell.raspisanie.data.Lesson
 import com.alexshell.raspisanie.ui.clock
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import com.alexshell.raspisanie.ui.components.LessonCard
+import com.alexshell.raspisanie.ui.components.NeonIconButton
 import com.alexshell.raspisanie.ui.components.NeonCard
 import com.alexshell.raspisanie.ui.components.NeonChip
 import com.alexshell.raspisanie.ui.components.NeonProgress
@@ -63,7 +66,7 @@ fun TodayScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item { ClockHeader(vm, now) }
+        item { Column { ClockHeader(vm, now, onOpenSettings) } }
         item { HeroCard(current, next, now, pendingHw.size, onLesson) }
         if (vm.schedule?.electives?.isNotEmpty() == true && vm.chosenElectives.isEmpty()) {
             item {
@@ -96,9 +99,13 @@ fun TodayScreen(
 }
 
 @Composable
-private fun ClockHeader(vm: AppViewModel, now: LocalDateTime) {
+private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: () -> Unit) {
     val today = now.toLocalDate()
-    Column(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    // Кнопка настроек — слева сверху, над часами.
+    Column(Modifier.fillMaxWidth()) {
+        NeonIconButton(Icons.Filled.Settings, "Настройки", onClick = onOpenSettings)
+    }
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             now.clock(),
             style = Neon.Digits.copy(shadow = Neon.glow(Neon.Cyan, 28f)),

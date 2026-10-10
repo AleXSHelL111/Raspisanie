@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -99,6 +101,8 @@ fun NeonCard(
     else Brush.linearGradient(listOf(accent.copy(alpha = 0.45f), Neon.Stroke, Neon.Stroke))
     Column(
         modifier
+            // Все плитки — на всю ширину, независимо от длины текста.
+            .fillMaxWidth()
             .then(
                 if (glow) Modifier.shadow(18.dp, shape, ambientColor = accent, spotColor = accent)
                 else Modifier
@@ -165,4 +169,26 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier, color: Color = Neo
         letterSpacing = 2.sp,
         fontWeight = FontWeight.Bold,
     )
+}
+
+/** Круглая неоновая кнопка с иконкой. */
+@Composable
+fun NeonIconButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    color: Color = Neon.Cyan,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(46.dp)
+            .shadow(12.dp, androidx.compose.foundation.shape.CircleShape, ambientColor = color, spotColor = color)
+            .clip(androidx.compose.foundation.shape.CircleShape)
+            .background(Brush.verticalGradient(listOf(Neon.SurfaceHi, Neon.Surface)))
+            .border(1.dp, Brush.linearGradient(listOf(color, Neon.Violet)), androidx.compose.foundation.shape.CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(icon, contentDescription = description, tint = color, modifier = Modifier.size(22.dp))
+    }
 }

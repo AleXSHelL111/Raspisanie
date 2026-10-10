@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -59,6 +58,22 @@ import com.alexshell.raspisanie.ui.components.NeonBottomBar
 import com.alexshell.raspisanie.notify.Notifier
 import com.alexshell.raspisanie.ui.screens.AddHomeworkDialog
 import com.alexshell.raspisanie.ui.screens.GroupGrid
+import com.alexshell.raspisanie.ui.screens.GroupScreen
+import com.alexshell.raspisanie.ui.components.NeonIconButton
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import com.alexshell.raspisanie.ui.screens.HomeworkScreen
 import com.alexshell.raspisanie.ui.screens.SettingsScreen
 import com.alexshell.raspisanie.ui.screens.TodayScreen
@@ -101,7 +116,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val title: String) { TODAY("Сегодня"), WEEK("Неделя"), HOMEWORK("ДЗ"), SETTINGS("Ещё") }
+private enum class Tab(val title: String) { TODAY("Сегодня"), WEEK("Неделя"), HOMEWORK("ДЗ"), GROUP("Моя группа") }
 
 @Composable
 private fun App(vm: AppViewModel) {
@@ -173,6 +188,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     // Редактор: (занятие или null для нового, дата для нового)
     var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
     var addDialog by rememberSaveable { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
     // Android 13+: один раз спрашиваем разрешение на уведомления.
@@ -215,7 +231,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                             Tab.TODAY -> Icons.Filled.Home
                             Tab.WEEK -> Icons.Filled.DateRange
                             Tab.HOMEWORK -> Icons.Filled.Edit
-                            Tab.SETTINGS -> Icons.Filled.Settings
+                            Tab.GROUP -> Icons.Filled.Person
                         },
                         badge = pending,
                     )
@@ -232,10 +248,43 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         ) { t ->
             val open: (Lesson) -> Unit = { openedLesson = it }
             when (t) {
-                Tab.TODAY -> TodayScreen(vm, now, padding, open, onOpenSettings = { tab = Tab.SETTINGS.ordinal })
+                Tab.TODAY -> TodayScreen(vm, now, padding, open, onOpenSettings = { showSettings = true })
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
-                Tab.SETTINGS -> SettingsScreen(vm, padding, onImport)
+                Tab.GROUP -> GroupScreen(vm, padding)
+            }
+        }
+    }
+
+    // Настройки — отдельный экран поверх вкладок (открываются шестерёнкой на главном).
+    AnimatedVisibility(
+        visible = showSettings,
+        enter = slideInHorizontally { -it } + fadeIn(),
+        exit = slideOutHorizontally { -it } + fadeOut(),
+    ) {
+        BackHandler { showSettings = false }
+        Box(Modifier.fillMaxSize().background(Neon.Bg)) {
+            NeonBackground {
+                Column(Modifier.fillMaxSize().statusBarsPadding()) {
+                    Row(
+                        Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад") { showSettings = false }
+                        Spacer(Modifier.width(14.dp))
+                        Text(
+                            "Настройки",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            style = TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
+                        )
+                    }
+                    SettingsScreen(
+                        vm,
+                        PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                        onImport,
+                    )
+                }
             }
         }
     }

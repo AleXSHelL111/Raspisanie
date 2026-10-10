@@ -1,6 +1,5 @@
 package com.alexshell.raspisanie.ui.screens
 
-import android.app.TimePickerDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -35,6 +34,11 @@ import com.alexshell.raspisanie.AppViewModel
 import com.alexshell.raspisanie.data.TimeSlot
 import com.alexshell.raspisanie.notify.Notifier
 import com.alexshell.raspisanie.ui.components.NeonCard
+import com.alexshell.raspisanie.ui.components.NeonTimePickerDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.alexshell.raspisanie.ui.components.chipColors
 import com.alexshell.raspisanie.ui.theme.Neon
 
@@ -42,6 +46,15 @@ import com.alexshell.raspisanie.ui.theme.Neon
 fun NotificationsCard(vm: AppViewModel) {
     val context = LocalContext.current
     val n = vm.notif
+    var pickEvening by remember { mutableStateOf(false) }
+    if (pickEvening) {
+        NeonTimePickerDialog(
+            title = "Вечерние напоминания",
+            initial = n.eveningAt,
+            onDismiss = { pickEvening = false },
+            onConfirm = { vm.updateNotif(n.copy(eveningAt = it)); pickEvening = false },
+        )
+    }
 
     NeonCard(accent = Neon.Cyan) {
         // --- Разрешения ---
@@ -107,13 +120,7 @@ fun NotificationsCard(vm: AppViewModel) {
         ToggleRow("Невыполненное ДЗ на завтра", n.homework) { vm.updateNotif(n.copy(homework = it)) }
         if (n.evening || n.homework) {
             OutlinedButton(
-                onClick = {
-                    TimePickerDialog(
-                        context, android.R.style.Theme_Material_Dialog_Alert,
-                        { _, h, m -> vm.updateNotif(n.copy(eveningAt = h * 60 + m)) },
-                        n.eveningAt / 60, n.eveningAt % 60, true,
-                    ).show()
-                },
+                onClick = { pickEvening = true },
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 shape = RoundedCornerShape(14.dp),
                 border = BorderStroke(1.dp, Neon.Cyan.copy(alpha = 0.6f)),
