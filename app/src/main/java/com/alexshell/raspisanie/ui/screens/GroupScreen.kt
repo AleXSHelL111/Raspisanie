@@ -25,14 +25,16 @@ import com.alexshell.raspisanie.ui.components.NeonChip
 import com.alexshell.raspisanie.ui.components.SectionTitle
 import com.alexshell.raspisanie.ui.theme.Neon
 
+private data class Planned(val emoji: String, val title: String, val text: String, val color: Color)
+
 /** Заготовка раздела «Моя группа» для будущих обновлений. */
 @Composable
 fun GroupScreen(vm: AppViewModel, padding: PaddingValues) {
     val planned = listOf(
-        Triple("👥", "Одногруппники", "Список группы и контакты старосты", Neon.Cyan),
-        Triple("📝", "Общие ДЗ", "Задания, которые видит вся группа", Neon.Magenta),
-        Triple("📣", "Объявления", "Переносы пар и новости от старосты", Neon.Violet),
-        Triple("📊", "Посещаемость", "Отметки о пропусках и отработках", Neon.Lime),
+        Planned("👥", "Одногруппники", "Список группы и контакты старосты", Neon.Cyan),
+        Planned("📝", "Общие ДЗ", "Задания, которые видит вся группа", Neon.Magenta),
+        Planned("📣", "Объявления", "Переносы пар и новости от старосты", Neon.Violet),
+        Planned("📊", "Посещаемость", "Отметки о пропусках и отработках", Neon.Lime),
     )
     LazyColumn(
         Modifier.fillMaxSize(),
