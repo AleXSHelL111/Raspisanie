@@ -38,7 +38,13 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 @Composable
-fun TodayScreen(vm: AppViewModel, now: LocalDateTime, padding: PaddingValues, onLesson: (Lesson) -> Unit) {
+fun TodayScreen(
+    vm: AppViewModel,
+    now: LocalDateTime,
+    padding: PaddingValues,
+    onLesson: (Lesson) -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     val today = now.toLocalDate()
     val todayLessons = vm.lessonsOn(today)
     val current = todayLessons.firstOrNull { now >= it.startAt && now < it.endAt }
@@ -59,6 +65,17 @@ fun TodayScreen(vm: AppViewModel, now: LocalDateTime, padding: PaddingValues, on
     ) {
         item { ClockHeader(vm, now) }
         item { HeroCard(current, next, now, pendingHw.size, onLesson) }
+        if (vm.schedule?.electives?.isNotEmpty() == true && vm.chosenElectives.isEmpty()) {
+            item {
+                NeonCard(accent = Neon.Lime, onClick = onOpenSettings) {
+                    Text("Выберите свою дисциплину по выбору", color = Neon.Lime, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        "Сейчас показаны все варианты сразу. Нажмите, чтобы оставить в расписании только вашу.",
+                        color = Neon.Muted, fontSize = 13.sp,
+                    )
+                }
+            }
+        }
 
         item { SectionTitle(if (todayLessons.isEmpty()) "Сегодня пар нет" else "Сегодня · ${todayLessons.size} ${plural(todayLessons.size.toLong(), "занятие", "занятия", "занятий")}") }
         items(todayLessons, key = { "t" + it.key }) { l ->

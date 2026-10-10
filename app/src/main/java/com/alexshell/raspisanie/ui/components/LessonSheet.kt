@@ -8,18 +8,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -45,13 +51,14 @@ import com.alexshell.raspisanie.ui.weekdayShort
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LessonSheet(lesson: Lesson, vm: AppViewModel, onDismiss: () -> Unit) {
+fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDismiss: () -> Unit) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val accent = Neon.kindColor(lesson.kind)
     val next = remember(lesson, vm.lessons) { vm.nextOccurrence(lesson) }
     var toNext by rememberSaveable { mutableStateOf(next != null) }
     var text by rememberSaveable { mutableStateOf("") }
     val discipline = vm.schedule?.disciplineFor(lesson.subject)
+    var confirmDelete by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -88,10 +95,38 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onDismiss: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
             )
 
+            if (lesson.editId != null) {
+                Spacer(Modifier.height(6.dp))
+                NeonChip("изменено вручную", Neon.Amber)
+            }
             InfoRow("Где", lesson.location)
+            InfoRow("Дисциплина по выбору", lesson.elective?.takeIf { it != lesson.subject } ?: lesson.elective?.let { "да" })
             InfoRow("Кафедра / база", discipline?.department?.takeIf { it != lesson.location })
             InfoRow("Аттестация", discipline?.attestation)
             InfoRow("Из расписания", lesson.details.takeIf { it.isNotBlank() })
+
+            Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(
+                    onClick = { onEdit(lesson) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Neon.Cyan),
+                ) {
+                    Icon(Icons.Filled.Edit, null, tint = Neon.Cyan)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Изменить", color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
+                }
+                OutlinedButton(
+                    onClick = { confirmDelete = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Neon.Magenta),
+                ) {
+                    Icon(Icons.Filled.Delete, null, tint = Neon.Magenta)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Удалить", color = Neon.Magenta, fontWeight = FontWeight.SemiBold)
+                }
+            }
 
             // --- Домашние задания, привязанные к этой паре ---
             val hw = vm.homeworkFor(lesson)
@@ -157,14 +192,38 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onDismiss: () -> Unit) {
             Spacer(Modifier.height(24.dp))
         }
     }
-}
 
-@Composable
-private fun chipColors() = FilterChipDefaults.filterChipColors(
-    selectedContainerColor = Neon.Cyan.copy(alpha = 0.18f),
-    selectedLabelColor = Neon.Cyan,
-    labelColor = Neon.Muted,
-)
+    if (confirmDelete) {
+        val similar = vm.similarLessons(lesson).size
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            containerColor = Neon.SurfaceHi,
+            titleContentColor = Neon.Text,
+            textContentColor = Neon.Muted,
+            title = { Text("Удалить занятие?") },
+            text = {
+                Text(
+                    if (similar > 1) "Можно удалить только эту пару или все такие пары «${lesson.subject}» " +
+                        "(${lesson.date.weekdayShort().lowercase()}, ${lesson.timeText}) — их $similar."
+                    else "«${lesson.subject}», ${lesson.date.dayMonth()}"
+                )
+            },
+            confirmButton = {
+                Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                    TextButton(onClick = {
+                        vm.deleteLesson(lesson, applyAll = false); confirmDelete = false; onDismiss()
+                    }) { Text("Только эту", color = Neon.Magenta, fontWeight = FontWeight.Bold) }
+                    if (similar > 1) {
+                        TextButton(onClick = {
+                            vm.deleteLesson(lesson, applyAll = true); confirmDelete = false; onDismiss()
+                        }) { Text("Все такие ($similar)", color = Neon.Magenta, fontWeight = FontWeight.Bold) }
+                    }
+                    TextButton(onClick = { confirmDelete = false }) { Text("Отмена", color = Neon.Muted) }
+                }
+            },
+        )
+    }
+}
 
 @Composable
 private fun InfoRow(label: String, value: String?) {

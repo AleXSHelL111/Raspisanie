@@ -1,9 +1,11 @@
 package com.alexshell.raspisanie.ui.theme
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -21,13 +23,13 @@ object Neon {
 
     val Cyan = Color(0xFF00E5FF)
     val Magenta = Color(0xFFFF2E97)
-    val Violet = Color(0xFFB026FF)
+    val Violet = Color(0xFFC77DFF)
     val Lime = Color(0xFF39FF88)
     val Amber = Color(0xFFFFC233)
 
-    val Text = Color(0xFFEDEDF7)
-    val Muted = Color(0xFF8C8CAA)
-    val Dim = Color(0xFF55556E)
+    val Text = Color(0xFFF4F4FF)
+    val Muted = Color(0xFFB4B4D0)
+    val Dim = Color(0xFF8A8AA6)
 
     val MainGradient = Brush.linearGradient(listOf(Cyan, Violet, Magenta))
 
@@ -76,5 +78,9 @@ private val typography = Typography().let { t ->
 
 @Composable
 fun NeonTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = colors, typography = typography, content = content)
+    MaterialTheme(colorScheme = colors, typography = typography) {
+        // Экраны рисуются поверх собственного фона, а не внутри Surface, поэтому
+        // явно задаём светлый цвет текста по умолчанию — иначе он был бы чёрным.
+        CompositionLocalProvider(LocalContentColor provides Neon.Text, content = content)
+    }
 }

@@ -12,15 +12,24 @@ android {
         applicationId = "com.alexshell.raspisanie"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    // Постоянный ключ, чтобы новые сборки устанавливались поверх старых.
+    signingConfigs {
+        create("neon") {
+            storeFile = file("neon-release.jks")
+            storePassword = "neonraspisanie"
+            keyAlias = "neon"
+            keyPassword = "neonraspisanie"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Подпись отладочным ключом, чтобы APK можно было сразу установить на телефон.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("neon")
         }
     }
     compileOptions {

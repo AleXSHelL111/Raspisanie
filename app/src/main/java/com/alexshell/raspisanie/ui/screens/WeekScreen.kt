@@ -1,6 +1,7 @@
 package com.alexshell.raspisanie.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
@@ -53,7 +57,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Composable
-fun WeekScreen(vm: AppViewModel, now: LocalDateTime, padding: PaddingValues, onLesson: (Lesson) -> Unit) {
+fun WeekScreen(
+    vm: AppViewModel,
+    now: LocalDateTime,
+    padding: PaddingValues,
+    onLesson: (Lesson) -> Unit,
+    onAdd: (LocalDate) -> Unit,
+) {
     val today = now.toLocalDate()
     var selectedEpoch by rememberSaveable { mutableStateOf(today.toEpochDay()) }
     val selected = LocalDate.ofEpochDay(selectedEpoch)
@@ -129,6 +139,18 @@ fun WeekScreen(vm: AppViewModel, now: LocalDateTime, padding: PaddingValues, onL
         items(dayLessons, key = { it.key }) { l ->
             val hw = vm.homeworkFor(l)
             LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) })
+        }
+        item {
+            OutlinedButton(
+                onClick = { onAdd(selected) },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(50.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, Neon.Cyan.copy(alpha = 0.7f)),
+            ) {
+                Icon(Icons.Filled.Add, null, tint = Neon.Cyan)
+                Spacer(Modifier.width(8.dp))
+                Text("Добавить занятие на ${selected.weekdayShort().lowercase()}, ${selected.dayMonth()}", color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

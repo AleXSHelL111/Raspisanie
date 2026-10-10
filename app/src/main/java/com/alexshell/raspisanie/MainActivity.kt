@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.data.Lesson
+import com.alexshell.raspisanie.ui.components.LessonEditor
 import com.alexshell.raspisanie.ui.components.LessonSheet
 import com.alexshell.raspisanie.ui.components.NeonBackground
 import com.alexshell.raspisanie.ui.screens.AddHomeworkDialog
@@ -65,6 +66,7 @@ import com.alexshell.raspisanie.ui.screens.WeekScreen
 import com.alexshell.raspisanie.ui.theme.Neon
 import com.alexshell.raspisanie.ui.theme.NeonTheme
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class MainActivity : ComponentActivity() {
@@ -162,6 +164,8 @@ private fun Onboarding(vm: AppViewModel) {
 private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var openedLesson by remember { mutableStateOf<Lesson?>(null) }
+    // Редактор: (занятие или null для нового, дата для нового)
+    var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
     var addDialog by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
@@ -174,6 +178,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentColor = Neon.Text,
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
             if (Tab.entries[tab] == Tab.HOMEWORK) {
@@ -222,14 +227,17 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         ) { t ->
             val open: (Lesson) -> Unit = { openedLesson = it }
             when (t) {
-                Tab.TODAY -> TodayScreen(vm, now, padding, open)
-                Tab.WEEK -> WeekScreen(vm, now, padding, open)
+                Tab.TODAY -> TodayScreen(vm, now, padding, open, onOpenSettings = { tab = Tab.SETTINGS.ordinal })
+                Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
                 Tab.SETTINGS -> SettingsScreen(vm, padding, onImport)
             }
         }
     }
 
-    openedLesson?.let { LessonSheet(it, vm) { openedLesson = null } }
+    openedLesson?.let {
+        LessonSheet(it, vm, onEdit = { l -> openedLesson = null; editor = l to l.date }) { openedLesson = null }
+    }
+    editor?.let { (lesson, date) -> LessonEditor(vm, lesson, date) { editor = null } }
     if (addDialog) AddHomeworkDialog(vm, now) { addDialog = false }
 }

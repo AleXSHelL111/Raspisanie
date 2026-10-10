@@ -7,9 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.alexshell.raspisanie.data.EditStore
 import com.alexshell.raspisanie.data.Homework
 import com.alexshell.raspisanie.data.HomeworkStore
 import com.alexshell.raspisanie.data.Lesson
+import com.alexshell.raspisanie.data.LessonEdit
 import com.alexshell.raspisanie.data.Schedule
 import com.alexshell.raspisanie.data.ScheduleParser
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +25,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private val prefs = app.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
     private val hwStore = HomeworkStore(app)
+    private val editStore = EditStore(app)
     private val importedFile = File(app.filesDir, "schedule.xlsx")
 
     var schedule by mutableStateOf<Schedule?>(null)
@@ -34,6 +37,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var homework by mutableStateOf(hwStore.load())
         private set
     var message by mutableStateOf<String?>(null)
+    var edits by mutableStateOf(editStore.load())
+        private set
+    /** Выбранные дисциплины по выбору (пусто — показывать все). */
+    var chosenElectives by mutableStateOf(prefs.getStringSet("electives", emptySet())!!.toSet())
+        private set
 
     val isImported: Boolean get() = importedFile.exists()
 
@@ -67,7 +75,115 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun refreshLessons() {
         val g = group
-        lessons = if (g == null) emptyList() else schedule?.lessonsFor(g).orEmpty()
+        val sch = schedule
+        if (g == null || sch == null) {
+            lessons = emptyList(); return
+        }
+        val chosen = chosenElectives.filter { it in sch.electives }.toSet()
+        val mine = edits.filter { it.group == g }
+        val replaced = mine.mapNotNull { it.origKey }.toSet()
+        lessons = (sch.lessonsFor(g).filter { it.key !in replaced } + mine.mapNotNull { it.lesson })
+            .filter { it.elective == null || chosen.isEmpty() || it.elective in chosen }
+            .distinctBy { it.key }
+            .sortedWith(compareBy({ it.date }, { it.start }, { it.end }))
+    }
+
+    // ---------- Дисциплины по выбору ----------
+
+    fun toggleElective(name: String) {
+        chosenElectives = if (name in chosenElectives) chosenElectives - name else chosenElectives + name
+        prefs.edit().putStringSet("electives", chosenElectives).apply()
+        refreshLessons()
+    }
+
+    fun clearElectives() {
+        chosenElectives = emptySet()
+        prefs.edit().putStringSet("electives", emptySet()).apply()
+        refreshLessons()
+    }
+
+    // ---------- Редактор занятий ----------
+
+    /** Такие же пары: тот же предмет, тип, день недели и время, начиная с этой даты. */
+    fun similarLessons(l: Lesson): List<Lesson> = lessons.filter {
+        it.subject == l.subject && it.kind == l.kind && it.start == l.start &&
+            it.date.dayOfWeek == l.date.dayOfWeek && it.date >= l.date
+    }
+
+    /**
+     * Сохраняет изменённое занятие. [original] == null — новое занятие.
+     * [applyAll] — применить изменения (кроме даты) ко всем таким же парам.
+     * [repeatUntil] — для нового занятия: повторять еженедельно до этой даты.
+     */
+    fun saveLesson(original: Lesson?, edited: Lesson, applyAll: Boolean, repeatUntil: LocalDate?) {
+        val g = group ?: return
+        var list = edits
+        var id = System.currentTimeMillis()
+        if (original == null) {
+            var d = edited.date
+            val last = repeatUntil ?: edited.date
+            while (!d.isAfter(last)) {
+                list = list + LessonEdit(id, g, null, edited.copy(date = d, groups = setOf(g), editId = id))
+                id++
+                d = d.plusWeeks(1)
+            }
+        } else {
+            val targets = if (applyAll) similarLessons(original) else listOf(original)
+            targets.forEach { t ->
+                val newLesson = edited.copy(
+                    date = if (t === original || t.key == original.key) edited.date else t.date,
+                    groups = setOf(g),
+                    specialTime = false,
+                )
+                list = upsert(list, g, t, newLesson, id++)
+                moveHomework(t.key, newLesson)
+            }
+        }
+        updateEdits(list)
+        message = if (original == null) "Занятие добавлено" else "Изменения сохранены"
+    }
+
+    fun deleteLesson(lesson: Lesson, applyAll: Boolean) {
+        val g = group ?: return
+        var list = edits
+        var id = System.currentTimeMillis()
+        val targets = if (applyAll) similarLessons(lesson) else listOf(lesson)
+        targets.forEach { list = upsert(list, g, it, null, id++) }
+        updateEdits(list)
+        message = if (targets.size > 1) "Удалено занятий: ${targets.size}" else "Занятие удалено"
+    }
+
+    /** Заменяет занятие [target] на [newLesson] (null — удалить). */
+    private fun upsert(list: List<LessonEdit>, g: String, target: Lesson, newLesson: Lesson?, id: Long): List<LessonEdit> {
+        val existing = target.editId?.let { eid -> list.firstOrNull { it.id == eid } }
+        return if (existing != null) {
+            if (newLesson == null && existing.origKey == null) list - existing
+            else list.map { if (it.id == existing.id) it.copy(lesson = newLesson?.copy(editId = existing.id)) else it }
+        } else {
+            list + LessonEdit(id, g, target.key, newLesson?.copy(editId = id))
+        }
+    }
+
+    private fun moveHomework(oldKey: String, l: Lesson) {
+        if (oldKey == l.key) return
+        updateHomework(homework.map {
+            if (it.group == group && it.lessonKey == oldKey)
+                it.copy(lessonKey = l.key, subject = l.subject, dueDate = l.date, dueStart = l.start)
+            else it
+        })
+    }
+
+    fun resetEdits() {
+        updateEdits(edits.filterNot { it.group == group })
+        message = "Ручные правки сброшены"
+    }
+
+    fun editsCount(): Int = edits.count { it.group == group }
+
+    private fun updateEdits(list: List<LessonEdit>) {
+        edits = list
+        editStore.save(list)
+        refreshLessons()
     }
 
     fun selectGroup(g: String) {

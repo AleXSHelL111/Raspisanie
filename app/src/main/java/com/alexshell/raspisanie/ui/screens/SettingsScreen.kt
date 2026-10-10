@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -60,6 +64,71 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         item { SectionTitle("Моя группа", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
 
+        val electives = schedule?.electives.orEmpty()
+        if (electives.isNotEmpty()) {
+            item { SectionTitle("Дисциплины по выбору", color = Neon.Lime) }
+            item {
+                NeonCard(accent = Neon.Lime) {
+                    Text(
+                        if (vm.chosenElectives.isEmpty()) "Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все."
+                        else "В расписании только отмеченные дисциплины.",
+                        color = Neon.Muted, fontSize = 13.sp,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    electives.forEach { e ->
+                        val on = e in vm.chosenElectives
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { vm.toggleElective(e) }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(
+                                checked = on,
+                                onCheckedChange = { vm.toggleElective(e) },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Neon.Lime,
+                                    uncheckedColor = Neon.Muted,
+                                    checkmarkColor = Color.Black,
+                                ),
+                            )
+                            Text(
+                                e,
+                                color = if (on) Neon.Lime else Neon.Text,
+                                fontSize = 15.sp,
+                                fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
+                            )
+                        }
+                    }
+                    if (vm.chosenElectives.isNotEmpty()) {
+                        TextButton(onClick = vm::clearElectives) { Text("Показывать все", color = Neon.Cyan) }
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Мои правки расписания", color = Neon.Amber) }
+        item {
+            NeonCard(accent = Neon.Amber) {
+                val n = vm.editsCount()
+                Text(
+                    if (n == 0) "Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя»."
+                    else "Изменённых, добавленных и удалённых занятий: $n",
+                    color = Neon.Text, fontSize = 14.sp,
+                )
+                if (n > 0) {
+                    OutlinedButton(
+                        onClick = vm::resetEdits,
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, Neon.Amber),
+                    ) { Text("Сбросить все правки", color = Neon.Amber, fontWeight = FontWeight.SemiBold) }
+                }
+            }
+        }
+
         item { SectionTitle("Файл расписания", color = Neon.Magenta) }
         item {
             NeonCard(accent = Neon.Magenta) {
@@ -86,7 +155,8 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                         onClick = vm::resetToBuiltIn,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                    ) { Text("Вернуть встроенное", color = Neon.Muted) }
+                        border = BorderStroke(1.dp, Neon.Muted),
+                    ) { Text("Вернуть встроенное", color = Neon.Text) }
                 }
                 Text(
                     "Подходит файл того же формата, что выкладывает учебный отдел. " +

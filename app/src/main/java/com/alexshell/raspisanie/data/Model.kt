@@ -34,6 +34,10 @@ data class Lesson(
     val online: Boolean,
     /** Время отличается от обычного для этого предмета. */
     val specialTime: Boolean,
+    /** Название дисциплины по выбору, если занятие относится к одной из них. */
+    val elective: String? = null,
+    /** Занятие добавлено или изменено вручную (id правки). */
+    val editId: Long? = null,
 ) {
     val start: Int get() = slots.first().start
     val end: Int get() = slots.last().end
@@ -59,6 +63,8 @@ data class Schedule(
     val week1Ranges: List<ClosedRange<LocalDate>>,
     val week2Ranges: List<ClosedRange<LocalDate>>,
     val disciplines: List<DisciplineInfo>,
+    /** Все дисциплины по выбору, найденные в файле. */
+    val electives: List<String> = emptyList(),
 ) {
     /** Номер учебной недели (1 или 2). */
     fun weekType(date: LocalDate): Int {

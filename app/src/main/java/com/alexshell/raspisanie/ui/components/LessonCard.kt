@@ -95,6 +95,7 @@ fun LessonCard(
                     NeonChip(lesson.kind.title, accent)
                     if (lesson.online) NeonChip("онлайн", Neon.Amber)
                     if (lesson.specialTime) NeonChip("другое время", Neon.Amber)
+                    if (lesson.editId != null) NeonChip("изменено", Neon.Amber)
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(

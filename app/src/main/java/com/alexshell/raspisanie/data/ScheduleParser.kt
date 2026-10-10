@@ -29,7 +29,9 @@ object ScheduleParser {
     private val PARITY = Regex("""(?i)(?<!\d)([12])\s*недел[яи]""")
     private val GROUP = Regex("""(?i)группа\s*(\d+)""")
     private val ROOM = Regex("""(?i)(\d+)\s*корпус,?\s*аудитори[яи]\s*(\d+)""")
-    private val SHORT_ROOM = Regex("""(?<![\d.\-]|ссылка |ссылка\s)(\d)-(\d{3})(?!\d)""")
+    private val SHORT_ROOM = Regex("""(?<![\d.]|ссылка |ссылка\s)(\d)-(\d{3})(?!\d)""")
+    private val OPTION_NAME = Regex("""(?<![А-Яа-яЁё.])[А-ЯЁ][а-яё]+(?:\s+[а-яё]+|\s*,\s*[а-яё]+)*""")
+    private val OPTION_TAIL = Regex("""(\s+на\s+кафедре.*|,?\s*гр(?![а-яё]).*)$""")
     private val STREET = Regex("""ул\.\s*[А-ЯЁ][а-яё]+,?\s*\d+[а-я]?""")
     private val DAY_CODES = mapOf(
         "ПН" to DayOfWeek.MONDAY, "ВТ" to DayOfWeek.TUESDAY, "СР" to DayOfWeek.WEDNESDAY,
@@ -126,8 +128,24 @@ object ScheduleParser {
         // --- Таблица дисциплин и кафедр внизу листа ---
         val disciplines = parseDisciplines(sheet)
 
+        // Отдельные строки вроде «Статистические методы ... группа №2» — тоже дисциплины по выбору.
+        val electives = lessons.mapNotNull { it.elective }.distinct()
+        val marked = lessons.map { l ->
+            if (l.elective != null) return@map l
+            val key = normKey(l.subject)
+            val opt = electives.firstOrNull { e ->
+                val ek = normKey(e)
+                ek.length >= 15 && (key.startsWith(ek) || ek.startsWith(key) && key.length >= 15)
+            } ?: return@map l
+            l.copy(
+                subject = opt,
+                elective = opt,
+                kind = if (l.kind == LessonKind.PRACTICE) LessonKind.ELECTIVE else l.kind,
+            )
+        }
+
         // Место проведения для практик берём из таблицы кафедр, если в ячейке его нет.
-        val withPlaces = lessons.map { l ->
+        val withPlaces = marked.map { l ->
             if (l.location != null) l else {
                 val d = tmp.copy(disciplines = disciplines).disciplineFor(l.subject)
                 l.copy(location = d?.department?.let(::placeFromDepartment))
@@ -144,6 +162,7 @@ object ScheduleParser {
             week1Ranges = week1,
             week2Ranges = week2,
             disciplines = disciplines,
+            electives = electives,
         ).also { require(allGroups.isNotEmpty()) }
     }
 
@@ -204,6 +223,50 @@ object ScheduleParser {
         var rest = body.substring(firstDate)
         val details = rest.trim()
 
+        val spec = extractDates(rest, dow, semesterStart, weeks, toDate)
+        val location = locationOf(details)
+
+        // Дисциплина по выбору: раскладываем ячейку на отдельные дисциплины.
+        if (subject.startsWith("Дисциплина по выбору", ignoreCase = true)) {
+            val options = parseElectiveOptions(rest, slots, kind, dow, groups, semesterStart, weeks, toDate, details)
+            if (options.isNotEmpty()) return options
+        }
+
+        return spec.toLessons(slots) { d, own ->
+            Lesson(
+                date = d,
+                slots = own ?: slots,
+                subject = subject,
+                fullSubject = fullSubject,
+                kind = kind,
+                groups = groups,
+                location = location,
+                details = details,
+                online = d in spec.online,
+                specialTime = own != null,
+            )
+        }
+    }
+
+    private class DateSpec(
+        val dates: Set<LocalDate>,
+        val overrides: Map<LocalDate, List<TimeSlot>>,
+        val online: Set<LocalDate>,
+    ) {
+        fun toLessons(slots: List<TimeSlot>, make: (LocalDate, List<TimeSlot>?) -> Lesson): List<Lesson> =
+            dates.sorted().map { make(it, overrides[it]) }
+    }
+
+    /** Достаёт из текста все даты занятия с учётом дня недели и чередования недель. */
+    private fun extractDates(
+        text: String,
+        dow: DayOfWeek,
+        semesterStart: LocalDate,
+        weeks: Schedule,
+        toDate: (String) -> LocalDate?,
+        fallbackToSemester: Boolean = true,
+    ): DateSpec {
+        var rest = text
         val onlineDates = ONLINE.findAll(rest).mapNotNull { toDate(it.groupValues[1]) }.toSet()
         rest = ONLINE.replace(rest) { it.groupValues[1] + " " }
 
@@ -252,27 +315,80 @@ object ScheduleParser {
         }
         dates += overrides.keys
         // Если дат нет вовсе — считаем занятием на весь семестр.
-        if (dates.isEmpty()) addRange(semesterStart, semesterStart.plusMonths(4))
+        if (dates.isEmpty() && fallbackToSemester) addRange(semesterStart, semesterStart.plusMonths(4))
+        return DateSpec(dates, overrides, onlineDates)
+    }
 
-        val location = ROOM.find(details)?.let { m ->
-            val street = STREET.find(details)?.value
+    private fun locationOf(text: String): String? =
+        ROOM.find(text)?.let { m ->
+            val street = STREET.find(text)?.value
             "${m.groupValues[1]} корпус, ауд. ${m.groupValues[2]}" + (street?.let { ", $it" } ?: "")
-        } ?: SHORT_ROOM.find(details)?.let { m -> "${m.groupValues[1]} корпус, ауд. ${m.groupValues[2]}" }
+        } ?: SHORT_ROOM.find(text)?.let { m -> "${m.groupValues[1]} корпус, ауд. ${m.groupValues[2]}" }
 
-        return dates.map { d ->
-            val own = overrides[d]
-            Lesson(
-                date = d,
-                slots = own ?: slots,
-                subject = subject,
-                fullSubject = fullSubject,
-                kind = kind,
-                groups = groups,
-                location = location,
-                details = details,
-                online = d in onlineDates,
-                specialTime = own != null,
-            )
+    /**
+     * Ячейка «Дисциплина по выбору» перечисляет несколько дисциплин через «;».
+     * Даты, стоящие после названия, относятся только к этой дисциплине; остальные даты —
+     * общие для всех. Время и аудитория в той же части тоже относятся к дисциплине.
+     */
+    private fun parseElectiveOptions(
+        rest: String,
+        slots: List<TimeSlot>,
+        kind: LessonKind,
+        dow: DayOfWeek,
+        groups: Set<String>,
+        semesterStart: LocalDate,
+        weeks: Schedule,
+        toDate: (String) -> LocalDate?,
+        details: String,
+    ): List<Lesson> {
+        class Option(val name: String, val own: String, val chunk: String)
+        val options = ArrayList<Option>()
+        val shared = StringBuilder()
+        for (chunk in rest.split(';')) {
+            val names = OPTION_NAME.findAll(chunk).mapNotNull { m ->
+                val name = m.value.replace(OPTION_TAIL, "").trim().trimEnd(',', ' ')
+                val first = name.substringBefore(' ')
+                if (name.length < 9 || first.length < 4 || first.startsWith("Дисциплин")) null
+                else Triple(name, m.range.first, m.range.last + 1)
+            }.toList()
+            if (names.isEmpty()) {
+                shared.append(chunk).append(" ; ")
+                continue
+            }
+            shared.append(chunk.substring(0, names.first().second)).append(" ; ")
+            names.forEachIndexed { i, (name, _, endIdx) ->
+                val ownEnd = names.getOrNull(i + 1)?.second ?: chunk.length
+                options += Option(name, chunk.substring(endIdx, ownEnd), chunk)
+            }
+        }
+        if (options.isEmpty()) return emptyList()
+        val sharedSpec = extractDates(shared.toString(), dow, semesterStart, weeks, toDate)
+        val kindOut = if (kind == LessonKind.LECTURE) LessonKind.LECTURE else LessonKind.ELECTIVE
+        return options.distinctBy { it.name }.flatMap { o ->
+            val ownSpec = extractDates(o.own, dow, semesterStart, weeks, toDate, fallbackToSemester = false)
+            val spec = if (ownSpec.dates.isNotEmpty()) ownSpec else sharedSpec
+            // Своё время дисциплины: интервал времени в её части текста (не диапазон дат).
+            val ownTime = PAIR.findAll(TRIPLE.replace(o.chunk, " ")).firstNotNullOfOrNull { m ->
+                if (isDateLike(m.groupValues[1]) && isDateLike(m.groupValues[2])) null
+                else timeSlot(m.groupValues[1], m.groupValues[2])
+            }
+            val baseSlots = ownTime?.let { listOf(it) } ?: slots
+            val location = locationOf(o.chunk.replace(Regex("""ссылка\s*\d-\d{3}"""), ""))
+            spec.toLessons(baseSlots) { d, own ->
+                Lesson(
+                    date = d,
+                    slots = own ?: baseSlots,
+                    subject = o.name,
+                    fullSubject = o.name,
+                    kind = kindOut,
+                    groups = groups,
+                    location = location,
+                    details = "Дисциплина по выбору. $details",
+                    online = d in spec.online,
+                    specialTime = own != null,
+                    elective = o.name,
+                )
+            }
         }
     }
 
