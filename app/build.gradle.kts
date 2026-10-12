@@ -12,8 +12,8 @@ android {
         applicationId = "com.alexshell.raspisanie"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.8"
+        versionCode = 10
+        versionName = "1.8.1"
     }
 
     // Постоянный ключ, чтобы новые сборки устанавливались поверх старых.
@@ -23,6 +23,10 @@ android {
             storePassword = "neonraspisanie"
             keyAlias = "neon"
             keyPassword = "neonraspisanie"
+            // Все схемы подписи — некоторые установщики (MIUI) капризны к APK только с v2.
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
         }
     }
 
