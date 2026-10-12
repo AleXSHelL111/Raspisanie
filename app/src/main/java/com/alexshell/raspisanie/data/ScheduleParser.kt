@@ -47,6 +47,8 @@ object ScheduleParser {
         parse(XlsxReader.read(input), today)
 
     fun parse(sheet: Sheet, today: LocalDate = LocalDate.now()): Schedule {
+        // Цикловое расписание (столбцы — даты, строки — группы) разбирается отдельно.
+        if (CycleScheduleParser.matches(sheet)) return CycleScheduleParser.parse(sheet, today)
         val all = sheet.cells.values.joinToString("\n") { clean(it) }
 
         // --- Год и начало семестра ---

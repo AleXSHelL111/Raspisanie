@@ -91,7 +91,7 @@ fun WeekScreen(
                         "${monday.dayMonth()} — ${monday.plusDays(6).dayMonth()}",
                         fontSize = 17.sp, fontWeight = FontWeight.Bold,
                     )
-                    vm.schedule?.let {
+                    vm.schedule?.takeIf { it.hasWeekParity }?.let {
                         Text(
                             "${it.weekType(monday)} неделя",
                             color = Neon.Magenta, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,

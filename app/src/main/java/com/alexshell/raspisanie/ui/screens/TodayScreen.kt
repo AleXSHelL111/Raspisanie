@@ -123,7 +123,7 @@ private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: ()
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             vm.group?.let { NeonChip("группа $it", Neon.Cyan) }
-            vm.schedule?.let { NeonChip("${it.weekType(today)} неделя", Neon.Magenta) }
+            vm.schedule?.takeIf { it.hasWeekParity }?.let { NeonChip("${it.weekType(today)} неделя", Neon.Magenta) }
         }
     }
 }

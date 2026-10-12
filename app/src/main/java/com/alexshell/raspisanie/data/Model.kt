@@ -65,6 +65,8 @@ data class Schedule(
     val disciplines: List<DisciplineInfo>,
     /** Все дисциплины по выбору, найденные в файле. */
     val electives: List<String> = emptyList(),
+    /** Есть ли в расписании чередование «1 неделя / 2 неделя». */
+    val hasWeekParity: Boolean = true,
 ) {
     /** Номер учебной недели (1 или 2). */
     fun weekType(date: LocalDate): Int {
