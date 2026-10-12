@@ -50,7 +50,7 @@ Android-приложение в неоновом стиле для распис�
 
 Тот же функционал в одном файле [`web/index.html`](web/index.html) — без сервера и зависимостей: расписание, ДЗ, редактор, темы и потоки хранятся в браузере (localStorage), файл `.xlsx` разбирается прямо на странице.
 
-Сайт публикуется на GitHub Pages workflow-ом `.github/workflows/pages.yml`: **https://alexshell111.github.io/Raspisanie/**. Для своего хостинга (Netlify и т. п.) выкладывается вся папка `web/`: страница, иконки для iOS/Android, `favicon.ico` и `manifest.webmanifest` — сайт можно добавить на главный экран как приложение.
+Сайт публикуется на GitHub Pages workflow-ом `.github/workflows/pages.yml`: **https://alexshell111.github.io/Raspisanie/**. Иконки (в т. ч. для iOS) и манифест вшиты прямо в страницу, поэтому на любой хостинг (Netlify и т. п.) выкладывается один файл `index.html` — и сайт можно добавить на главный экран как приложение.
 
 ## Сборка APK
 
