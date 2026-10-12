@@ -75,7 +75,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import com.alexshell.raspisanie.ui.screens.HomeworkScreen
-import com.alexshell.raspisanie.ui.screens.SettingsScreen
+import com.alexshell.raspisanie.ui.screens.SettingsOverlay
+import com.alexshell.raspisanie.ui.components.NeonCard
+import com.alexshell.raspisanie.ui.theme.Palettes
+import com.alexshell.raspisanie.data.Repository
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import com.alexshell.raspisanie.ui.screens.TodayScreen
 import com.alexshell.raspisanie.ui.screens.WeekScreen
 import com.alexshell.raspisanie.ui.theme.Neon
@@ -92,6 +101,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         Notifier.createChannels(this)
+        // Тема — до первой отрисовки, чтобы не было «мигания» цветов.
+        Neon.palette = Palettes.byId(Repository.prefs(this).getString("theme", null))
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
             NeonTheme {
@@ -141,6 +152,7 @@ private fun App(vm: AppViewModel) {
     }
 
     when {
+        vm.needsFile -> WelcomeImport(vm, launchImport)
         vm.schedule == null && vm.loadError == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = Neon.Cyan)
         }
@@ -149,6 +161,54 @@ private fun App(vm: AppViewModel) {
         }
         vm.group == null -> Onboarding(vm)
         else -> MainScaffold(vm, now, launchImport)
+    }
+}
+
+/** Первый запуск: расписание нужно загрузить самому. */
+@Composable
+private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            "КГМУ\nРАСПИСАНИЕ",
+            fontSize = 40.sp,
+            lineHeight = 44.sp,
+            fontWeight = FontWeight.Black,
+            color = Neon.Cyan,
+            style = TextStyle(shadow = Neon.glow(Neon.Cyan, 36f)),
+        )
+        Spacer(Modifier.height(24.dp))
+        NeonCard(accent = Neon.Magenta, glow = true) {
+            Text("Шаг 1 из 2", color = Neon.Magenta, fontSize = 12.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            Text("Загрузите файл расписания", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, " +
+                    "недели и дисциплины по выбору.",
+                color = Neon.Muted, fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(16.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Violet, Neon.Magenta)))
+                    .clickable(enabled = !vm.importing, onClick = onImport),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (vm.importing) CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
+                else Text("Выбрать файл .xlsx", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Можно также открыть файл из Telegram или проводника через «Открыть с помощью → КГМУ расписание».",
+                color = Neon.Dim, fontSize = 12.sp,
+            )
+        }
     }
 }
 
@@ -177,7 +237,7 @@ private fun Onboarding(vm: AppViewModel) {
         Spacer(Modifier.height(16.dp))
         GroupGrid(vm.schedule?.groups.orEmpty(), null, vm::selectGroup)
         Spacer(Modifier.height(16.dp))
-        Text("Группу можно сменить позже во вкладке «Ещё»", color = Neon.Dim, fontSize = 13.sp)
+        Text("Шаг 2 из 2 · группу можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
     }
 }
 
@@ -263,30 +323,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         exit = slideOutHorizontally { -it } + fadeOut(),
     ) {
         BackHandler { showSettings = false }
-        Box(Modifier.fillMaxSize().background(Neon.Bg)) {
-            NeonBackground {
-                Column(Modifier.fillMaxSize().statusBarsPadding()) {
-                    Row(
-                        Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад") { showSettings = false }
-                        Spacer(Modifier.width(14.dp))
-                        Text(
-                            "Настройки",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Bold,
-                            style = TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
-                        )
-                    }
-                    SettingsScreen(
-                        vm,
-                        PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-                        onImport,
-                    )
-                }
-            }
-        }
+        SettingsOverlay(vm, onImport, onBack = { showSettings = false })
     }
 
     openedLesson?.let {

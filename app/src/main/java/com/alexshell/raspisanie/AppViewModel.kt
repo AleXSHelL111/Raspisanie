@@ -83,11 +83,28 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lessons by mutableStateOf<List<Lesson>>(emptyList())
         private set
 
-    init {
-        reload()
+    /** Файл расписания ещё не загружен — показываем экран загрузки. */
+    var needsFile by mutableStateOf(!importedFile.exists())
+        private set
+    /** Идёт разбор файла. */
+    var importing by mutableStateOf(false)
+        private set
+
+    var themeId by mutableStateOf(prefs.getString("theme", "neon") ?: "neon")
+        private set
+
+    fun setTheme(id: String) {
+        themeId = id
+        prefs.edit().putString("theme", id).apply()
+        com.alexshell.raspisanie.ui.theme.Neon.palette = com.alexshell.raspisanie.ui.theme.Palettes.byId(id)
+        com.alexshell.raspisanie.widget.Widgets.updateAll(getApplication())
     }
 
     private fun reload() {
+        if (!importedFile.exists()) {
+            needsFile = true
+            return
+        }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
@@ -220,6 +237,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Импорт нового файла: сначала проверяем, что он разбирается, затем сохраняем. */
     fun importSchedule(uri: Uri) {
+        importing = true
         viewModelScope.launch {
             val app = getApplication<Application>()
             val result = withContext(Dispatchers.IO) {
@@ -232,21 +250,26 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     parsed
                 }
             }
+            importing = false
             result.onSuccess {
                 schedule = it
+                needsFile = false
+                loadError = null
                 if (group != null && group !in it.groups) group = null
                 refreshLessons()
-                message = "Расписание обновлено: ${it.lessons.size} занятий"
+                message = "Расписание загружено: ${it.lessons.size} занятий"
             }.onFailure {
                 message = "Ошибка импорта: ${it.message}"
             }
         }
     }
 
-    fun resetToBuiltIn() {
+    /** Удалить загруженный файл — приложение снова попросит загрузить расписание. */
+    fun removeSchedule() {
         importedFile.delete()
-        reload()
-        message = "Восстановлено встроенное расписание"
+        schedule = null
+        needsFile = true
+        refreshLessons()
     }
 
     fun lessonsOn(date: LocalDate): List<Lesson> = lessons.filter { it.date == date }
@@ -298,4 +321,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun lessonByKey(key: String): Lesson? = lessons.firstOrNull { it.key == key }
+
+    // Инициализация — в самом конце, когда все свойства уже созданы.
+    init {
+        reload()
+    }
 }

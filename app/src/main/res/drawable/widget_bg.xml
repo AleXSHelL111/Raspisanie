@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Неоновая рамка: градиентный слой + тёмная подложка с отступом 1.5dp -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#CC00E5FF"
+                android:centerColor="#99C77DFF"
+                android:endColor="#CCFF2E97" />
+        </shape>
+    </item>
+    <item
+        android:bottom="1.5dp"
+        android:left="1.5dp"
+        android:right="1.5dp"
+        android:top="1.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="23dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#F2171729"
+                android:endColor="#F207070F" />
+        </shape>
+    </item>
+</layer-list>

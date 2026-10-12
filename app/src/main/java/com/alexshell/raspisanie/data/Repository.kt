@@ -17,8 +17,8 @@ object Repository {
 
     fun loadSchedule(context: Context): Schedule {
         val f = importedFile(context)
-        val stream = if (f.exists()) f.inputStream() else context.assets.open("schedule.xlsx")
-        return stream.use { ScheduleParser.parse(it) }
+        require(f.exists()) { "Расписание ещё не загружено" }
+        return f.inputStream().use { ScheduleParser.parse(it) }
     }
 
     /** Занятия группы с учётом ручных правок и выбранных дисциплин по выбору. */

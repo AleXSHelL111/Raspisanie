@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.PowerManager
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -100,6 +101,7 @@ object Notifier {
     fun reschedule(context: Context) {
         val app = context.applicationContext
         executor.execute { runCatching { scheduleNext(app) } }
+        com.alexshell.raspisanie.widget.Widgets.updateAll(app)
     }
 
     private fun events(s: Settings, lessons: List<Lesson>, hw: List<Homework>, from: LocalDateTime): List<Event> {
@@ -208,7 +210,7 @@ object Notifier {
 
     private fun base(context: Context, channel: String) = NotificationCompat.Builder(context, channel)
         .setSmallIcon(R.drawable.ic_notification)
-        .setColor(0xFF00E5FF.toInt())
+        .setColor(com.alexshell.raspisanie.ui.theme.Palettes.byId(Repository.prefs(context).getString("theme", null)).primary.toArgb())
         .setAutoCancel(true)
         .setContentIntent(openApp(context))
 

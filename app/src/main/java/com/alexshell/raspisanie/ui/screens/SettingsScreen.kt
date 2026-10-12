@@ -34,6 +34,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Brush
+import com.alexshell.raspisanie.ui.components.NeonBackground
+import com.alexshell.raspisanie.ui.components.NeonIconButton
+import com.alexshell.raspisanie.ui.theme.Palettes
 import com.alexshell.raspisanie.AppViewModel
 import com.alexshell.raspisanie.ui.components.NeonCard
 import com.alexshell.raspisanie.ui.components.SectionTitle
@@ -52,6 +69,9 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        item { SectionTitle("Тема оформления", color = Neon.Cyan) }
+        item { ThemePicker(vm.themeId, vm::setTheme) }
+
         item { SectionTitle("Номер группы", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
 
@@ -133,10 +153,6 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                         color = Neon.Muted, fontSize = 13.sp,
                     )
                 }
-                Text(
-                    if (vm.isImported) "Источник: загруженный файл" else "Источник: встроенное расписание",
-                    color = Neon.Muted, fontSize = 13.sp,
-                )
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = onImport,
@@ -144,14 +160,12 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Neon.Magenta, contentColor = Color.Black),
                 ) { Text("Загрузить новый .xlsx", fontWeight = FontWeight.Bold) }
-                if (vm.isImported) {
-                    OutlinedButton(
-                        onClick = vm::resetToBuiltIn,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, Neon.Muted),
-                    ) { Text("Вернуть встроенное", color = Neon.Text) }
-                }
+                OutlinedButton(
+                    onClick = vm::removeSchedule,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Neon.Muted),
+                ) { Text("Удалить расписание", color = Neon.Text) }
                 Text(
                     "Подходит файл того же формата, что выкладывает учебный отдел. " +
                         "Можно также открыть .xlsx из Telegram или проводника через «Открыть с помощью».",
@@ -206,6 +220,171 @@ fun GroupGrid(groups: List<String>, selected: String?, onSelect: (String) -> Uni
                     }
                 }
                 repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+
+/** Сетка тем: кружок-градиент из цветов темы и название. */
+@Composable
+fun ThemePicker(selectedId: String, onSelect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Palettes.all.chunked(4).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { p ->
+                    val sel = p.id == selectedId
+                    val shape = RoundedCornerShape(18.dp)
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .then(if (sel) Modifier.shadow(14.dp, shape, ambientColor = p.primary, spotColor = p.primary) else Modifier)
+                            .clip(shape)
+                            .background(Brush.verticalGradient(listOf(p.surfaceHi, p.bg)))
+                            .border(if (sel) 2.dp else 1.dp, if (sel) p.primary else p.stroke, shape)
+                            .clickable { onSelect(p.id) }
+                            .padding(vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Box(
+                            Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(Brush.sweepGradient(listOf(p.primary, p.tertiary, p.secondary, p.primary)))
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            p.name,
+                            color = if (sel) p.primary else Neon.Text,
+                            fontSize = 11.sp,
+                            fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+/** Экран настроек: шапка, разделы «Общие» и «Профиль». */
+@Composable
+fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) {
+    var section by rememberSaveable { mutableIntStateOf(0) }
+    Box(Modifier.fillMaxSize().background(Neon.Bg)) {
+        NeonBackground {
+            Column(Modifier.fillMaxSize().statusBarsPadding()) {
+                // Шапка: кнопка и заголовок по центру строки, с отступами сверху и снизу.
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 10.dp)
+                        .height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад", onClick = onBack)
+                    Spacer(Modifier.width(14.dp))
+                    Text(
+                        "Настройки",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
+                    )
+                }
+                SegmentedTabs(
+                    items = listOf("Общие" to true, "Профиль 🔒" to true),
+                    selected = section,
+                    onSelect = { section = it },
+                )
+                Box(Modifier.weight(1f)) {
+                    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                    if (section == 0) SettingsScreen(vm, PaddingValues(bottom = bottom), onImport)
+                    else ProfileLocked(bottom)
+                    // Мягкое затухание у верхнего края списка вместо резкого обреза.
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(18.dp)
+                            .background(Brush.verticalGradient(listOf(Neon.Bg.copy(alpha = 0.9f), Color.Transparent)))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SegmentedTabs(items: List<Pair<String, Boolean>>, selected: Int, onSelect: (Int) -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 6.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Neon.Surface)
+            .border(1.dp, Neon.Stroke, shape)
+            .padding(4.dp),
+    ) {
+        items.forEachIndexed { i, (title, _) ->
+            val sel = i == selected
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (sel) Brush.horizontalGradient(listOf(Neon.Cyan.copy(alpha = 0.30f), Neon.Violet.copy(alpha = 0.25f)))
+                        else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                    )
+                    .border(1.dp, if (sel) Neon.Cyan.copy(alpha = 0.7f) else Color.Transparent, RoundedCornerShape(14.dp))
+                    .clickable { onSelect(i) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    title,
+                    color = if (sel) Neon.Cyan else Neon.Muted,
+                    fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 15.sp,
+                )
+            }
+        }
+    }
+}
+
+/** Раздел «Профиль» — пока недоступен. */
+@Composable
+private fun ProfileLocked(bottom: androidx.compose.ui.unit.Dp) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = bottom + 24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        item {
+            NeonCard(accent = Neon.Violet, glow = true) {
+                Text("🔒", fontSize = 36.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("Профиль пока недоступен", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Раздел появится в следующих обновлениях.",
+                    color = Neon.Muted, fontSize = 14.sp,
+                )
+            }
+        }
+        item { SectionTitle("Что здесь будет") }
+        listOf(
+            "Имя и аватар" to "Ваш профиль студента",
+            "Синхронизация" to "Перенос ДЗ и настроек на другой телефон",
+            "Резервная копия" to "Сохранение и восстановление данных",
+        ).forEach { (title, text) ->
+            item {
+                NeonCard(accent = Neon.Stroke) {
+                    Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Neon.Muted)
+                    Text(text, color = Neon.Dim, fontSize = 13.sp)
+                }
             }
         }
     }

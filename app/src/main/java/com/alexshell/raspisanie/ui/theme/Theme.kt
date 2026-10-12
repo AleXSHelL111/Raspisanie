@@ -6,6 +6,9 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -15,23 +18,91 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.data.LessonKind
 
-object Neon {
-    val Bg = Color(0xFF07070F)
-    val Surface = Color(0xFF0F0F1C)
-    val SurfaceHi = Color(0xFF171729)
-    val Stroke = Color(0xFF26263D)
+/** Цветовая тема приложения. */
+data class Palette(
+    val id: String,
+    val name: String,
+    val primary: Color,
+    val secondary: Color,
+    val tertiary: Color,
+    val success: Color,
+    val warning: Color,
+    val bg: Color,
+    val surface: Color,
+    val surfaceHi: Color,
+    val stroke: Color,
+)
 
-    val Cyan = Color(0xFF00E5FF)
-    val Magenta = Color(0xFFFF2E97)
-    val Violet = Color(0xFFC77DFF)
-    val Lime = Color(0xFF39FF88)
-    val Amber = Color(0xFFFFC233)
+object Palettes {
+    val all = listOf(
+        Palette(
+            "neon", "Неон",
+            primary = Color(0xFF00E5FF), secondary = Color(0xFFFF2E97), tertiary = Color(0xFFC77DFF),
+            success = Color(0xFF39FF88), warning = Color(0xFFFFC233),
+            bg = Color(0xFF07070F), surface = Color(0xFF0F0F1C), surfaceHi = Color(0xFF171729), stroke = Color(0xFF26263D),
+        ),
+        Palette(
+            "synthwave", "Синтвейв",
+            primary = Color(0xFFFF4FD8), secondary = Color(0xFFFFB347), tertiary = Color(0xFF9D8CFF),
+            success = Color(0xFF5CFFC8), warning = Color(0xFFFFD166),
+            bg = Color(0xFF0D0618), surface = Color(0xFF170C26), surfaceHi = Color(0xFF221236), stroke = Color(0xFF3A2350),
+        ),
+        Palette(
+            "matrix", "Матрица",
+            primary = Color(0xFF39FF14), secondary = Color(0xFF00FFC6), tertiary = Color(0xFF7DF9FF),
+            success = Color(0xFFC6FF00), warning = Color(0xFFFFE14D),
+            bg = Color(0xFF030A05), surface = Color(0xFF08140B), surfaceHi = Color(0xFF0E1F12), stroke = Color(0xFF1C3523),
+        ),
+        Palette(
+            "sunset", "Закат",
+            primary = Color(0xFFFF8A3D), secondary = Color(0xFFFF3D7F), tertiary = Color(0xFFFFD25E),
+            success = Color(0xFF5CFFB0), warning = Color(0xFFFFE066),
+            bg = Color(0xFF120607), surface = Color(0xFF1C0C0E), surfaceHi = Color(0xFF2A1316), stroke = Color(0xFF45222A),
+        ),
+        Palette(
+            "ice", "Лёд",
+            primary = Color(0xFF6FE3FF), secondary = Color(0xFFA68BFF), tertiary = Color(0xFFB9F3FF),
+            success = Color(0xFF5CFFD1), warning = Color(0xFFFFD166),
+            bg = Color(0xFF050A12), surface = Color(0xFF0B1420), surfaceHi = Color(0xFF12202F), stroke = Color(0xFF22364A),
+        ),
+        Palette(
+            "cyberred", "Кибер-красный",
+            primary = Color(0xFFFF3B5C), secondary = Color(0xFFFF9F1C), tertiary = Color(0xFFFF7AD9),
+            success = Color(0xFF4DFF9A), warning = Color(0xFFFFD23F),
+            bg = Color(0xFF0E0405), surface = Color(0xFF1A0A0C), surfaceHi = Color(0xFF261014), stroke = Color(0xFF41202A),
+        ),
+        Palette(
+            "gold", "Золото",
+            primary = Color(0xFFFFD54F), secondary = Color(0xFFFF8F3F), tertiary = Color(0xFFFFF59D),
+            success = Color(0xFF7CFFB2), warning = Color(0xFFFFB74D),
+            bg = Color(0xFF0B0904), surface = Color(0xFF16120A), surfaceHi = Color(0xFF221C10), stroke = Color(0xFF3A3020),
+        ),
+    )
+
+    fun byId(id: String?): Palette = all.firstOrNull { it.id == id } ?: all.first()
+}
+
+object Neon {
+    /** Текущая тема; смена мгновенно перекрашивает интерфейс. */
+    var palette by mutableStateOf(Palettes.all.first())
+
+    val Bg get() = palette.bg
+    val Surface get() = palette.surface
+    val SurfaceHi get() = palette.surfaceHi
+    val Stroke get() = palette.stroke
+
+    // Названия исторические: Cyan — основной акцент, Magenta — второй, Violet — третий.
+    val Cyan get() = palette.primary
+    val Magenta get() = palette.secondary
+    val Violet get() = palette.tertiary
+    val Lime get() = palette.success
+    val Amber get() = palette.warning
 
     val Text = Color(0xFFF4F4FF)
     val Muted = Color(0xFFB4B4D0)
     val Dim = Color(0xFF8A8AA6)
 
-    val MainGradient = Brush.linearGradient(listOf(Cyan, Violet, Magenta))
+    val MainGradient get() = Brush.linearGradient(listOf(Cyan, Violet, Magenta))
 
     fun kindColor(kind: LessonKind): Color = when (kind) {
         LessonKind.LECTURE -> Violet
@@ -45,7 +116,7 @@ object Neon {
     val Digits = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default)
 }
 
-private val colors = darkColorScheme(
+private fun colors() = darkColorScheme(
     primary = Neon.Cyan,
     onPrimary = Color.Black,
     secondary = Neon.Magenta,
@@ -78,7 +149,7 @@ private val typography = Typography().let { t ->
 
 @Composable
 fun NeonTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = colors, typography = typography) {
+    MaterialTheme(colorScheme = colors(), typography = typography) {
         // Экраны рисуются поверх собственного фона, а не внутри Surface, поэтому
         // явно задаём светлый цвет текста по умолчанию — иначе он был бы чёрным.
         CompositionLocalProvider(LocalContentColor provides Neon.Text, content = content)
