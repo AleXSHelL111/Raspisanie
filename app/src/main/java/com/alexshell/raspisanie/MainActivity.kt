@@ -363,7 +363,11 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         ) { t ->
             val open: (Lesson) -> Unit = { openedLesson = it }
             when (t) {
-                Tab.TODAY -> TodayScreen(vm, now, padding, open, onOpenSettings = { showSettings = true })
+                Tab.TODAY -> TodayScreen(
+                    vm, now, padding, open,
+                    onOpenSettings = { showSettings = true },
+                    onOpenHomework = { tab = Tab.HOMEWORK.ordinal },
+                )
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
                 Tab.GROUP -> GroupScreen(vm, padding)

@@ -47,6 +47,7 @@ fun TodayScreen(
     padding: PaddingValues,
     onLesson: (Lesson) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenHomework: () -> Unit,
 ) {
     val today = now.toLocalDate()
     val todayLessons = vm.lessonsOn(today)
@@ -67,7 +68,10 @@ fun TodayScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item { Column { ClockHeader(vm, now, onOpenSettings) } }
-        item { HeroCard(current, next, now, pendingHw.size, onLesson) }
+        // В карточке пары — только ДЗ именно к этой паре.
+        val heroLesson = current ?: next
+        val heroHw = heroLesson?.let { l -> vm.homeworkFor(l).count { !it.done } } ?: 0
+        item { HeroCard(current, next, now, heroHw, onLesson) }
         if (vm.schedule?.electives?.isNotEmpty() == true && vm.chosenElectives.isEmpty()) {
             item {
                 NeonCard(accent = Neon.Lime, onClick = onOpenSettings) {
@@ -93,6 +97,32 @@ fun TodayScreen(
             items(nextDayLessons, key = { "n" + it.key }) { l ->
                 val hw = vm.homeworkFor(l)
                 LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) })
+            }
+        }
+
+        // Все невыполненные ДЗ — отдельно, внизу экрана.
+        if (pendingHw.isNotEmpty()) {
+            item { SectionTitle("Невыполненные ДЗ · ${pendingHw.size}", color = Neon.Magenta) }
+            item {
+                NeonCard(accent = Neon.Magenta, onClick = onOpenHomework) {
+                    pendingHw.sortedWith(compareBy({ it.dueDate }, { it.dueStart })).take(4).forEachIndexed { i, h ->
+                        if (i > 0) Spacer(Modifier.height(10.dp))
+                        Text(h.subject, color = Neon.Magenta, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            h.text.lineSequence().first(),
+                            color = Neon.Text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "к паре: ${h.dueDate.relative(today)}, ${com.alexshell.raspisanie.data.TimeSlot.fmt(h.dueStart)}",
+                            color = Neon.Muted, fontSize = 12.sp,
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        if (pendingHw.size > 4) "Ещё ${pendingHw.size - 4} → все ДЗ" else "Открыть ДЗ →",
+                        color = Neon.Cyan, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }
@@ -187,7 +217,7 @@ private fun HeroCard(current: Lesson?, next: Lesson?, now: LocalDateTime, pendin
             }
             if (pendingHw > 0) {
                 Spacer(Modifier.height(6.dp))
-                NeonChip("невыполненных ДЗ: $pendingHw", Neon.Magenta)
+                NeonChip("есть ДЗ к этой паре", Neon.Magenta)
             }
         }
 
