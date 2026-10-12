@@ -6,9 +6,19 @@
 <meta name="theme-color" content="#07070c">
 <meta name="description" content="КГМУ расписание — расписание пар, таймеры и домашние задания">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="КГМУ">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="application-name" content="КГМУ расписание">
 <meta name="mobile-web-app-capable" content="yes">
 <title>КГМУ расписание</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 108'%3E%3Crect width='108' height='108' rx='26' fill='%2307070c'/%3E%3Ccircle cx='54' cy='54' r='30' fill='none' stroke='%2300e5ff' stroke-width='5'/%3E%3Cpath d='M54 54V35M54 54l13 8' stroke='%23ff2e97' stroke-width='5.5' stroke-linecap='round'/%3E%3Ccircle cx='54' cy='54' r='4' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167x167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{
   --bg:#07070c;--surface:#101017;--surface-hi:#181822;--stroke:#2a2a36;
@@ -1300,7 +1310,7 @@ function saveLessonForm() {
 let notifTimer = null;
 function notify(title, body) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  try { new Notification(title, { body, icon: document.querySelector('link[rel=icon]').href, tag: title }); } catch (e) {
+  try { new Notification(title, { body, icon: 'icon-192.png', tag: title }); } catch (e) {
     navigator.serviceWorker && navigator.serviceWorker.ready.then((r) => r.showNotification(title, { body }));
   }
 }
