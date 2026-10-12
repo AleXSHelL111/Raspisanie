@@ -201,7 +201,7 @@ object CycleScheduleParser {
                 val from = rangeM?.let { dateOf(it.groupValues[1], it.groupValues[2]) } ?: dates.values.min()
                 val to = rangeM?.let { dateOf(it.groupValues[3], it.groupValues[4]) } ?: lastStudyDay
                 val room = SHORT_ROOM.find(cell)?.let { "${it.groupValues[1]} корпус, ауд. ${it.groupValues[2]}" }
-                val subject = tidyName(d.name.replace(Regex("""(?i)\s*лекции"""), ""))
+                val subject = tidyName(d.name.replace(Regex("""\s*[Лл]екции"""), ""))
                 var day = from
                 while (day.dayOfWeek != dow) day = day.plusDays(1)
                 while (!day.isAfter(minOf(to, lastStudyDay))) {
