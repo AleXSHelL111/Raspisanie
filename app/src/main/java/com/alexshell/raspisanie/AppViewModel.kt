@@ -99,7 +99,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     )
         private set
 
-    fun setThemeMode(m: com.alexshell.raspisanie.ui.theme.ThemeMode) {
+    fun changeThemeMode(m: com.alexshell.raspisanie.ui.theme.ThemeMode) {
         themeMode = m
         prefs.edit().putString("theme_mode", m.name).apply()
         com.alexshell.raspisanie.ui.theme.Neon.mode = m

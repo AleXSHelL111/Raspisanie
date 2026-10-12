@@ -243,7 +243,7 @@ fun ThemePicker(vm: AppViewModel) {
         SegmentedTabs(
             items = ThemeMode.entries.map { it.title to true },
             selected = vm.themeMode.ordinal,
-            onSelect = { vm.setThemeMode(ThemeMode.entries[it]) },
+            onSelect = { vm.changeThemeMode(ThemeMode.entries[it]) },
             horizontalPadding = 0.dp,
         )
         Palettes.all.chunked(4).forEach { row ->
