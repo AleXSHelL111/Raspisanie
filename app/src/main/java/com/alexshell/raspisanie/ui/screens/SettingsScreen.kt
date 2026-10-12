@@ -51,10 +51,6 @@ import androidx.compose.ui.graphics.Brush
 import com.alexshell.raspisanie.ui.components.NeonBackground
 import com.alexshell.raspisanie.ui.components.NeonIconButton
 import com.alexshell.raspisanie.ui.theme.Palettes
-import com.alexshell.raspisanie.ui.components.glassStyle
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.layout.onSizeChanged
@@ -287,18 +283,16 @@ fun ThemePicker(vm: AppViewModel) {
     }
 }
 
-/** Экран настроек: стеклянная шапка, разделы «Общие» и «Профиль». */
+/** Экран настроек: шапка, разделы «Общие» и «Профиль». */
 @Composable
 fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) {
     var section by rememberSaveable { mutableIntStateOf(0) }
-    val hazeState = remember { HazeState() }
     val density = LocalDensity.current
     var headerHeight by remember { mutableStateOf(140.dp) }
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     Box(Modifier.fillMaxSize().background(Neon.Bg)) {
-        // Содержимое прокручивается под шапкой и размывается ею.
-        Box(Modifier.fillMaxSize().haze(hazeState)) {
+        Box(Modifier.fillMaxSize()) {
             NeonBackground {
                 val pad = PaddingValues(top = headerHeight, bottom = bottom)
                 if (section == 0) SettingsScreen(vm, pad, onImport) else ProfileLocked(pad)
@@ -307,8 +301,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
         Column(
             Modifier
                 .fillMaxWidth()
-                .hazeChild(hazeState, glassStyle())
-                .background(Neon.GlassFill)
+                .background(Neon.Bg)
                 .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
                 .statusBarsPadding(),
         ) {
@@ -335,8 +328,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
                 onSelect = { section = it },
             )
             Spacer(Modifier.height(6.dp))
-            // Светящаяся нижняя кромка стеклянной шапки
-            Box(Modifier.fillMaxWidth().height(1.dp).background(Neon.glassEdge(Neon.Cyan)))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Neon.Stroke))
         }
     }
 }
@@ -355,8 +347,8 @@ private fun SegmentedTabs(
             .padding(bottom = 6.dp)
             .fillMaxWidth()
             .clip(shape)
-            .background(Neon.GlassFill)
-            .border(1.dp, Neon.glassEdge(Neon.Cyan), shape)
+            .background(Neon.Surface)
+            .border(1.dp, Neon.Stroke, shape)
             .padding(4.dp),
     ) {
         items.forEachIndexed { i, (title, _) ->

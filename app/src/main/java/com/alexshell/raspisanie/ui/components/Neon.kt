@@ -86,7 +86,7 @@ fun NeonBackground(content: @Composable BoxScope.() -> Unit) {
     )
 }
 
-/** Карточка из «жидкого стекла»: полупрозрачная, с бликом сверху и светящейся кромкой. */
+/** Карточка с неоновой рамкой и цветной тенью. */
 @Composable
 fun NeonCard(
     modifier: Modifier = Modifier,
@@ -97,42 +97,25 @@ fun NeonCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(corner)
+    val border = if (glow) Brush.linearGradient(listOf(accent, Neon.Magenta))
+    else Brush.linearGradient(listOf(accent.copy(alpha = 0.45f), Neon.Stroke, Neon.Stroke))
     Column(
         modifier
             // Все плитки — на всю ширину, независимо от длины текста.
             .fillMaxWidth()
             .then(
-                if (glow) Modifier.shadow(20.dp, shape, ambientColor = accent, spotColor = accent)
-                else if (!Neon.isDark) Modifier.shadow(6.dp, shape, ambientColor = accent.copy(alpha = 0.4f), spotColor = accent.copy(alpha = 0.25f))
+                if (glow) Modifier.shadow(18.dp, shape, ambientColor = accent, spotColor = accent)
+                else if (!Neon.isDark) Modifier.shadow(4.dp, shape, ambientColor = accent.copy(alpha = 0.3f), spotColor = accent.copy(alpha = 0.2f))
                 else Modifier
             )
             .clip(shape)
-            .background(Neon.GlassFill)
-            .glassHighlight(accent)
-            .border(if (glow) 1.5.dp else 1.dp, Neon.glassEdge(accent, strong = glow), shape)
+            .background(Brush.verticalGradient(listOf(Neon.SurfaceHi, Neon.Surface)))
+            .border(if (glow) 1.5.dp else 1.dp, border, shape)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(16.dp),
     ) {
         CompositionLocalProvider(LocalContentColor provides Neon.Text) { content() }
     }
-}
-
-/** Блик стекла: мягкое пятно света в левом верхнем углу и цветной отсвет снизу справа. */
-fun Modifier.glassHighlight(accent: Color): Modifier = drawBehind {
-    drawRect(
-        Brush.radialGradient(
-            listOf(Color.White.copy(alpha = if (Neon.isDark) 0.10f else 0.55f), Color.Transparent),
-            center = Offset(size.width * 0.15f, 0f),
-            radius = size.width * 0.6f,
-        )
-    )
-    drawRect(
-        Brush.radialGradient(
-            listOf(accent.copy(alpha = if (Neon.isDark) 0.10f else 0.07f), Color.Transparent),
-            center = Offset(size.width, size.height),
-            radius = size.width * 0.7f,
-        )
-    )
 }
 
 @Composable
@@ -200,9 +183,8 @@ fun NeonIconButton(
             .size(46.dp)
             .shadow(12.dp, androidx.compose.foundation.shape.CircleShape, ambientColor = color, spotColor = color)
             .clip(androidx.compose.foundation.shape.CircleShape)
-            .background(Neon.GlassFill)
-            .glassHighlight(color)
-            .border(1.dp, Neon.glassEdge(color, strong = true), androidx.compose.foundation.shape.CircleShape)
+            .background(Brush.verticalGradient(listOf(Neon.SurfaceHi, Neon.Surface)))
+            .border(1.dp, Brush.linearGradient(listOf(color, Neon.Violet)), androidx.compose.foundation.shape.CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

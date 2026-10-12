@@ -163,29 +163,6 @@ object Neon {
 
     val MainGradient get() = Brush.linearGradient(listOf(Cyan, Violet, Magenta))
 
-    // ---------- Жидкое стекло ----------
-
-    /** Заливка стеклянной панели: полупрозрачная поверхность + блик сверху. */
-    val GlassFill: Brush
-        get() = if (isDark) Brush.verticalGradient(
-            listOf(Color.White.copy(alpha = 0.12f), Surface.copy(alpha = 0.50f), Surface.copy(alpha = 0.62f))
-        ) else Brush.verticalGradient(
-            listOf(Color.White.copy(alpha = 0.90f), Color.White.copy(alpha = 0.62f), Surface.copy(alpha = 0.72f))
-        )
-
-    /** «Блестящая» кромка стекла: светлая сверху-слева, с отблеском акцента. */
-    fun glassEdge(accent: Color = Cyan, strong: Boolean = false): Brush = Brush.linearGradient(
-        listOf(
-            Color.White.copy(alpha = if (isDark) (if (strong) 0.55f else 0.30f) else 0.95f),
-            accent.copy(alpha = if (strong) 0.70f else 0.30f),
-            Color.White.copy(alpha = if (isDark) 0.05f else 0.5f),
-            accent.copy(alpha = if (strong) 0.45f else 0.15f),
-        )
-    )
-
-    /** Оттенок размытия под стеклом (для панелей с настоящим blur). */
-    val GlassTint: Color get() = if (isDark) Surface.copy(alpha = 0.50f) else Color.White.copy(alpha = 0.55f)
-
     fun kindColor(kind: LessonKind): Color = when (kind) {
         LessonKind.LECTURE -> Violet
         LessonKind.PRACTICE -> Cyan

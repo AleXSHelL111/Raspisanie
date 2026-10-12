@@ -83,8 +83,6 @@ import android.content.res.Configuration
 import android.graphics.Color as AndroidColor
 import android.graphics.drawable.ColorDrawable
 import androidx.activity.SystemBarStyle
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
 import androidx.compose.ui.graphics.toArgb
 import com.alexshell.raspisanie.data.Repository
 import androidx.compose.foundation.clickable
@@ -271,7 +269,6 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
     var addDialog by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
-    val hazeState = remember { HazeState() }
     val snackbar = remember { SnackbarHostState() }
 
     // Android 13+: один раз спрашиваем разрешение на уведомления.
@@ -320,14 +317,10 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                     )
                 },
                 selected = tab,
-                hazeState = hazeState,
                 onSelect = { tab = it },
             )
         },
     ) { padding ->
-        // Всё содержимое — источник для размытия под стеклянной нижней панелью.
-        Box(Modifier.fillMaxSize().haze(hazeState)) {
-        NeonBackground {
         AnimatedContent(
             targetState = Tab.entries[tab],
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -340,8 +333,6 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
                 Tab.GROUP -> GroupScreen(vm, padding)
             }
-        }
-        }
         }
     }
 
