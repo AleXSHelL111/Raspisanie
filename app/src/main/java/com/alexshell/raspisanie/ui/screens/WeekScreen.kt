@@ -178,13 +178,13 @@ private fun DayPill(
     ) {
         Text(
             date.weekdayShort(),
-            color = if (selected) Color.Black else Neon.Muted,
+            color = if (selected) Neon.OnAccent else Neon.Muted,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
             date.dayOfMonth.toString(),
-            color = if (selected) Color.Black else Neon.Text,
+            color = if (selected) Neon.OnAccent else Neon.Text,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -195,7 +195,7 @@ private fun DayPill(
                     Modifier
                         .size(4.dp)
                         .clip(CircleShape)
-                        .background(if (selected) Color.Black else Neon.Magenta)
+                        .background(if (selected) Neon.OnAccent else Neon.Magenta)
                 )
             }
             if (count == 0) Spacer(Modifier.height(4.dp))

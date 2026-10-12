@@ -12,8 +12,8 @@ android {
         applicationId = "com.alexshell.raspisanie"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 6
+        versionName = "1.5"
     }
 
     // Постоянный ключ, чтобы новые сборки устанавливались поверх старых.
@@ -58,6 +58,8 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+    // Настоящее размытие фона под «стеклянными» панелями
+    implementation("dev.chrisbanes.haze:haze:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

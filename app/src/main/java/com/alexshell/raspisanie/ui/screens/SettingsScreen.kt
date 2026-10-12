@@ -51,6 +51,16 @@ import androidx.compose.ui.graphics.Brush
 import com.alexshell.raspisanie.ui.components.NeonBackground
 import com.alexshell.raspisanie.ui.components.NeonIconButton
 import com.alexshell.raspisanie.ui.theme.Palettes
+import com.alexshell.raspisanie.ui.components.glassStyle
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import com.alexshell.raspisanie.ui.theme.ThemeMode
+import com.alexshell.raspisanie.ui.theme.buildScheme
 import com.alexshell.raspisanie.AppViewModel
 import com.alexshell.raspisanie.ui.components.NeonCard
 import com.alexshell.raspisanie.ui.components.SectionTitle
@@ -70,7 +80,7 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item { SectionTitle("Тема оформления", color = Neon.Cyan) }
-        item { ThemePicker(vm.themeId, vm::setTheme) }
+        item { ThemePicker(vm) }
 
         item { SectionTitle("Номер группы", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
@@ -105,7 +115,7 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = Neon.Lime,
                                     uncheckedColor = Neon.Muted,
-                                    checkmarkColor = Color.Black,
+                                    checkmarkColor = Neon.OnAccent,
                                 ),
                             )
                             Text(
@@ -158,7 +168,7 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                     onClick = onImport,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Neon.Magenta, contentColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = Neon.Magenta, contentColor = Neon.OnAccent),
                 ) { Text("Загрузить новый .xlsx", fontWeight = FontWeight.Bold) }
                 OutlinedButton(
                     onClick = vm::removeSchedule,
@@ -212,7 +222,7 @@ fun GroupGrid(groups: List<String>, selected: String?, onSelect: (String) -> Uni
                     ) {
                         Text(
                             g,
-                            color = if (isSel) Color.Black else Neon.Text,
+                            color = if (isSel) Neon.OnAccent else Neon.Text,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
@@ -226,23 +236,31 @@ fun GroupGrid(groups: List<String>, selected: String?, onSelect: (String) -> Uni
 }
 
 
-/** Сетка тем: кружок-градиент из цветов темы и название. */
+/** Режим (тёмная/светлая/системная) и акцентный цвет. */
 @Composable
-fun ThemePicker(selectedId: String, onSelect: (String) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+fun ThemePicker(vm: AppViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SegmentedTabs(
+            items = ThemeMode.entries.map { it.title to true },
+            selected = vm.themeMode.ordinal,
+            onSelect = { vm.setThemeMode(ThemeMode.entries[it]) },
+            horizontalPadding = 0.dp,
+        )
         Palettes.all.chunked(4).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 row.forEach { p ->
-                    val sel = p.id == selectedId
+                    val sel = p.id == vm.themeId
+                    // Цвета акцента так, как они будут выглядеть в текущем режиме.
+                    val sc = buildScheme(p, Neon.isDark)
                     val shape = RoundedCornerShape(18.dp)
                     Column(
                         Modifier
                             .weight(1f)
-                            .then(if (sel) Modifier.shadow(14.dp, shape, ambientColor = p.primary, spotColor = p.primary) else Modifier)
+                            .then(if (sel) Modifier.shadow(14.dp, shape, ambientColor = sc.primary, spotColor = sc.primary) else Modifier)
                             .clip(shape)
-                            .background(Brush.verticalGradient(listOf(p.surfaceHi, p.bg)))
-                            .border(if (sel) 2.dp else 1.dp, if (sel) p.primary else p.stroke, shape)
-                            .clickable { onSelect(p.id) }
+                            .background(Brush.verticalGradient(listOf(sc.surfaceHi, sc.bg)))
+                            .border(if (sel) 2.dp else 1.dp, if (sel) sc.primary else sc.stroke, shape)
+                            .clickable { vm.setTheme(p.id) }
                             .padding(vertical = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -250,12 +268,12 @@ fun ThemePicker(selectedId: String, onSelect: (String) -> Unit) {
                             Modifier
                                 .size(34.dp)
                                 .clip(CircleShape)
-                                .background(Brush.sweepGradient(listOf(p.primary, p.tertiary, p.secondary, p.primary)))
+                                .background(Brush.sweepGradient(listOf(sc.primary, sc.tertiary, sc.secondary, sc.primary)))
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
                             p.name,
-                            color = if (sel) p.primary else Neon.Text,
+                            color = if (sel) sc.primary else sc.text,
                             fontSize = 11.sp,
                             fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
                             maxLines = 1,
@@ -269,63 +287,76 @@ fun ThemePicker(selectedId: String, onSelect: (String) -> Unit) {
     }
 }
 
-/** Экран настроек: шапка, разделы «Общие» и «Профиль». */
+/** Экран настроек: стеклянная шапка, разделы «Общие» и «Профиль». */
 @Composable
 fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) {
     var section by rememberSaveable { mutableIntStateOf(0) }
+    val hazeState = remember { HazeState() }
+    val density = LocalDensity.current
+    var headerHeight by remember { mutableStateOf(140.dp) }
+    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     Box(Modifier.fillMaxSize().background(Neon.Bg)) {
-        NeonBackground {
-            Column(Modifier.fillMaxSize().statusBarsPadding()) {
-                // Шапка: кнопка и заголовок по центру строки, с отступами сверху и снизу.
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 10.dp)
-                        .height(56.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад", onClick = onBack)
-                    Spacer(Modifier.width(14.dp))
-                    Text(
-                        "Настройки",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
-                    )
-                }
-                SegmentedTabs(
-                    items = listOf("Общие" to true, "Профиль 🔒" to true),
-                    selected = section,
-                    onSelect = { section = it },
-                )
-                Box(Modifier.weight(1f)) {
-                    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                    if (section == 0) SettingsScreen(vm, PaddingValues(bottom = bottom), onImport)
-                    else ProfileLocked(bottom)
-                    // Мягкое затухание у верхнего края списка вместо резкого обреза.
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(18.dp)
-                            .background(Brush.verticalGradient(listOf(Neon.Bg.copy(alpha = 0.9f), Color.Transparent)))
-                    )
-                }
+        // Содержимое прокручивается под шапкой и размывается ею.
+        Box(Modifier.fillMaxSize().haze(hazeState)) {
+            NeonBackground {
+                val pad = PaddingValues(top = headerHeight, bottom = bottom)
+                if (section == 0) SettingsScreen(vm, pad, onImport) else ProfileLocked(pad)
             }
+        }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .hazeChild(hazeState, glassStyle())
+                .background(Neon.GlassFill)
+                .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+                .statusBarsPadding(),
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 10.dp)
+                    .height(56.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад", onClick = onBack)
+                Spacer(Modifier.width(14.dp))
+                Text(
+                    "Настройки",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Neon.Text,
+                    style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Violet, 20f)),
+                )
+            }
+            SegmentedTabs(
+                items = listOf("Общие" to true, "Профиль 🔒" to true),
+                selected = section,
+                onSelect = { section = it },
+            )
+            Spacer(Modifier.height(6.dp))
+            // Светящаяся нижняя кромка стеклянной шапки
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Neon.glassEdge(Neon.Cyan)))
         }
     }
 }
 
 @Composable
-private fun SegmentedTabs(items: List<Pair<String, Boolean>>, selected: Int, onSelect: (Int) -> Unit) {
+private fun SegmentedTabs(
+    items: List<Pair<String, Boolean>>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 16.dp,
+) {
     val shape = RoundedCornerShape(18.dp)
     Row(
         Modifier
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = horizontalPadding)
             .padding(bottom = 6.dp)
             .fillMaxWidth()
             .clip(shape)
-            .background(Neon.Surface)
-            .border(1.dp, Neon.Stroke, shape)
+            .background(Neon.GlassFill)
+            .border(1.dp, Neon.glassEdge(Neon.Cyan), shape)
             .padding(4.dp),
     ) {
         items.forEachIndexed { i, (title, _) ->
@@ -356,10 +387,14 @@ private fun SegmentedTabs(items: List<Pair<String, Boolean>>, selected: Int, onS
 
 /** Раздел «Профиль» — пока недоступен. */
 @Composable
-private fun ProfileLocked(bottom: androidx.compose.ui.unit.Dp) {
+private fun ProfileLocked(pad: PaddingValues) {
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = bottom + 24.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp, end = 16.dp,
+            top = pad.calculateTopPadding() + 12.dp,
+            bottom = pad.calculateBottomPadding() + 24.dp,
+        ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {

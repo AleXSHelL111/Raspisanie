@@ -38,12 +38,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.ui.theme.Neon
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeChild
+
+/** Стиль размытия для стеклянных панелей. */
+fun glassStyle() = HazeStyle(Neon.Bg, HazeTint(Neon.GlassTint), 24.dp, 0.05f)
 
 data class NavItem(val title: String, val icon: ImageVector, val badge: Int = 0)
 
 /** Плавающая неоновая панель навигации в стиле карточек приложения. */
 @Composable
-fun NeonBottomBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) {
+fun NeonBottomBar(items: List<NavItem>, selected: Int, hazeState: HazeState? = null, onSelect: (Int) -> Unit) {
     val shape = RoundedCornerShape(28.dp)
     Box(
         Modifier
@@ -54,18 +61,14 @@ fun NeonBottomBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) 
         Row(
             Modifier
                 .fillMaxWidth()
-                .shadow(20.dp, shape, ambientColor = Neon.Violet, spotColor = Neon.Cyan)
+                .shadow(14.dp, shape, ambientColor = Neon.Violet, spotColor = Neon.Cyan)
                 .clip(shape)
-                .background(
-                    Brush.verticalGradient(listOf(Neon.SurfaceHi.copy(alpha = 0.97f), Neon.Surface.copy(alpha = 0.97f)))
-                )
-                .border(
-                    1.dp,
-                    Brush.horizontalGradient(
-                        listOf(Neon.Cyan.copy(alpha = 0.55f), Neon.Violet.copy(alpha = 0.35f), Neon.Magenta.copy(alpha = 0.55f))
-                    ),
-                    shape,
-                )
+                // Жидкое стекло: настоящее размытие того, что под панелью…
+                .then(if (hazeState != null) Modifier.hazeChild(hazeState, glassStyle()) else Modifier)
+                // …плюс блик и светящаяся кромка.
+                .background(Neon.GlassFill)
+                .glassHighlight(Neon.Cyan)
+                .border(1.dp, Neon.glassEdge(Neon.Cyan, strong = true), shape)
                 .padding(horizontal = 6.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
@@ -117,7 +120,7 @@ private fun BarItem(item: NavItem, selected: Boolean, modifier: Modifier, onClic
                 ) {
                     Text(
                         if (item.badge > 9) "9+" else item.badge.toString(),
-                        color = Color.Black,
+                        color = Neon.OnAccent,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )

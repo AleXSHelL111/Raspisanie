@@ -47,7 +47,7 @@ fun HomeworkRow(
                 colors = CheckboxDefaults.colors(
                     checkedColor = Neon.Lime,
                     uncheckedColor = Neon.Magenta,
-                    checkmarkColor = Color.Black,
+                    checkmarkColor = Neon.OnAccent,
                 ),
             )
             Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {

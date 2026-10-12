@@ -4,123 +4,208 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.data.LessonKind
+import kotlin.math.max
+import kotlin.math.min
 
-/** Цветовая тема приложения. */
+/** Акцентные цвета темы (значения для тёмного режима; для светлого вычисляются). */
 data class Palette(
     val id: String,
     val name: String,
     val primary: Color,
     val secondary: Color,
     val tertiary: Color,
-    val success: Color,
-    val warning: Color,
-    val bg: Color,
-    val surface: Color,
-    val surfaceHi: Color,
-    val stroke: Color,
 )
 
 object Palettes {
     val all = listOf(
-        Palette(
-            "neon", "Неон",
-            primary = Color(0xFF00E5FF), secondary = Color(0xFFFF2E97), tertiary = Color(0xFFC77DFF),
-            success = Color(0xFF39FF88), warning = Color(0xFFFFC233),
-            bg = Color(0xFF07070F), surface = Color(0xFF0F0F1C), surfaceHi = Color(0xFF171729), stroke = Color(0xFF26263D),
-        ),
-        Palette(
-            "synthwave", "Синтвейв",
-            primary = Color(0xFFFF4FD8), secondary = Color(0xFFFFB347), tertiary = Color(0xFF9D8CFF),
-            success = Color(0xFF5CFFC8), warning = Color(0xFFFFD166),
-            bg = Color(0xFF0D0618), surface = Color(0xFF170C26), surfaceHi = Color(0xFF221236), stroke = Color(0xFF3A2350),
-        ),
-        Palette(
-            "matrix", "Матрица",
-            primary = Color(0xFF39FF14), secondary = Color(0xFF00FFC6), tertiary = Color(0xFF7DF9FF),
-            success = Color(0xFFC6FF00), warning = Color(0xFFFFE14D),
-            bg = Color(0xFF030A05), surface = Color(0xFF08140B), surfaceHi = Color(0xFF0E1F12), stroke = Color(0xFF1C3523),
-        ),
-        Palette(
-            "sunset", "Закат",
-            primary = Color(0xFFFF8A3D), secondary = Color(0xFFFF3D7F), tertiary = Color(0xFFFFD25E),
-            success = Color(0xFF5CFFB0), warning = Color(0xFFFFE066),
-            bg = Color(0xFF120607), surface = Color(0xFF1C0C0E), surfaceHi = Color(0xFF2A1316), stroke = Color(0xFF45222A),
-        ),
-        Palette(
-            "ice", "Лёд",
-            primary = Color(0xFF6FE3FF), secondary = Color(0xFFA68BFF), tertiary = Color(0xFFB9F3FF),
-            success = Color(0xFF5CFFD1), warning = Color(0xFFFFD166),
-            bg = Color(0xFF050A12), surface = Color(0xFF0B1420), surfaceHi = Color(0xFF12202F), stroke = Color(0xFF22364A),
-        ),
-        Palette(
-            "cyberred", "Кибер-красный",
-            primary = Color(0xFFFF3B5C), secondary = Color(0xFFFF9F1C), tertiary = Color(0xFFFF7AD9),
-            success = Color(0xFF4DFF9A), warning = Color(0xFFFFD23F),
-            bg = Color(0xFF0E0405), surface = Color(0xFF1A0A0C), surfaceHi = Color(0xFF261014), stroke = Color(0xFF41202A),
-        ),
-        Palette(
-            "gold", "Золото",
-            primary = Color(0xFFFFD54F), secondary = Color(0xFFFF8F3F), tertiary = Color(0xFFFFF59D),
-            success = Color(0xFF7CFFB2), warning = Color(0xFFFFB74D),
-            bg = Color(0xFF0B0904), surface = Color(0xFF16120A), surfaceHi = Color(0xFF221C10), stroke = Color(0xFF3A3020),
-        ),
+        Palette("neon", "Неон", Color(0xFF00E5FF), Color(0xFFFF2E97), Color(0xFFB98CFF)),
+        Palette("synthwave", "Синтвейв", Color(0xFFFF4FD8), Color(0xFFFFB347), Color(0xFF9D8CFF)),
+        Palette("sunset", "Закат", Color(0xFFFF8A3D), Color(0xFFFF4D7E), Color(0xFFFFC94D)),
+        Palette("matrix", "Матрица", Color(0xFF3DFF7A), Color(0xFF00E0C6), Color(0xFFB6FF3D)),
+        Palette("ice", "Лёд", Color(0xFF5CD6FF), Color(0xFF9C8CFF), Color(0xFF6FF0D0)),
+        Palette("cyberred", "Кибер-красный", Color(0xFFFF4060), Color(0xFFFF9F1C), Color(0xFFFF7AD9)),
+        Palette("gold", "Золото", Color(0xFFFFCF4D), Color(0xFFFF8F3F), Color(0xFFFFA8C5)),
     )
 
     fun byId(id: String?): Palette = all.firstOrNull { it.id == id } ?: all.first()
 }
 
-object Neon {
-    /** Текущая тема; смена мгновенно перекрашивает интерфейс. */
-    var palette by mutableStateOf(Palettes.all.first())
+enum class ThemeMode(val title: String) { DARK("Тёмная"), LIGHT("Светлая"), SYSTEM("Как в системе") }
 
-    val Bg get() = palette.bg
-    val Surface get() = palette.surface
-    val SurfaceHi get() = palette.surfaceHi
-    val Stroke get() = palette.stroke
+/** Полный набор цветов интерфейса, выведенный из акцента и режима. */
+data class Scheme(
+    val dark: Boolean,
+    val bg: Color,
+    val surface: Color,
+    val surfaceHi: Color,
+    val stroke: Color,
+    val primary: Color,
+    val secondary: Color,
+    val tertiary: Color,
+    val success: Color,
+    val warning: Color,
+    val text: Color,
+    val muted: Color,
+    val dim: Color,
+    val onAccent: Color,
+)
+
+private fun hsl(c: Color): FloatArray {
+    val r = c.red; val g = c.green; val b = c.blue
+    val mx = max(r, max(g, b)); val mn = min(r, min(g, b))
+    val l = (mx + mn) / 2f
+    if (mx == mn) return floatArrayOf(0f, 0f, l)
+    val d = mx - mn
+    val s = if (l > 0.5f) d / (2f - mx - mn) else d / (mx + mn)
+    val h = when (mx) {
+        r -> ((g - b) / d + (if (g < b) 6f else 0f))
+        g -> ((b - r) / d + 2f)
+        else -> ((r - g) / d + 4f)
+    } * 60f
+    return floatArrayOf(h, s, l)
+}
+
+/** Тот же оттенок, но темнее и чуть менее насыщенный — читаемо на светлом фоне. */
+private fun forLight(c: Color, lightness: Float = 0.40f): Color {
+    val v = hsl(c)
+    return Color.hsl(v[0].coerceIn(0f, 359.9f), min(v[1], 0.85f), lightness)
+}
+
+fun buildScheme(p: Palette, dark: Boolean): Scheme = if (dark) {
+    val tint = p.primary
+    val bg = lerp(Color(0xFF07070C), tint, 0.05f)
+    val text = lerp(Color(0xFFF5F5FA), tint, 0.04f)
+    Scheme(
+        dark = true,
+        bg = bg,
+        surface = lerp(Color(0xFF101017), tint, 0.06f),
+        surfaceHi = lerp(Color(0xFF181822), tint, 0.08f),
+        stroke = lerp(Color(0xFF2A2A36), tint, 0.18f),
+        primary = p.primary,
+        secondary = p.secondary,
+        tertiary = p.tertiary,
+        success = lerp(Color(0xFF3DDC97), tint, 0.15f),
+        warning = lerp(Color(0xFFFFC14D), tint, 0.15f),
+        text = text,
+        muted = lerp(text, bg, 0.30f),
+        dim = lerp(text, bg, 0.48f),
+        onAccent = Color(0xFF0A0A10),
+    )
+} else {
+    val tint = p.primary
+    val bg = lerp(Color(0xFFF3F4F8), tint, 0.07f)
+    val text = lerp(Color(0xFF14141C), tint, 0.06f)
+    val primary = forLight(p.primary)
+    Scheme(
+        dark = false,
+        bg = bg,
+        surface = lerp(Color(0xFFFFFFFF), tint, 0.03f),
+        surfaceHi = Color(0xFFFFFFFF),
+        stroke = lerp(Color(0xFFD5D7E2), tint, 0.18f),
+        primary = primary,
+        secondary = forLight(p.secondary, 0.45f),
+        tertiary = forLight(p.tertiary, 0.42f),
+        success = lerp(Color(0xFF12925E), primary, 0.12f),
+        warning = lerp(Color(0xFFB4730F), primary, 0.12f),
+        text = text,
+        muted = lerp(text, bg, 0.36f),
+        dim = lerp(text, bg, 0.52f),
+        onAccent = Color.White,
+    )
+}
+
+object Neon {
+    /** Выбранный акцент и режим. Меняются в настройках — интерфейс перекрашивается сразу. */
+    var palette by mutableStateOf(Palettes.all.first())
+    var mode by mutableStateOf(ThemeMode.DARK)
+    /** Тёмная ли тема в системе (для режима «Как в системе»). */
+    var systemDark by mutableStateOf(true)
+
+    val isDark: Boolean get() = mode == ThemeMode.DARK || (mode == ThemeMode.SYSTEM && systemDark)
+
+    private val schemeState = derivedStateOf { buildScheme(palette, isDark) }
+    val scheme: Scheme get() = schemeState.value
+
+    val Bg get() = scheme.bg
+    val Surface get() = scheme.surface
+    val SurfaceHi get() = scheme.surfaceHi
+    val Stroke get() = scheme.stroke
 
     // Названия исторические: Cyan — основной акцент, Magenta — второй, Violet — третий.
-    val Cyan get() = palette.primary
-    val Magenta get() = palette.secondary
-    val Violet get() = palette.tertiary
-    val Lime get() = palette.success
-    val Amber get() = palette.warning
+    val Cyan get() = scheme.primary
+    val Magenta get() = scheme.secondary
+    val Violet get() = scheme.tertiary
+    val Lime get() = scheme.success
+    val Amber get() = scheme.warning
 
-    val Text = Color(0xFFF4F4FF)
-    val Muted = Color(0xFFB4B4D0)
-    val Dim = Color(0xFF8A8AA6)
+    val Text get() = scheme.text
+    val Muted get() = scheme.muted
+    val Dim get() = scheme.dim
+
+    /** Цвет текста/иконок поверх залитых акцентом элементов. */
+    val OnAccent get() = scheme.onAccent
 
     val MainGradient get() = Brush.linearGradient(listOf(Cyan, Violet, Magenta))
+
+    // ---------- Жидкое стекло ----------
+
+    /** Заливка стеклянной панели: полупрозрачная поверхность + блик сверху. */
+    val GlassFill: Brush
+        get() = if (isDark) Brush.verticalGradient(
+            listOf(Color.White.copy(alpha = 0.12f), Surface.copy(alpha = 0.50f), Surface.copy(alpha = 0.62f))
+        ) else Brush.verticalGradient(
+            listOf(Color.White.copy(alpha = 0.90f), Color.White.copy(alpha = 0.62f), Surface.copy(alpha = 0.72f))
+        )
+
+    /** «Блестящая» кромка стекла: светлая сверху-слева, с отблеском акцента. */
+    fun glassEdge(accent: Color = Cyan, strong: Boolean = false): Brush = Brush.linearGradient(
+        listOf(
+            Color.White.copy(alpha = if (isDark) (if (strong) 0.55f else 0.30f) else 0.95f),
+            accent.copy(alpha = if (strong) 0.70f else 0.30f),
+            Color.White.copy(alpha = if (isDark) 0.05f else 0.5f),
+            accent.copy(alpha = if (strong) 0.45f else 0.15f),
+        )
+    )
+
+    /** Оттенок размытия под стеклом (для панелей с настоящим blur). */
+    val GlassTint: Color get() = if (isDark) Surface.copy(alpha = 0.50f) else Color.White.copy(alpha = 0.55f)
 
     fun kindColor(kind: LessonKind): Color = when (kind) {
         LessonKind.LECTURE -> Violet
         LessonKind.PRACTICE -> Cyan
-        LessonKind.ELECTIVE -> Lime
+        LessonKind.ELECTIVE -> Magenta
     }
 
-    fun glow(color: Color, radius: Float = 18f) = Shadow(color = color.copy(alpha = 0.85f), blurRadius = radius)
+    /** Неоновое свечение текста; в светлой теме — мягкое. */
+    fun glow(color: Color, radius: Float = 18f) =
+        if (isDark) Shadow(color = color.copy(alpha = 0.85f), blurRadius = radius)
+        else Shadow(color = color.copy(alpha = 0.22f), blurRadius = radius * 0.6f)
 
     /** Цифры одинаковой ширины — таймеры не «прыгают». */
     val Digits = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default)
 }
 
-private fun colors() = darkColorScheme(
+private fun colors() = if (Neon.isDark) darkColorScheme(
     primary = Neon.Cyan,
-    onPrimary = Color.Black,
+    onPrimary = Neon.OnAccent,
     secondary = Neon.Magenta,
-    onSecondary = Color.Black,
+    onSecondary = Neon.OnAccent,
     tertiary = Neon.Violet,
     background = Neon.Bg,
     onBackground = Neon.Text,
@@ -135,6 +220,29 @@ private fun colors() = darkColorScheme(
     outline = Neon.Stroke,
     outlineVariant = Neon.Stroke,
     error = Neon.Magenta,
+    inverseSurface = Neon.Text,
+    inverseOnSurface = Neon.Bg,
+) else lightColorScheme(
+    primary = Neon.Cyan,
+    onPrimary = Neon.OnAccent,
+    secondary = Neon.Magenta,
+    onSecondary = Neon.OnAccent,
+    tertiary = Neon.Violet,
+    background = Neon.Bg,
+    onBackground = Neon.Text,
+    surface = Neon.Surface,
+    onSurface = Neon.Text,
+    surfaceVariant = Neon.Bg,
+    onSurfaceVariant = Neon.Muted,
+    surfaceContainer = Neon.Surface,
+    surfaceContainerHigh = Neon.SurfaceHi,
+    surfaceContainerHighest = Neon.SurfaceHi,
+    surfaceContainerLow = Neon.Surface,
+    outline = Neon.Stroke,
+    outlineVariant = Neon.Stroke,
+    error = Neon.Magenta,
+    inverseSurface = Neon.Text,
+    inverseOnSurface = Neon.Bg,
 )
 
 private val typography = Typography().let { t ->
@@ -151,7 +259,7 @@ private val typography = Typography().let { t ->
 fun NeonTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colors(), typography = typography) {
         // Экраны рисуются поверх собственного фона, а не внутри Surface, поэтому
-        // явно задаём светлый цвет текста по умолчанию — иначе он был бы чёрным.
+        // явно задаём цвет текста по умолчанию.
         CompositionLocalProvider(LocalContentColor provides Neon.Text, content = content)
     }
 }

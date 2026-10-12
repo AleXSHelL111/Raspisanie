@@ -183,7 +183,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 enabled = text.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Neon.Cyan, contentColor = Color.Black),
+                colors = ButtonDefaults.buttonColors(containerColor = Neon.Cyan, contentColor = Neon.OnAccent),
             ) {
                 Icon(Icons.Filled.Add, null)
                 Spacer(Modifier.padding(4.dp))

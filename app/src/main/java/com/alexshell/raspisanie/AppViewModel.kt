@@ -93,6 +93,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var themeId by mutableStateOf(prefs.getString("theme", "neon") ?: "neon")
         private set
 
+    var themeMode by mutableStateOf(
+        runCatching { com.alexshell.raspisanie.ui.theme.ThemeMode.valueOf(prefs.getString("theme_mode", null) ?: "DARK") }
+            .getOrDefault(com.alexshell.raspisanie.ui.theme.ThemeMode.DARK)
+    )
+        private set
+
+    fun setThemeMode(m: com.alexshell.raspisanie.ui.theme.ThemeMode) {
+        themeMode = m
+        prefs.edit().putString("theme_mode", m.name).apply()
+        com.alexshell.raspisanie.ui.theme.Neon.mode = m
+    }
+
     fun setTheme(id: String) {
         themeId = id
         prefs.edit().putString("theme", id).apply()

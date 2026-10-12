@@ -78,6 +78,14 @@ import com.alexshell.raspisanie.ui.screens.HomeworkScreen
 import com.alexshell.raspisanie.ui.screens.SettingsOverlay
 import com.alexshell.raspisanie.ui.components.NeonCard
 import com.alexshell.raspisanie.ui.theme.Palettes
+import com.alexshell.raspisanie.ui.theme.ThemeMode
+import android.content.res.Configuration
+import android.graphics.Color as AndroidColor
+import android.graphics.drawable.ColorDrawable
+import androidx.activity.SystemBarStyle
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import androidx.compose.ui.graphics.toArgb
 import com.alexshell.raspisanie.data.Repository
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -102,9 +110,23 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         Notifier.createChannels(this)
         // Тема — до первой отрисовки, чтобы не было «мигания» цветов.
-        Neon.palette = Palettes.byId(Repository.prefs(this).getString("theme", null))
+        val prefs = Repository.prefs(this)
+        Neon.palette = Palettes.byId(prefs.getString("theme", null))
+        Neon.mode = runCatching { ThemeMode.valueOf(prefs.getString("theme_mode", null) ?: "DARK") }
+            .getOrDefault(ThemeMode.DARK)
+        Neon.systemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
+            // Цвет иконок статус-бара и фон окна — под текущую тему.
+            val dark = Neon.isDark
+            val bg = Neon.Bg
+            LaunchedEffect(dark, bg) {
+                val style = if (dark) SystemBarStyle.dark(AndroidColor.TRANSPARENT)
+                else SystemBarStyle.light(AndroidColor.TRANSPARENT, AndroidColor.TRANSPARENT)
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+                window.setBackgroundDrawable(ColorDrawable(bg.toArgb()))
+            }
             NeonTheme {
                 NeonBackground { App(vm) }
             }
@@ -200,8 +222,8 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
                     .clickable(enabled = !vm.importing, onClick = onImport),
                 contentAlignment = Alignment.Center,
             ) {
-                if (vm.importing) CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
-                else Text("Выбрать файл .xlsx", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (vm.importing) CircularProgressIndicator(color = Neon.OnAccent, modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
+                else Text("Выбрать файл .xlsx", color = Neon.OnAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(Modifier.height(10.dp))
             Text(
@@ -249,6 +271,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
     var addDialog by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    val hazeState = remember { HazeState() }
     val snackbar = remember { SnackbarHostState() }
 
     // Android 13+: один раз спрашиваем разрешение на уведомления.
@@ -277,7 +300,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 FloatingActionButton(
                     onClick = { addDialog = true },
                     containerColor = Neon.Magenta,
-                    contentColor = Color.Black,
+                    contentColor = Neon.OnAccent,
                 ) { Icon(Icons.Filled.Add, "Добавить ДЗ") }
             }
         },
@@ -297,10 +320,14 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                     )
                 },
                 selected = tab,
+                hazeState = hazeState,
                 onSelect = { tab = it },
             )
         },
     ) { padding ->
+        // Всё содержимое — источник для размытия под стеклянной нижней панелью.
+        Box(Modifier.fillMaxSize().haze(hazeState)) {
+        NeonBackground {
         AnimatedContent(
             targetState = Tab.entries[tab],
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -313,6 +340,8 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
                 Tab.GROUP -> GroupScreen(vm, padding)
             }
+        }
+        }
         }
     }
 

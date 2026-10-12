@@ -171,7 +171,7 @@ private fun ToggleRow(text: String, checked: Boolean, onChange: (Boolean) -> Uni
             checked = checked,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.Black,
+                checkedThumbColor = Neon.OnAccent,
                 checkedTrackColor = Neon.Cyan,
                 uncheckedThumbColor = Neon.Muted,
                 uncheckedTrackColor = Neon.SurfaceHi,

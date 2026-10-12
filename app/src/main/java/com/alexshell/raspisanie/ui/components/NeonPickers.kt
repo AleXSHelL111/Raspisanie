@@ -101,7 +101,7 @@ private fun NeonDialogFrame(
                         .clickable(onClick = onConfirm)
                         .padding(horizontal = 22.dp, vertical = 10.dp)
                 ) {
-                    Text("Готово", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Готово", color = Neon.OnAccent, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -158,7 +158,7 @@ fun NeonTimePickerDialog(
                         .clickable { minute = m }
                         .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
-                    Text(":%02d".format(m), color = if (sel) Color.Black else Neon.Magenta, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(":%02d".format(m), color = if (sel) Neon.OnAccent else Neon.Magenta, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -309,7 +309,7 @@ private fun DayCell(date: LocalDate, isSelected: Boolean, isToday: Boolean, hasM
         Text(
             date.dayOfMonth.toString(),
             color = when {
-                isSelected -> Color.Black
+                isSelected -> Neon.OnAccent
                 date.dayOfWeek == DayOfWeek.SUNDAY -> Neon.Magenta.copy(alpha = 0.85f)
                 else -> Neon.Text
             },
@@ -323,7 +323,7 @@ private fun DayCell(date: LocalDate, isSelected: Boolean, isToday: Boolean, hasM
                     .padding(bottom = 4.dp)
                     .size(4.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) Color.Black else Neon.Violet)
+                    .background(if (isSelected) Neon.OnAccent else Neon.Violet)
             )
         }
     }

@@ -239,7 +239,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Neon.Cyan,
-                    contentColor = Color.Black,
+                    contentColor = Neon.OnAccent,
                     disabledContainerColor = Neon.Stroke,
                     disabledContentColor = Neon.Muted,
                 ),
@@ -299,7 +299,7 @@ private fun SwitchRow(text: String, checked: Boolean, onChange: (Boolean) -> Uni
             checked = checked,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.Black,
+                checkedThumbColor = Neon.OnAccent,
                 checkedTrackColor = Neon.Cyan,
                 uncheckedThumbColor = Neon.Muted,
                 uncheckedTrackColor = Neon.SurfaceHi,
