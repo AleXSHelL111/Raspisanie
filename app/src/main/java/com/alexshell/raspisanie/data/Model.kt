@@ -36,6 +36,8 @@ data class Lesson(
     val specialTime: Boolean,
     /** Название дисциплины по выбору, если занятие относится к одной из них. */
     val elective: String? = null,
+    /** Номер потока, если занятие только для одного потока (лекции, физкультура). */
+    val stream: Int? = null,
     /** Занятие добавлено или изменено вручную (id правки). */
     val editId: Long? = null,
 ) {
@@ -46,7 +48,7 @@ data class Lesson(
     val timeText: String get() = "${TimeSlot.fmt(start)}–${TimeSlot.fmt(end)}"
 
     /** Стабильный ключ занятия (для привязки домашних заданий). */
-    val key: String get() = "$subject|$date|$start|${kind.name}"
+    val key: String get() = "$subject|$date|$start|${kind.name}" + (stream?.let { "|s$it" } ?: "")
 }
 
 data class DisciplineInfo(
@@ -67,6 +69,8 @@ data class Schedule(
     val electives: List<String> = emptyList(),
     /** Есть ли в расписании чередование «1 неделя / 2 неделя». */
     val hasWeekParity: Boolean = true,
+    /** Потоки, если часть занятий зависит от потока (пусто — выбор не нужен). */
+    val streams: List<Int> = emptyList(),
 ) {
     /** Номер учебной недели (1 или 2). */
     fun weekType(date: LocalDate): Int {

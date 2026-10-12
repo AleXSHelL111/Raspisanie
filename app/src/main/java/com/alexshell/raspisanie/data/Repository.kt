@@ -22,12 +22,20 @@ object Repository {
     }
 
     /** Занятия группы с учётом ручных правок и выбранных дисциплин по выбору. */
-    fun lessonsFor(sch: Schedule, group: String, edits: List<LessonEdit>, chosenElectives: Set<String>): List<Lesson> {
+    fun lessonsFor(
+        sch: Schedule,
+        group: String,
+        edits: List<LessonEdit>,
+        chosenElectives: Set<String>,
+        stream: Int? = null,
+    ): List<Lesson> {
         val chosen = chosenElectives.filter { it in sch.electives }.toSet()
         val mine = edits.filter { it.group == group }
         val replaced = mine.mapNotNull { it.origKey }.toSet()
         return (sch.lessonsFor(group).filter { it.key !in replaced } + mine.mapNotNull { it.lesson })
             .filter { it.elective == null || chosen.isEmpty() || it.elective in chosen }
+            // Занятия чужого потока скрываем; пока поток не выбран — показываем все.
+            .filter { it.stream == null || stream == null || it.stream == stream }
             .distinctBy { it.key }
             .sortedWith(compareBy({ it.date }, { it.start }, { it.end }))
     }
@@ -41,6 +49,7 @@ object Repository {
             sch, group,
             EditStore(context).load(),
             p.getStringSet("electives", emptySet()).orEmpty(),
+            p.getInt("stream", 0).takeIf { it > 0 },
         )
         val hw = HomeworkStore(context).load().filter { it.group == group }
         return lessons to hw

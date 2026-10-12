@@ -80,6 +80,10 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
 
         item { SectionTitle("Номер группы", color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
+        if (!schedule?.streams.isNullOrEmpty()) {
+            item { SectionTitle("Поток", color = Neon.Cyan) }
+            item { StreamPicker(schedule!!.streams, vm.stream, vm::selectStream) }
+        }
 
         item { SectionTitle("Уведомления", color = Neon.Cyan) }
         item { NotificationsCard(vm) }
@@ -412,6 +416,42 @@ private fun ProfileLocked(pad: PaddingValues) {
                     Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Neon.Muted)
                     Text(text, color = Neon.Dim, fontSize = 13.sp)
                 }
+            }
+        }
+    }
+}
+
+
+/** Выбор потока: от него зависят лекции и физкультура. */
+@Composable
+fun StreamPicker(streams: List<Int>, selected: Int?, onSelect: (Int) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        streams.forEach { n ->
+            val isSel = n == selected
+            val shape = RoundedCornerShape(18.dp)
+            Column(
+                Modifier
+                    .weight(1f)
+                    .then(if (isSel) Modifier.shadow(16.dp, shape, ambientColor = Neon.Cyan, spotColor = Neon.Cyan) else Modifier)
+                    .clip(shape)
+                    .background(if (isSel) Brush.verticalGradient(listOf(Neon.Cyan, Neon.Cyan)) else Brush.verticalGradient(listOf(Neon.SurfaceHi, Neon.Surface)))
+                    .border(1.dp, if (isSel) Neon.Cyan else Neon.Stroke, shape)
+                    .clickable { onSelect(n) }
+                    .padding(vertical = 18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    "$n",
+                    color = if (isSel) Neon.OnAccent else Neon.Text,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    "поток",
+                    color = if (isSel) Neon.OnAccent else Neon.Muted,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
         }
     }

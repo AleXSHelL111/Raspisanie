@@ -138,7 +138,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val g = group
         val sch = schedule
         lessons = if (g == null || sch == null) emptyList()
-        else Repository.lessonsFor(sch, g, edits, chosenElectives)
+        else Repository.lessonsFor(sch, g, edits, chosenElectives, stream)
         // Любое изменение расписания/ДЗ/настроек — пересчитываем ближайшее уведомление.
         Notifier.reschedule(getApplication())
     }
@@ -240,6 +240,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         editStore.save(list)
         refreshLessons()
     }
+
+    /** Выбранный поток (null — не выбран). */
+    var stream by mutableStateOf(prefs.getInt("stream", 0).takeIf { it > 0 })
+        private set
+
+    fun selectStream(s: Int) {
+        stream = s
+        prefs.edit().putInt("stream", s).apply()
+        refreshLessons()
+    }
+
+    /** Нужно ли спросить поток: в расписании есть потоки, а выбранного среди них нет. */
+    val needsStream: Boolean
+        get() = schedule?.streams?.let { it.isNotEmpty() && stream !in it } == true
 
     fun selectGroup(g: String) {
         group = g

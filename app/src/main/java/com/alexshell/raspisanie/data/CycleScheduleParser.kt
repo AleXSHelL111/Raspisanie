@@ -185,8 +185,6 @@ object CycleScheduleParser {
         }
 
         // --- Лекции и физкультура по потокам ---
-        val half = (groups.size + 1) / 2
-        val streams = mapOf(1 to groups.take(half).toSet(), 2 to groups.drop(half).toSet())
         for (d in discs) {
             val isLecture = d.name.contains("лекци", true)
             val isSport = d.name.contains("физическ", true)
@@ -215,7 +213,8 @@ object CycleScheduleParser {
                         subject = ScheduleParser.shortName(subject),
                         fullSubject = subject,
                         kind = if (isLecture) LessonKind.LECTURE else LessonKind.ELECTIVE,
-                        groups = streams.getValue(stream).ifEmpty { groups.toSet() },
+                        groups = groups.toSet(),
+                        stream = stream,
                         location = listOfNotNull(room, d.address.ifBlank { null }).joinToString(", ").ifBlank { d.place.ifBlank { null } },
                         details = "$stream поток",
                         online = false,
@@ -256,6 +255,7 @@ object CycleScheduleParser {
             },
             electives = emptyList(),
             hasWeekParity = false,
+            streams = lessons.mapNotNull { it.stream }.distinct().sorted(),
         )
     }
 

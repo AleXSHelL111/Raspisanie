@@ -58,6 +58,7 @@ import com.alexshell.raspisanie.ui.components.NeonBottomBar
 import com.alexshell.raspisanie.notify.Notifier
 import com.alexshell.raspisanie.ui.screens.AddHomeworkDialog
 import com.alexshell.raspisanie.ui.screens.GroupGrid
+import com.alexshell.raspisanie.ui.screens.StreamPicker
 import com.alexshell.raspisanie.ui.screens.GroupScreen
 import com.alexshell.raspisanie.ui.components.NeonIconButton
 import androidx.activity.compose.BackHandler
@@ -180,6 +181,7 @@ private fun App(vm: AppViewModel) {
             Text(vm.loadError.orEmpty(), color = Neon.Magenta, textAlign = TextAlign.Center)
         }
         vm.group == null -> Onboarding(vm)
+        vm.needsStream -> StreamOnboarding(vm)
         else -> MainScaffold(vm, now, launchImport)
     }
 }
@@ -201,7 +203,7 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
         )
         Spacer(Modifier.height(24.dp))
         NeonCard(accent = Neon.Magenta, glow = true) {
-            Text("Шаг 1 из 2", color = Neon.Magenta, fontSize = 12.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+            Text("Начало работы", color = Neon.Magenta, fontSize = 12.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
             Text("Загрузите файл расписания", fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
@@ -232,6 +234,39 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
     }
 }
 
+/** Шаг после выбора группы — если в расписании есть занятия по потокам. */
+@Composable
+private fun StreamOnboarding(vm: AppViewModel) {
+    Column(
+        Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            "КГМУ\nРАСПИСАНИЕ",
+            fontSize = 40.sp,
+            lineHeight = 44.sp,
+            fontWeight = FontWeight.Black,
+            color = Neon.Cyan,
+            style = TextStyle(shadow = Neon.glow(Neon.Cyan, 36f)),
+        )
+        Spacer(Modifier.height(32.dp))
+        Text(
+            "Выберите свой поток",
+            fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Magenta,
+            style = TextStyle(shadow = Neon.glow(Neon.Magenta, 16f)),
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "Группа ${vm.group}. От потока зависят дни лекций и физкультуры.",
+            color = Neon.Muted, fontSize = 14.sp,
+        )
+        Spacer(Modifier.height(16.dp))
+        StreamPicker(vm.schedule?.streams.orEmpty(), vm.stream, vm::selectStream)
+        Spacer(Modifier.height(16.dp))
+        Text("Поток можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
+    }
+}
+
 @Composable
 private fun Onboarding(vm: AppViewModel) {
     Column(
@@ -257,7 +292,7 @@ private fun Onboarding(vm: AppViewModel) {
         Spacer(Modifier.height(16.dp))
         GroupGrid(vm.schedule?.groups.orEmpty(), null, vm::selectGroup)
         Spacer(Modifier.height(16.dp))
-        Text("Шаг 2 из 2 · группу можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
+        Text("Группу можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
     }
 }
 
