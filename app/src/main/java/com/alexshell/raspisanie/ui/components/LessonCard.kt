@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.components
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,10 +93,10 @@ fun LessonCard(
             )
             Column(Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    NeonChip(lesson.kind.title, accent)
-                    if (lesson.online) NeonChip("онлайн", Neon.Amber)
-                    if (lesson.specialTime) NeonChip("другое время", Neon.Amber)
-                    if (lesson.editId != null) NeonChip("изменено", Neon.Amber)
+                    NeonChip(tr(lesson.kind.title), accent)
+                    if (lesson.online) NeonChip(tr("онлайн"), Neon.Amber)
+                    if (lesson.specialTime) NeonChip(tr("другое время"), Neon.Amber)
+                    if (lesson.editId != null) NeonChip(tr("изменено"), Neon.Amber)
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -122,7 +123,7 @@ fun LessonCard(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            if (homeworkPending) "Есть ДЗ к этой паре ($homeworkCount)" else "ДЗ выполнено",
+                            if (homeworkPending) "Есть ДЗ к этой паре ($homeworkCount)" else tr("ДЗ выполнено"),
                             color = if (homeworkPending) Neon.Magenta else Neon.Lime,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -137,7 +138,7 @@ fun LessonCard(
                         NeonProgress(passed / total, color = accent)
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "идёт · до конца ${Duration.between(now, lesson.endAt).timer()}",
+                            tr("идёт · до конца {0}", Duration.between(now, lesson.endAt).timer()),
                             style = Neon.Digits,
                             color = accent,
                             fontSize = 13.sp,
@@ -145,7 +146,7 @@ fun LessonCard(
                         )
                     }
                     LessonState.SOON -> Text(
-                        "начало через ${Duration.between(now, lesson.startAt).timer()}",
+                        tr("начало через {0}", Duration.between(now, lesson.startAt).timer()),
                         modifier = Modifier.padding(top = 6.dp),
                         style = TextStyle(fontFeatureSettings = "tnum"),
                         color = Neon.Cyan,

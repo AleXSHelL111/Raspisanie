@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.components
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,9 +76,9 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 .imePadding()
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                NeonChip(lesson.kind.title, accent, filled = true)
-                if (lesson.online) NeonChip("онлайн", Neon.Amber)
-                if (lesson.specialTime) NeonChip("другое время", Neon.Amber)
+                NeonChip(tr(lesson.kind.title), accent, filled = true)
+                if (lesson.online) NeonChip(tr("онлайн"), Neon.Amber)
+                if (lesson.specialTime) NeonChip(tr("другое время"), Neon.Amber)
             }
             Spacer(Modifier.height(10.dp))
             Text(
@@ -97,13 +98,13 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
 
             if (lesson.editId != null) {
                 Spacer(Modifier.height(6.dp))
-                NeonChip("изменено вручную", Neon.Amber)
+                NeonChip(tr("изменено вручную"), Neon.Amber)
             }
-            InfoRow("Где", lesson.location)
-            InfoRow("Дисциплина по выбору", lesson.elective?.takeIf { it != lesson.subject } ?: lesson.elective?.let { "да" })
-            InfoRow("Кафедра / база", discipline?.department?.takeIf { it != lesson.location })
-            InfoRow("Аттестация", discipline?.attestation)
-            InfoRow("Из расписания", lesson.details.takeIf { it.isNotBlank() })
+            InfoRow(tr("Где"), lesson.location)
+            InfoRow(tr("Дисциплина по выбору"), lesson.elective?.takeIf { it != lesson.subject } ?: lesson.elective?.let { tr("да") })
+            InfoRow(tr("Кафедра / база"), discipline?.department?.takeIf { it != lesson.location })
+            InfoRow(tr("Аттестация"), discipline?.attestation)
+            InfoRow(tr("Из расписания"), lesson.details.takeIf { it.isNotBlank() })
 
             Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedButton(
@@ -114,7 +115,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 ) {
                     Icon(Icons.Filled.Edit, null, tint = Neon.Cyan)
                     Spacer(Modifier.width(6.dp))
-                    Text("Изменить", color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
+                    Text(tr("Изменить"), color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
                 }
                 OutlinedButton(
                     onClick = { confirmDelete = true },
@@ -124,21 +125,21 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 ) {
                     Icon(Icons.Filled.Delete, null, tint = Neon.Magenta)
                     Spacer(Modifier.width(6.dp))
-                    Text("Удалить", color = Neon.Magenta, fontWeight = FontWeight.SemiBold)
+                    Text(tr("Удалить"), color = Neon.Magenta, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             // --- Домашние задания, привязанные к этой паре ---
             val hw = vm.homeworkFor(lesson)
             if (hw.isNotEmpty()) {
-                SectionTitle("ДЗ к этой паре", color = Neon.Magenta)
+                SectionTitle(tr("ДЗ к этой паре"), color = Neon.Magenta)
                 hw.forEach { h ->
                     HomeworkRow(h, onToggle = { vm.toggleDone(h.id) }, onDelete = { vm.deleteHomework(h.id) })
                     Spacer(Modifier.height(8.dp))
                 }
             }
 
-            SectionTitle("Добавить домашнее задание", color = Neon.Cyan)
+            SectionTitle(tr("Добавить домашнее задание"), color = Neon.Cyan)
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -147,14 +148,14 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                     FilterChip(
                         selected = toNext,
                         onClick = { toNext = true },
-                        label = { Text("К след. паре: ${next.date.weekdayShort()}, ${next.date.dayMonth()}") },
+                        label = { Text(tr("К след. паре: {0}", "${next.date.weekdayShort()}, ${next.date.dayMonth()}")) },
                         colors = chipColors(),
                     )
                 }
                 FilterChip(
                     selected = !toNext || next == null,
                     onClick = { toNext = false },
-                    label = { Text("К этой паре") },
+                    label = { Text(tr("К этой паре")) },
                     colors = chipColors(),
                 )
             }
@@ -163,7 +164,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Например: выучить тему 5, решить задачи 1–10") },
+                placeholder = { Text(tr("Например: выучить тему 5, решить задачи 1–10")) },
                 minLines = 2,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -177,7 +178,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 onClick = {
                     val target = if (toNext && next != null) next else lesson
                     vm.addHomework(target, text)
-                    vm.message = "ДЗ добавлено на ${target.date.weekdayShort()}, ${target.date.dayMonth()}"
+                    vm.message = tr("ДЗ добавлено на {0}", "${target.date.weekdayShort()}, ${target.date.dayMonth()}")
                     text = ""
                 },
                 enabled = text.isNotBlank(),
@@ -187,7 +188,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
             ) {
                 Icon(Icons.Filled.Add, null)
                 Spacer(Modifier.padding(4.dp))
-                Text("Сохранить ДЗ", fontWeight = FontWeight.Bold)
+                Text(tr("Сохранить ДЗ"), fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -200,11 +201,10 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
             containerColor = Neon.SurfaceHi,
             titleContentColor = Neon.Text,
             textContentColor = Neon.Muted,
-            title = { Text("Удалить занятие?") },
+            title = { Text(tr("Удалить занятие?")) },
             text = {
                 Text(
-                    if (similar > 1) "Можно удалить только эту пару или все такие пары «${lesson.subject}» " +
-                        "(${lesson.date.weekdayShort().lowercase()}, ${lesson.timeText}) — их $similar."
+                    if (similar > 1) tr("Можно удалить только эту пару или все такие пары «{0}» ({1}) — их {2}.", lesson.subject, "${lesson.date.weekdayShort().lowercase()}, ${lesson.timeText}", similar)
                     else "«${lesson.subject}», ${lesson.date.dayMonth()}"
                 )
             },
@@ -212,13 +212,13 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
                     TextButton(onClick = {
                         vm.deleteLesson(lesson, applyAll = false); confirmDelete = false; onDismiss()
-                    }) { Text("Только эту", color = Neon.Magenta, fontWeight = FontWeight.Bold) }
+                    }) { Text(tr("Только эту"), color = Neon.Magenta, fontWeight = FontWeight.Bold) }
                     if (similar > 1) {
                         TextButton(onClick = {
                             vm.deleteLesson(lesson, applyAll = true); confirmDelete = false; onDismiss()
-                        }) { Text("Все такие ($similar)", color = Neon.Magenta, fontWeight = FontWeight.Bold) }
+                        }) { Text(tr("Все такие ({0})", similar), color = Neon.Magenta, fontWeight = FontWeight.Bold) }
                     }
-                    TextButton(onClick = { confirmDelete = false }) { Text("Отмена", color = Neon.Muted) }
+                    TextButton(onClick = { confirmDelete = false }) { Text(tr("Отмена"), color = Neon.Muted) }
                 }
             },
         )

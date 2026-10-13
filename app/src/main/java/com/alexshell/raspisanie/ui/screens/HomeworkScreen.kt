@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -63,30 +64,30 @@ fun HomeworkScreen(vm: AppViewModel, now: LocalDateTime, padding: PaddingValues,
     ) {
         item {
             Text(
-                "Домашние задания",
+                tr("Домашние задания"),
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Magenta, 20f)),
                 modifier = Modifier.padding(top = 8.dp, start = 4.dp),
             )
             Text(
-                "Нажмите на пару в расписании или «+», чтобы добавить ДЗ к следующей паре",
+                tr("Нажмите на пару в расписании или «+», чтобы добавить ДЗ к следующей паре"),
                 color = Neon.Muted, fontSize = 13.sp, modifier = Modifier.padding(start = 4.dp, top = 2.dp),
             )
         }
         if (all.isEmpty()) {
             item {
                 NeonCard(accent = Neon.Violet) {
-                    Text("Пока пусто", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
-                    Text("Все задания будут здесь — с обратным отсчётом до пары", color = Neon.Muted)
+                    Text(tr("Пока пусто"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
+                    Text(tr("Все задания будут здесь — с обратным отсчётом до пары"), color = Neon.Muted)
                 }
             }
         }
-        if (upcoming.isNotEmpty()) item { SectionTitle("Предстоящие · ${upcoming.size}", color = Neon.Cyan) }
+        if (upcoming.isNotEmpty()) item { SectionTitle(tr("Предстоящие · {0}", upcoming.size), color = Neon.Cyan) }
         items(upcoming, key = { it.id }) { h -> HwItem(h, vm, now, onLesson) }
-        if (overdue.isNotEmpty()) item { SectionTitle("Пара уже прошла · ${overdue.size}", color = Neon.Amber) }
+        if (overdue.isNotEmpty()) item { SectionTitle(tr("Пара уже прошла · {0}", overdue.size), color = Neon.Amber) }
         items(overdue, key = { it.id }) { h -> HwItem(h, vm, now, onLesson) }
-        if (done.isNotEmpty()) item { SectionTitle("Выполнено · ${done.size}", color = Neon.Lime) }
+        if (done.isNotEmpty()) item { SectionTitle(tr("Выполнено · {0}", done.size), color = Neon.Lime) }
         items(done, key = { it.id }) { h -> HwItem(h, vm, now, onLesson) }
     }
 }
@@ -97,8 +98,8 @@ private fun HwItem(h: Homework, vm: AppViewModel, now: LocalDateTime, onLesson: 
     val left = Duration.between(now, due)
     val footer = when {
         h.done -> "${h.dueDate.relative(now.toLocalDate())}, ${TimeSlot.fmt(h.dueStart)}"
-        left.isNegative -> "пара была ${h.dueDate.relative(now.toLocalDate()).lowercase()}"
-        else -> "${h.dueDate.relative(now.toLocalDate())}, ${TimeSlot.fmt(h.dueStart)} · через ${left.humanize()}"
+        left.isNegative -> tr("пара была {0}", h.dueDate.relative(now.toLocalDate()).lowercase())
+        else -> "${h.dueDate.relative(now.toLocalDate())}, ${TimeSlot.fmt(h.dueStart)} · " + tr("через {0}", left.humanize())
     }
     val urgent = !h.done && !left.isNegative && left.toHours() < 24
     HomeworkRow(
@@ -124,7 +125,7 @@ fun AddHomeworkDialog(vm: AppViewModel, now: LocalDateTime, onDismiss: () -> Uni
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Neon.SurfaceHi,
-        title = { Text(if (subject == null) "Предмет" else subject!!, fontWeight = FontWeight.Bold) },
+        title = { Text(if (subject == null) tr("Предмет") else subject!!, fontWeight = FontWeight.Bold) },
         text = {
             if (subject == null) {
                 Column(
@@ -146,8 +147,8 @@ fun AddHomeworkDialog(vm: AppViewModel, now: LocalDateTime, onDismiss: () -> Uni
             } else {
                 Column {
                     Text(
-                        target?.let { "К следующей паре: ${it.date.weekdayShort()}, ${it.date.dayMonth()}, ${it.timeText}" }
-                            ?: "Будущих пар по предмету нет",
+                        target?.let { tr("К следующей паре: {0}", "${it.date.weekdayShort()}, ${it.date.dayMonth()}, ${it.timeText}") }
+                            ?: tr("Будущих пар по предмету нет"),
                         color = if (target != null) Neon.Cyan else Neon.Amber,
                         fontSize = 13.sp,
                     )
@@ -155,7 +156,7 @@ fun AddHomeworkDialog(vm: AppViewModel, now: LocalDateTime, onDismiss: () -> Uni
                         value = text,
                         onValueChange = { text = it },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                        placeholder = { Text("Что задали?") },
+                        placeholder = { Text(tr("Что задали?")) },
                         minLines = 3,
                         shape = RoundedCornerShape(14.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -174,16 +175,16 @@ fun AddHomeworkDialog(vm: AppViewModel, now: LocalDateTime, onDismiss: () -> Uni
                     onClick = {
                         target?.let {
                             vm.addHomework(it, text)
-                            vm.message = "ДЗ добавлено на ${it.date.weekdayShort()}, ${it.date.dayMonth()}"
+                            vm.message = tr("ДЗ добавлено на {0}", "${it.date.weekdayShort()}, ${it.date.dayMonth()}")
                         }
                         onDismiss()
                     },
-                ) { Text("Сохранить", color = Neon.Cyan, fontWeight = FontWeight.Bold) }
+                ) { Text(tr("Сохранить"), color = Neon.Cyan, fontWeight = FontWeight.Bold) }
             }
         },
         dismissButton = {
             TextButton(onClick = { if (subject != null) subject = null else onDismiss() }) {
-                Text(if (subject != null) "Назад" else "Отмена", color = Neon.Muted)
+                Text(if (subject != null) tr("Назад") else tr("Отмена"), color = Neon.Muted)
             }
         },
     )

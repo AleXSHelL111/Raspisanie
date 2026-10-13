@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -75,27 +76,27 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item { SectionTitle("Тема оформления", color = Neon.Cyan) }
+        item { SectionTitle(tr("Тема оформления"), color = Neon.Cyan) }
         item { ThemePicker(vm) }
 
-        item { SectionTitle("Номер группы", color = Neon.Cyan) }
+        item { SectionTitle(tr("Номер группы"), color = Neon.Cyan) }
         item { GroupGrid(schedule?.groups.orEmpty(), vm.group, vm::selectGroup) }
         if (!schedule?.streams.isNullOrEmpty()) {
-            item { SectionTitle("Поток", color = Neon.Cyan) }
+            item { SectionTitle(tr("Поток"), color = Neon.Cyan) }
             item { StreamPicker(schedule!!.streams, vm.stream, vm::selectStream) }
         }
 
-        item { SectionTitle("Уведомления", color = Neon.Cyan) }
+        item { SectionTitle(tr("Уведомления"), color = Neon.Cyan) }
         item { NotificationsCard(vm) }
 
         val electives = schedule?.electives.orEmpty()
         if (electives.isNotEmpty()) {
-            item { SectionTitle("Дисциплины по выбору", color = Neon.Lime) }
+            item { SectionTitle(tr("Дисциплины по выбору"), color = Neon.Lime) }
             item {
                 NeonCard(accent = Neon.Lime) {
                     Text(
-                        if (vm.chosenElectives.isEmpty()) "Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все."
-                        else "В расписании только отмеченные дисциплины.",
+                        if (vm.chosenElectives.isEmpty()) tr("Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.")
+                        else tr("В расписании только отмеченные дисциплины."),
                         color = Neon.Muted, fontSize = 13.sp,
                     )
                     Spacer(Modifier.height(8.dp))
@@ -127,19 +128,19 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                         }
                     }
                     if (vm.chosenElectives.isNotEmpty()) {
-                        TextButton(onClick = vm::clearElectives) { Text("Показывать все", color = Neon.Cyan) }
+                        TextButton(onClick = vm::clearElectives) { Text(tr("Показывать все"), color = Neon.Cyan) }
                     }
                 }
             }
         }
 
-        item { SectionTitle("Мои правки расписания", color = Neon.Amber) }
+        item { SectionTitle(tr("Мои правки расписания"), color = Neon.Amber) }
         item {
             NeonCard(accent = Neon.Amber) {
                 val n = vm.editsCount()
                 Text(
-                    if (n == 0) "Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя»."
-                    else "Изменённых, добавленных и удалённых занятий: $n",
+                    if (n == 0) tr("Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя».")
+                    else tr("Изменённых, добавленных и удалённых занятий: {0}", n),
                     color = Neon.Text, fontSize = 14.sp,
                 )
                 if (n > 0) {
@@ -148,18 +149,18 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(1.dp, Neon.Amber),
-                    ) { Text("Сбросить все правки", color = Neon.Amber, fontWeight = FontWeight.SemiBold) }
+                    ) { Text(tr("Сбросить все правки"), color = Neon.Amber, fontWeight = FontWeight.SemiBold) }
                 }
             }
         }
 
-        item { SectionTitle("Файл расписания", color = Neon.Magenta) }
+        item { SectionTitle(tr("Файл расписания"), color = Neon.Magenta) }
         item {
             NeonCard(accent = Neon.Magenta) {
                 Text(schedule?.title ?: "—", fontWeight = FontWeight.SemiBold)
                 schedule?.let {
                     Text(
-                        "Начало семестра: ${it.semesterStart.dayMonth()} ${it.semesterStart.year} · занятий: ${it.lessons.size}",
+                        tr("Начало семестра: {0} · занятий: {1}", "${it.semesterStart.dayMonth()} ${it.semesterStart.year}", it.lessons.size),
                         color = Neon.Muted, fontSize = 13.sp,
                     )
                 }
@@ -169,23 +170,22 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Neon.Magenta, contentColor = Neon.OnAccent),
-                ) { Text("Загрузить новый .xlsx", fontWeight = FontWeight.Bold) }
+                ) { Text(tr("Загрузить новый .xlsx"), fontWeight = FontWeight.Bold) }
                 OutlinedButton(
                     onClick = vm::removeSchedule,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(1.dp, Neon.Muted),
-                ) { Text("Удалить расписание", color = Neon.Text) }
+                ) { Text(tr("Удалить расписание"), color = Neon.Text) }
                 Text(
-                    "Подходит файл того же формата, что выкладывает учебный отдел. " +
-                        "Можно также открыть .xlsx из Telegram или проводника через «Открыть с помощью».",
+                    tr("Подходит файл того же формата, что выкладывает учебный отдел. Можно также открыть .xlsx из Telegram или проводника через «Открыть с помощью»."),
                     color = Neon.Dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp),
                 )
             }
         }
 
         if (!schedule?.disciplines.isNullOrEmpty()) {
-            item { SectionTitle("Дисциплины и кафедры", color = Neon.Violet) }
+            item { SectionTitle(tr("Дисциплины и кафедры"), color = Neon.Violet) }
             schedule!!.disciplines.distinctBy { it.name }.forEach { d ->
                 item {
                     NeonCard(accent = Neon.Violet, corner = 18.dp) {
@@ -241,7 +241,7 @@ fun GroupGrid(groups: List<String>, selected: String?, onSelect: (String) -> Uni
 fun ThemePicker(vm: AppViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SegmentedTabs(
-            items = ThemeMode.entries.map { it.title to true },
+            items = ThemeMode.entries.map { tr(it.title) to true },
             selected = vm.themeMode.ordinal,
             onSelect = { vm.changeThemeMode(ThemeMode.entries[it]) },
             horizontalPadding = 0.dp,
@@ -272,7 +272,7 @@ fun ThemePicker(vm: AppViewModel) {
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            p.name,
+                            tr(p.name),
                             color = if (sel) sc.primary else sc.text,
                             fontSize = 11.sp,
                             fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
@@ -316,10 +316,10 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
                     .height(56.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Назад", onClick = onBack)
+                NeonIconButton(Icons.AutoMirrored.Filled.ArrowBack, tr("Назад"), onClick = onBack)
                 Spacer(Modifier.width(14.dp))
                 Text(
-                    "Настройки",
+                    tr("Настройки"),
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = Neon.Text,
@@ -327,7 +327,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
                 )
             }
             SegmentedTabs(
-                items = listOf("Общие" to true, "Профиль 🔒" to true),
+                items = listOf(tr("Общие") to true, tr("Профиль 🔒") to true),
                 selected = section,
                 onSelect = { section = it },
             )
@@ -397,19 +397,19 @@ private fun ProfileLocked(pad: PaddingValues) {
             NeonCard(accent = Neon.Violet, glow = true) {
                 Text("🔒", fontSize = 36.sp)
                 Spacer(Modifier.height(8.dp))
-                Text("Профиль пока недоступен", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
+                Text(tr("Профиль пока недоступен"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Раздел появится в следующих обновлениях.",
+                    tr("Раздел появится в следующих обновлениях."),
                     color = Neon.Muted, fontSize = 14.sp,
                 )
             }
         }
-        item { SectionTitle("Что здесь будет") }
+        item { SectionTitle(tr("Что здесь будет")) }
         listOf(
-            "Имя и аватар" to "Ваш профиль студента",
-            "Синхронизация" to "Перенос ДЗ и настроек на другой телефон",
-            "Резервная копия" to "Сохранение и восстановление данных",
+            tr("Имя и аватар") to tr("Ваш профиль студента"),
+            tr("Синхронизация") to tr("Перенос ДЗ и настроек на другой телефон"),
+            tr("Резервная копия") to tr("Сохранение и восстановление данных"),
         ).forEach { (title, text) ->
             item {
                 NeonCard(accent = Neon.Stroke) {
@@ -447,7 +447,7 @@ fun StreamPicker(streams: List<Int>, selected: Int?, onSelect: (Int) -> Unit) {
                     fontWeight = FontWeight.Black,
                 )
                 Text(
-                    "поток",
+                    tr("поток"),
                     color = if (isSel) Neon.OnAccent else Neon.Muted,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,

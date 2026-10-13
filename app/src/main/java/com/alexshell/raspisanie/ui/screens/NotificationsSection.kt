@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import com.alexshell.raspisanie.ui.tr
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -49,7 +50,7 @@ fun NotificationsCard(vm: AppViewModel) {
     var pickEvening by remember { mutableStateOf(false) }
     if (pickEvening) {
         NeonTimePickerDialog(
-            title = "Вечерние напоминания",
+            title = tr("Вечерние напоминания"),
             initial = n.eveningAt,
             onDismiss = { pickEvening = false },
             onConfirm = { vm.updateNotif(n.copy(eveningAt = it)); pickEvening = false },
@@ -60,9 +61,9 @@ fun NotificationsCard(vm: AppViewModel) {
         // --- Разрешения ---
         PermissionRow(
             ok = vm.canNotify,
-            okText = "Уведомления разрешены",
-            badText = "Уведомления выключены",
-            action = "Включить",
+            okText = tr("Уведомления разрешены"),
+            badText = tr("Уведомления выключены"),
+            action = tr("Включить"),
         ) {
             context.startActivity(
                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -71,9 +72,9 @@ fun NotificationsCard(vm: AppViewModel) {
         }
         PermissionRow(
             ok = vm.batteryUnrestricted,
-            okText = "Работа в фоне разрешена",
-            badText = "Система может «усыплять» напоминания",
-            action = "Разрешить",
+            okText = tr("Работа в фоне разрешена"),
+            badText = tr("Система может «усыплять» напоминания"),
+            action = tr("Разрешить"),
         ) {
             val direct = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
             runCatching { context.startActivity(direct) }.onFailure {
@@ -83,9 +84,9 @@ fun NotificationsCard(vm: AppViewModel) {
         if (Build.VERSION.SDK_INT >= 31) {
             PermissionRow(
                 ok = vm.canExact,
-                okText = "Точные напоминания включены",
-                badText = "Напоминания могут опаздывать",
-                action = "Включить",
+                okText = tr("Точные напоминания включены"),
+                badText = tr("Напоминания могут опаздывать"),
+                action = tr("Включить"),
             ) {
                 runCatching {
                     context.startActivity(
@@ -98,7 +99,7 @@ fun NotificationsCard(vm: AppViewModel) {
         Divider()
 
         // --- Перед парой ---
-        ToggleRow("Перед началом пары", n.beforeLesson) { vm.updateNotif(n.copy(beforeLesson = it)) }
+        ToggleRow(tr("Перед началом пары"), n.beforeLesson) { vm.updateNotif(n.copy(beforeLesson = it)) }
         if (n.beforeLesson) {
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(bottom = 4.dp),
@@ -108,7 +109,7 @@ fun NotificationsCard(vm: AppViewModel) {
                     FilterChip(
                         selected = n.leadMinutes == m,
                         onClick = { vm.updateNotif(n.copy(leadMinutes = m)) },
-                        label = { Text(if (m == 60) "за 1 час" else "за $m мин") },
+                        label = { Text(if (m == 60) tr("за 1 час") else tr("за {0} мин", m)) },
                         colors = chipColors(),
                     )
                 }
@@ -116,15 +117,15 @@ fun NotificationsCard(vm: AppViewModel) {
         }
 
         // --- Вечером ---
-        ToggleRow("Пары на завтра (вечером)", n.evening) { vm.updateNotif(n.copy(evening = it)) }
-        ToggleRow("Невыполненное ДЗ на завтра", n.homework) { vm.updateNotif(n.copy(homework = it)) }
+        ToggleRow(tr("Пары на завтра (вечером)"), n.evening) { vm.updateNotif(n.copy(evening = it)) }
+        ToggleRow(tr("Невыполненное ДЗ на завтра"), n.homework) { vm.updateNotif(n.copy(homework = it)) }
         if (n.evening || n.homework) {
             OutlinedButton(
                 onClick = { pickEvening = true },
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 shape = RoundedCornerShape(14.dp),
                 border = BorderStroke(1.dp, Neon.Cyan.copy(alpha = 0.6f)),
-            ) { Text("Вечерние напоминания в ${TimeSlot.fmt(n.eveningAt)}", color = Neon.Text) }
+            ) { Text(tr("Вечерние напоминания в {0}", TimeSlot.fmt(n.eveningAt)), color = Neon.Text) }
         }
 
         Divider()
@@ -133,10 +134,9 @@ fun NotificationsCard(vm: AppViewModel) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             border = BorderStroke(1.dp, Neon.Magenta),
-        ) { Text("Проверить уведомление", color = Neon.Magenta, fontWeight = FontWeight.SemiBold) }
+        ) { Text(tr("Проверить уведомление"), color = Neon.Magenta, fontWeight = FontWeight.SemiBold) }
         Text(
-            "На Xiaomi, Huawei, Honor и Samsung дополнительно включите «Автозапуск» и уберите " +
-                "ограничения батареи для приложения в настройках телефона — иначе система может блокировать напоминания.",
+            tr("На Xiaomi, Huawei, Honor и Samsung дополнительно включите «Автозапуск» и уберите ограничения батареи для приложения в настройках телефона — иначе система может блокировать напоминания."),
             color = Neon.Dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp),
         )
     }

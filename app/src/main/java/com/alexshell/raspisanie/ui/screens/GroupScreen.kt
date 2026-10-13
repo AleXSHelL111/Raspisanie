@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,10 +32,10 @@ private data class Planned(val emoji: String, val title: String, val text: Strin
 @Composable
 fun GroupScreen(vm: AppViewModel, padding: PaddingValues) {
     val planned = listOf(
-        Planned("👥", "Одногруппники", "Список группы и контакты старосты", Neon.Cyan),
-        Planned("📝", "Общие ДЗ", "Задания, которые видит вся группа", Neon.Magenta),
-        Planned("📣", "Объявления", "Переносы пар и новости от старосты", Neon.Violet),
-        Planned("📊", "Посещаемость", "Отметки о пропусках и отработках", Neon.Lime),
+        Planned("👥", tr("Одногруппники"), tr("Список группы и контакты старосты"), Neon.Cyan),
+        Planned("📝", tr("Общие ДЗ"), tr("Задания, которые видит вся группа"), Neon.Magenta),
+        Planned("📣", tr("Объявления"), tr("Переносы пар и новости от старосты"), Neon.Violet),
+        Planned("📊", tr("Посещаемость"), tr("Отметки о пропусках и отработках"), Neon.Lime),
     )
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -47,7 +48,7 @@ fun GroupScreen(vm: AppViewModel, padding: PaddingValues) {
     ) {
         item {
             Text(
-                "Моя группа",
+                tr("Моя группа"),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(shadow = Neon.glow(Neon.Cyan, 22f)),
@@ -57,7 +58,7 @@ fun GroupScreen(vm: AppViewModel, padding: PaddingValues) {
         item {
             NeonCard(accent = Neon.Cyan, glow = true) {
                 Text(
-                    "Группа ${vm.group.orEmpty()}",
+                    tr("Группа {0}", vm.group.orEmpty()),
                     fontSize = 34.sp,
                     fontWeight = FontWeight.Black,
                     color = Neon.Cyan,
@@ -65,15 +66,15 @@ fun GroupScreen(vm: AppViewModel, padding: PaddingValues) {
                 )
                 Text(vm.schedule?.title.orEmpty(), color = Neon.Muted, fontSize = 13.sp)
                 Spacer(Modifier.height(10.dp))
-                NeonChip("скоро", Neon.Magenta, filled = true)
+                NeonChip(tr("скоро"), Neon.Magenta, filled = true)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Раздел в разработке — здесь появятся функции для всей группы.",
+                    tr("Раздел в разработке — здесь появятся функции для всей группы."),
                     color = Neon.Text, fontSize = 14.sp,
                 )
             }
         }
-        item { SectionTitle("Что будет") }
+        item { SectionTitle(tr("Что будет")) }
         items(planned) { (emoji, title, text, color) ->
             NeonCard(accent = color) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

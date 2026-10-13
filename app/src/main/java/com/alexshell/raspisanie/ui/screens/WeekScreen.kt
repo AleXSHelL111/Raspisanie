@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.screens
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -84,7 +85,7 @@ fun WeekScreen(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { selectedEpoch = selected.minusWeeks(1).toEpochDay() }) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Предыдущая неделя", tint = Neon.Cyan)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, tr("Предыдущая неделя"), tint = Neon.Cyan)
                 }
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -93,14 +94,14 @@ fun WeekScreen(
                     )
                     vm.schedule?.takeIf { it.hasWeekParity }?.let {
                         Text(
-                            "${it.weekType(monday)} неделя",
+                            tr("{0} неделя", it.weekType(monday)),
                             color = Neon.Magenta, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                             style = androidx.compose.ui.text.TextStyle(shadow = Neon.glow(Neon.Magenta, 12f)),
                         )
                     }
                 }
                 IconButton(onClick = { selectedEpoch = selected.plusWeeks(1).toEpochDay() }) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Следующая неделя", tint = Neon.Cyan)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, tr("Следующая неделя"), tint = Neon.Cyan)
                 }
             }
         }
@@ -120,8 +121,25 @@ fun WeekScreen(
         }
         if (selected != today) {
             item {
-                TextButton(onClick = { selectedEpoch = today.toEpochDay() }) {
-                    Text("↺ к сегодняшнему дню", color = Neon.Cyan)
+                // Заметная неоновая кнопка возврата к сегодняшнему дню.
+                val shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
+                androidx.compose.foundation.layout.Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                        .shadow(14.dp, shape, ambientColor = Neon.Cyan, spotColor = Neon.Violet)
+                        .clip(shape)
+                        .background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Violet)))
+                        .clickable { selectedEpoch = today.toEpochDay() }
+                        .padding(vertical = 14.dp),
+                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                ) {
+                    Text(
+                        "↺  " + tr("К сегодняшнему дню"),
+                        color = Neon.OnAccent,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontSize = 16.sp,
+                    )
                 }
             }
         }
@@ -131,8 +149,8 @@ fun WeekScreen(
         if (dayLessons.isEmpty()) {
             item {
                 NeonCard(accent = Neon.Lime) {
-                    Text("Выходной ✨", color = Neon.Lime, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("В этот день занятий нет", color = Neon.Muted)
+                    Text(tr("Выходной ✨"), color = Neon.Lime, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(tr("В этот день занятий нет"), color = Neon.Muted)
                 }
             }
         }
@@ -149,7 +167,7 @@ fun WeekScreen(
             ) {
                 Icon(Icons.Filled.Add, null, tint = Neon.Cyan)
                 Spacer(Modifier.width(8.dp))
-                Text("Добавить занятие на ${selected.weekdayShort().lowercase()}, ${selected.dayMonth()}", color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
+                Text(tr("Добавить занятие на {0}", "${selected.weekdayShort().lowercase()}, ${selected.dayMonth()}"), color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
             }
         }
     }

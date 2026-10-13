@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.notify
 
+import com.alexshell.raspisanie.ui.tr
 import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
@@ -153,6 +154,7 @@ object Notifier {
 
     /** Будильник сработал: показать всё, что накопилось с прошлого раза, и запланировать дальше. */
     fun onAlarm(context: Context) {
+        com.alexshell.raspisanie.ui.I18n.init(context)
         val p = Repository.prefs(context)
         val now = LocalDateTime.now()
         val nowMs = System.currentTimeMillis()
@@ -179,16 +181,16 @@ object Notifier {
     fun createChannels(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
-            NotificationChannel(CH_LESSON, "Перед парой", NotificationManager.IMPORTANCE_HIGH)
-                .apply { description = "Напоминание за несколько минут до начала пары" }
+            NotificationChannel(CH_LESSON, tr("Перед парой"), NotificationManager.IMPORTANCE_HIGH)
+                .apply { description = tr("Напоминание за несколько минут до начала пары") }
         )
         nm.createNotificationChannel(
-            NotificationChannel(CH_DIGEST, "Пары на завтра", NotificationManager.IMPORTANCE_DEFAULT)
-                .apply { description = "Вечерняя сводка расписания на следующий день" }
+            NotificationChannel(CH_DIGEST, tr("Пары на завтра"), NotificationManager.IMPORTANCE_DEFAULT)
+                .apply { description = tr("Вечерняя сводка расписания на следующий день") }
         )
         nm.createNotificationChannel(
-            NotificationChannel(CH_HOMEWORK, "Домашние задания", NotificationManager.IMPORTANCE_DEFAULT)
-                .apply { description = "Напоминание о невыполненном ДЗ" }
+            NotificationChannel(CH_HOMEWORK, tr("Домашние задания"), NotificationManager.IMPORTANCE_DEFAULT)
+                .apply { description = tr("Напоминание о невыполненном ДЗ") }
         )
     }
 
@@ -216,13 +218,13 @@ object Notifier {
 
     private fun showLesson(context: Context, l: Lesson, hw: List<Homework>) {
         val mins = Duration.between(LocalDateTime.now(), l.startAt).toMinutes().coerceAtLeast(0)
-        val title = if (mins > 0) "Через $mins мин: ${l.subject}" else "Начинается: ${l.subject}"
+        val title = if (mins > 0) tr("Через {0} мин: {1}", mins, l.subject) else tr("Начинается: {0}", l.subject)
         val myHw = hw.filter { it.lessonKey == l.key && !it.done }
         val body = buildString {
-            append("${l.timeText} · ${l.kind.title}")
+            append("${l.timeText} · ${tr(l.kind.title)}")
             l.location?.let { append("\n📍 $it") }
-            if (l.online) append("\n💻 онлайн")
-            myHw.forEach { append("\n📝 ДЗ: ${it.text}") }
+            if (l.online) append("\n💻 " + tr("онлайн"))
+            myHw.forEach { append("\n📝 " + tr("ДЗ: {0}", it.text)) }
         }
         post(
             context, l.key.hashCode(),
@@ -244,7 +246,7 @@ object Notifier {
         post(
             context, 1001,
             base(context, CH_DIGEST)
-                .setContentTitle("Завтра ${lessons.size} ${plural(lessons.size, "пара", "пары", "пар")}, первая в ${TimeSlot.fmt(first.start)}")
+                .setContentTitle(tr("Завтра: {0}, первая в {1}", "${lessons.size} ${com.alexshell.raspisanie.ui.I18n.plural(lessons.size.toLong(), "пара", "пары", "пар")}", TimeSlot.fmt(first.start)))
                 .setContentText(first.subject)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body)),
         )
@@ -256,7 +258,7 @@ object Notifier {
         post(
             context, 1002,
             base(context, CH_HOMEWORK)
-                .setContentTitle("ДЗ на завтра: ${items.size}")
+                .setContentTitle(tr("ДЗ на завтра: {0}", items.size))
                 .setContentText(items.first().let { "${it.subject}: ${it.text}" })
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body)),
         )
@@ -266,19 +268,9 @@ object Notifier {
         post(
             context, 999,
             base(context, CH_LESSON)
-                .setContentTitle("Уведомления работают ✨")
-                .setContentText("Так будет выглядеть напоминание перед парой")
+                .setContentTitle(tr("Уведомления работают ✨"))
+                .setContentText(tr("Так будет выглядеть напоминание перед парой"))
                 .setPriority(NotificationCompat.PRIORITY_HIGH),
         )
-    }
-
-    private fun plural(n: Int, one: String, few: String, many: String): String {
-        val n10 = n % 10
-        val n100 = n % 100
-        return when {
-            n10 == 1 && n100 != 11 -> one
-            n10 in 2..4 && n100 !in 12..14 -> few
-            else -> many
-        }
     }
 }

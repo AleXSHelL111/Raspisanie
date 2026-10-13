@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.components
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -111,7 +112,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
                 .imePadding(),
         ) {
             Text(
-                if (original == null) "Новое занятие" else "Изменить занятие",
+                if (original == null) tr("Новое занятие") else tr("Изменить занятие"),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Neon.Text,
@@ -122,7 +123,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it },
-                label = { Text("Предмет") },
+                label = { Text(tr("Предмет")) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
@@ -144,19 +145,19 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
                 }
             }
 
-            Label("Тип занятия")
+            Label(tr("Тип занятия"))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LessonKind.entries.forEach { k ->
                     FilterChip(
                         selected = kind == k,
                         onClick = { kind = k },
-                        label = { Text(k.title) },
+                        label = { Text(tr(k.title)) },
                         colors = chipColors(Neon.kindColor(k)),
                     )
                 }
             }
 
-            Label("Дата и время")
+            Label(tr("Дата и время"))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PickerButton("${date.weekdayShort()}, ${date.dayMonth()}", Modifier.weight(1.4f)) {
                     pickDate(date) { dateEpoch = it.toEpochDay() }
@@ -171,14 +172,14 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
                 PickerButton(TimeSlot.fmt(end), Modifier.weight(1f)) { pickTime(end) { end = it } }
             }
             if (end <= start) {
-                Text("Конец пары должен быть позже начала", color = Neon.Magenta, fontSize = 13.sp)
+                Text(tr("Конец пары должен быть позже начала"), color = Neon.Magenta, fontSize = 13.sp)
             }
 
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
-                label = { Text("Где (корпус, аудитория)") },
+                label = { Text(tr("Где (корпус, аудитория)")) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
@@ -188,7 +189,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("Заметка") },
+                label = { Text(tr("Заметка")) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
                 shape = RoundedCornerShape(14.dp),
@@ -196,18 +197,17 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
             )
 
             if (original == null) {
-                SwitchRow("Повторять каждую неделю", repeat) { repeat = it }
+                SwitchRow(tr("Повторять каждую неделю"), repeat) { repeat = it }
                 if (repeat) {
-                    PickerButton("до ${until.weekdayShort()}, ${until.dayMonth()}", Modifier.fillMaxWidth()) {
+                    PickerButton(tr("до {0}", "${until.weekdayShort()}, ${until.dayMonth()}"), Modifier.fillMaxWidth()) {
                         pickDate(until) { untilEpoch = it.toEpochDay() }
                     }
                 }
             } else if (similar > 1) {
-                SwitchRow("Применить ко всем таким парам ($similar шт.)", applyAll) { applyAll = it }
+                SwitchRow(tr("Применить ко всем таким парам ({0} шт.)", similar), applyAll) { applyAll = it }
                 if (applyAll) {
                     Text(
-                        "Изменятся предмет, тип, время и место у всех пар «${original.subject}» " +
-                            "по ${original.date.weekdayShort().lowercase()} в ${TimeSlot.fmt(original.start)}, начиная с этой. Даты останутся прежними.",
+                        tr("Изменятся предмет, тип, время и место у всех пар «{0}» по {1} в {2}, начиная с этой. Даты останутся прежними.", original.subject, original.date.weekdayShort().lowercase(), TimeSlot.fmt(original.start)),
                         color = Neon.Muted, fontSize = 13.sp,
                     )
                 }
@@ -243,14 +243,14 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
                     disabledContainerColor = Neon.Stroke,
                     disabledContentColor = Neon.Muted,
                 ),
-            ) { Text("Сохранить", fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            ) { Text(tr("Сохранить"), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             Spacer(Modifier.height(24.dp))
         }
     }
 
     datePick?.let { (initial, set) ->
         NeonDatePickerDialog(
-            title = "Дата",
+            title = tr("Дата"),
             initial = initial,
             marked = lessonDays,
             onDismiss = { datePick = null },
@@ -259,7 +259,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
     }
     timePick?.let { (initial, set) ->
         NeonTimePickerDialog(
-            title = "Время",
+            title = tr("Время"),
             initial = initial,
             onDismiss = { timePick = null },
             onConfirm = { set(it); timePick = null },

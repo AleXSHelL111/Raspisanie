@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie
 
+import com.alexshell.raspisanie.ui.tr
 import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -129,7 +130,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 if (group != null && group !in it.groups) group = null
                 refreshLessons()
             }.onFailure {
-                loadError = "Не удалось прочитать расписание: ${it.message}"
+                loadError = tr("Не удалось прочитать расписание: {0}", it.message)
             }
         }
     }
@@ -195,7 +196,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         updateEdits(list)
-        message = if (original == null) "Занятие добавлено" else "Изменения сохранены"
+        message = if (original == null) tr("Занятие добавлено") else tr("Изменения сохранены")
     }
 
     fun deleteLesson(lesson: Lesson, applyAll: Boolean) {
@@ -205,7 +206,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val targets = if (applyAll) similarLessons(lesson) else listOf(lesson)
         targets.forEach { list = upsert(list, g, it, null, id++) }
         updateEdits(list)
-        message = if (targets.size > 1) "Удалено занятий: ${targets.size}" else "Занятие удалено"
+        message = if (targets.size > 1) tr("Удалено занятий: {0}", targets.size) else tr("Занятие удалено")
     }
 
     /** Заменяет занятие [target] на [newLesson] (null — удалить). */
@@ -230,7 +231,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun resetEdits() {
         updateEdits(edits.filterNot { it.group == group })
-        message = "Ручные правки сброшены"
+        message = tr("Ручные правки сброшены")
     }
 
     fun editsCount(): Int = edits.count { it.group == group }
@@ -269,9 +270,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val bytes = app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                        ?: error("Файл недоступен")
+                        ?: error(tr("Файл недоступен"))
                     val parsed = ScheduleParser.parse(bytes.inputStream())
-                    require(parsed.lessons.isNotEmpty()) { "В файле не найдено ни одного занятия" }
+                    require(parsed.lessons.isNotEmpty()) { tr("В файле не найдено ни одного занятия") }
                     importedFile.writeBytes(bytes)
                     parsed
                 }
@@ -283,9 +284,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 loadError = null
                 if (group != null && group !in it.groups) group = null
                 refreshLessons()
-                message = "Расписание загружено: ${it.lessons.size} занятий"
+                message = tr("Расписание загружено: {0} занятий", it.lessons.size)
             }.onFailure {
-                message = "Ошибка импорта: ${it.message}"
+                message = tr("Ошибка импорта: {0}", it.message)
             }
         }
     }

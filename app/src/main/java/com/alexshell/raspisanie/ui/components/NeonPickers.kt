@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.components
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,6 +35,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -92,7 +94,7 @@ private fun NeonDialogFrame(
             content()
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) { Text("Отмена", color = Neon.Muted) }
+                TextButton(onClick = onDismiss) { Text(tr("Отмена"), color = Neon.Muted) }
                 Spacer(Modifier.width(8.dp))
                 Box(
                     Modifier
@@ -101,7 +103,7 @@ private fun NeonDialogFrame(
                         .clickable(onClick = onConfirm)
                         .padding(horizontal = 22.dp, vertical = 10.dp)
                 ) {
-                    Text("Готово", color = Neon.OnAccent, fontWeight = FontWeight.Bold)
+                    Text(tr("Готово"), color = Neon.OnAccent, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -241,7 +243,7 @@ fun NeonDatePickerDialog(
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { monthIndex-- }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Предыдущий месяц", tint = Neon.Cyan)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, tr("Предыдущий месяц"), tint = Neon.Cyan)
             }
             Text(
                 "${month.month.getDisplayName(JTextStyle.FULL_STANDALONE, RU).replaceFirstChar { it.uppercase() }} ${month.year}",
@@ -252,7 +254,7 @@ fun NeonDatePickerDialog(
                 fontSize = 16.sp,
             )
             IconButton(onClick = { monthIndex++ }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Следующий месяц", tint = Neon.Cyan)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, tr("Следующий месяц"), tint = Neon.Cyan)
             }
         }
         Row(Modifier.fillMaxWidth()) {
@@ -325,6 +327,52 @@ private fun DayCell(date: LocalDate, isSelected: Boolean, isToday: Boolean, hasM
                     .clip(CircleShape)
                     .background(if (isSelected) Neon.OnAccent else Neon.Violet)
             )
+        }
+    }
+}
+
+// ---------------- Язык ----------------
+
+/** Выбор языка интерфейса. */
+@Composable
+fun LanguageDialog(onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var selected by remember { mutableStateOf(com.alexshell.raspisanie.ui.I18n.lang) }
+    NeonDialogFrame(
+        title = tr("Язык"),
+        onDismiss = onDismiss,
+        onConfirm = {
+            onDismiss()
+            com.alexshell.raspisanie.ui.I18n.set(context, selected)
+            com.alexshell.raspisanie.notify.Notifier.reschedule(context)
+        },
+    ) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            com.alexshell.raspisanie.ui.I18n.languages.forEach { l ->
+                val sel = l.code == selected
+                val shape = RoundedCornerShape(16.dp)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(shape)
+                        .background(if (sel) Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Violet)) else Brush.verticalGradient(listOf(Neon.Surface, Neon.Surface)))
+                        .border(1.dp, if (sel) Neon.Cyan else Neon.Muted.copy(alpha = 0.3f), shape)
+                        .clickable { selected = l.code }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(l.flag, fontSize = 20.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        l.name,
+                        color = if (sel) Neon.OnAccent else Neon.Text,
+                        fontSize = 16.sp,
+                        fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(l.code.uppercase(), color = if (sel) Neon.OnAccent else Neon.Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }

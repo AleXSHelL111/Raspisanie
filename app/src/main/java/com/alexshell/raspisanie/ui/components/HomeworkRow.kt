@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.ui.components
 
+import com.alexshell.raspisanie.ui.tr
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,7 +66,7 @@ fun HomeworkRow(
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, "Удалить", tint = Neon.Dim)
+                Icon(Icons.Filled.Delete, tr("Удалить"), tint = Neon.Dim)
             }
         }
     }

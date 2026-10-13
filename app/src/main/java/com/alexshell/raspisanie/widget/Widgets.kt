@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie.widget
 
+import com.alexshell.raspisanie.ui.tr
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -44,6 +45,7 @@ object Widgets {
         val todayIds = awm.getAppWidgetIds(ComponentName(context, TodayWidget::class.java))
         if (nextIds.isEmpty() && todayIds.isEmpty()) return
 
+        com.alexshell.raspisanie.ui.I18n.init(context)
         val palette = Palettes.byId(Repository.prefs(context).getString("theme", null))
         val accent = palette.primary.toArgb()
         val lessons = Repository.loadForBackground(context)?.first.orEmpty()
@@ -67,8 +69,8 @@ object Widgets {
         val current = lessons.firstOrNull { now >= it.startAt && now < it.endAt }
         val next = current ?: lessons.firstOrNull { it.startAt > now }
         if (next == null) {
-            v.setTextViewText(R.id.w_label, if (lessons.isEmpty()) "РАСПИСАНИЕ" else "ПАР БОЛЬШЕ НЕТ")
-            v.setTextViewText(R.id.w_subject, if (lessons.isEmpty()) "Откройте приложение и загрузите файл" else "Семестр завершён 🎉")
+            v.setTextViewText(R.id.w_label, if (lessons.isEmpty()) tr("РАСПИСАНИЕ") else tr("ПАР БОЛЬШЕ НЕТ"))
+            v.setTextViewText(R.id.w_subject, if (lessons.isEmpty()) tr("Откройте приложение и загрузите файл") else tr("Семестр завершён 🎉"))
             v.setTextViewText(R.id.w_time, "")
             v.setTextViewText(R.id.w_place, "")
             v.setViewVisibility(R.id.w_timer, View.GONE)
@@ -79,14 +81,14 @@ object Widgets {
         v.setTextViewText(
             R.id.w_label,
             when {
-                ongoing -> "СЕЙЧАС ИДЁТ"
-                next.date == now.toLocalDate() -> "СЛЕДУЮЩАЯ ПАРА"
-                next.date == now.toLocalDate().plusDays(1) -> "ЗАВТРА"
-                else -> "БЛИЖАЙШАЯ · ${dayLabel(next.date)}"
+                ongoing -> tr("СЕЙЧАС ИДЁТ")
+                next.date == now.toLocalDate() -> tr("СЛЕДУЮЩАЯ ПАРА")
+                next.date == now.toLocalDate().plusDays(1) -> tr("ЗАВТРА")
+                else -> tr("БЛИЖАЙШАЯ") + " · ${dayLabel(next.date)}"
             },
         )
         v.setTextViewText(R.id.w_subject, next.subject)
-        v.setTextViewText(R.id.w_time, "${next.timeText} · ${next.kind.title}")
+        v.setTextViewText(R.id.w_time, "${next.timeText} · ${tr(next.kind.title)}")
         v.setTextViewText(R.id.w_place, next.location.orEmpty())
 
         val target = if (ongoing) next.endAt else next.startAt
@@ -96,14 +98,14 @@ object Widgets {
             val base = SystemClock.elapsedRealtime() + left.toMillis()
             v.setViewVisibility(R.id.w_timer, View.VISIBLE)
             v.setViewVisibility(R.id.w_timer_text, View.GONE)
-            v.setChronometer(R.id.w_timer, base, if (ongoing) "до конца %s" else "через %s", true)
+            v.setChronometer(R.id.w_timer, base, if (ongoing) tr("до конца %s") else tr("через %s"), true)
             v.setChronometerCountDown(R.id.w_timer, true)
         } else {
             v.setViewVisibility(R.id.w_timer, View.GONE)
             v.setViewVisibility(R.id.w_timer_text, View.VISIBLE)
             val d = left.toDays()
             val h = left.toHours() % 24
-            v.setTextViewText(R.id.w_timer_text, "через $d д $h ч")
+            v.setTextViewText(R.id.w_timer_text, tr("через {0} д {1} ч", d, h))
         }
         return v
     }
@@ -116,14 +118,14 @@ object Widgets {
         val todayLeft = lessons.filter { it.date == today && it.endAt > now }
         // Если сегодня пары закончились — показываем ближайший учебный день.
         val (title, list) = if (todayLeft.isNotEmpty() || lessons.none { it.date > today }) {
-            "СЕГОДНЯ · ${dayLabel(today)}" to lessons.filter { it.date == today }
+            tr("СЕГОДНЯ") + " · ${dayLabel(today)}" to lessons.filter { it.date == today }
         } else {
             val day = lessons.first { it.date > today }.date
-            (if (day == today.plusDays(1)) "ЗАВТРА · ${dayLabel(day)}" else dayLabel(day)) to lessons.filter { it.date == day }
+            (if (day == today.plusDays(1)) tr("ЗАВТРА") + " · ${dayLabel(day)}" else dayLabel(day)) to lessons.filter { it.date == day }
         }
         v.setTextViewText(R.id.w_title, title)
         v.setViewVisibility(R.id.w_empty, if (list.isEmpty()) View.VISIBLE else View.GONE)
-        v.setTextViewText(R.id.w_empty, if (lessons.isEmpty()) "Загрузите расписание в приложении" else "Пар нет 🎉")
+        v.setTextViewText(R.id.w_empty, if (lessons.isEmpty()) tr("Загрузите расписание в приложении") else tr("Пар нет 🎉"))
         val rows = listOf(
             Triple(R.id.row1, R.id.time1, R.id.subj1), Triple(R.id.row2, R.id.time2, R.id.subj2),
             Triple(R.id.row3, R.id.time3, R.id.subj3), Triple(R.id.row4, R.id.time4, R.id.subj4),
@@ -147,8 +149,8 @@ object Widgets {
     }
 
     private fun dayLabel(d: LocalDate): String {
-        val wd = d.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, java.util.Locale.forLanguageTag("ru"))
-        return "${wd.uppercase().take(2)}, ${d.dayOfMonth}.${"%02d".format(d.monthValue)}"
+        val wd = d.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, com.alexshell.raspisanie.ui.I18n.locale).trimEnd('.')
+        return "${(if (com.alexshell.raspisanie.ui.I18n.lang == "ru") wd.take(2) else wd).uppercase()}, ${d.dayOfMonth}.${"%02d".format(d.monthValue)}"
     }
 
     /** Следующее обновление — на ближайшей границе пары или в полночь. */

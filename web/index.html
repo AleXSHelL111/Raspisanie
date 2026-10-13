@@ -78,6 +78,15 @@ input,textarea,select{font:inherit;color:var(--text)}
 .btn.grad{background:linear-gradient(90deg,var(--primary),var(--tertiary),var(--secondary))}
 .btn.out{background:transparent;border:1px solid color-mix(in srgb,var(--a,var(--primary)) 70%,transparent);color:var(--a,var(--primary))}
 .btn:disabled{opacity:.45}
+.todaybtn{margin:14px 0 2px;height:50px;font-size:16px;font-weight:800;box-shadow:0 0 18px color-mix(in srgb,var(--primary) 45%,transparent),0 4px 20px color-mix(in srgb,var(--tertiary) 35%,transparent)}
+.topbtns{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.langbtn{font-weight:800;font-size:13px;letter-spacing:.5px;color:var(--tertiary)}
+.langrow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;margin-bottom:8px;border-radius:16px;border:1px solid var(--stroke);background:var(--surface-hi);font-size:16px;text-align:start}
+.langrow b{font-size:12px;color:var(--muted)}
+.langrow.on{background:linear-gradient(90deg,var(--primary),var(--tertiary));color:var(--on-accent);border-color:transparent;font-weight:800}
+.langrow.on b{color:var(--on-accent)}
+html[dir=rtl] svg.i.mir{transform:scaleX(-1)}
+html[dir=rtl] .loc span,html[dir=rtl] .subj,html[dir=rtl] .hero-title{unicode-bidi:plaintext}
 .iconbtn{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--primary);
   background:linear-gradient(180deg,var(--surface-hi),var(--surface)) padding-box,linear-gradient(135deg,var(--primary),var(--tertiary)) border-box;border:1px solid transparent;
   box-shadow:0 0 14px color-mix(in srgb,var(--primary) 40%,transparent)}
@@ -148,14 +157,18 @@ textarea.field{min-height:70px;resize:vertical}
 .check{width:22px;height:22px;border-radius:6px;border:2px solid var(--secondary);flex:none;display:grid;place-items:center}
 .check.on{background:var(--success);border-color:var(--success);color:var(--on-accent)}
 /* ---------- модальные окна ---------- */
-.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
-.sheet{width:100%;max-width:var(--maxw);max-height:92vh;overflow:auto;background:var(--surface);border-radius:26px 26px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 24px);animation:up .22s ease-out;border-top:1px solid var(--stroke)}
-.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--stroke);margin:0 auto 14px}
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;overscroll-behavior:contain}
+.scrim.enter{animation:fade .15s}
+.sheet{width:100%;max-width:var(--maxw);max-height:92vh;overflow:auto;background:var(--surface);border-radius:26px 26px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 24px);border-top:1px solid var(--stroke);overscroll-behavior:contain;will-change:transform}
+.scrim.enter .sheet{animation:up .22s ease-out}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--muted);opacity:.6;margin:0 auto 14px;box-sizing:content-box;padding:8px 40px;background-clip:content-box;margin-top:-6px;touch-action:none;cursor:grab}
 .dialog-wrap{align-items:center;padding:16px}
-.dialog{width:100%;max-width:420px;background:var(--surface-hi);border-radius:26px;padding:20px;border:1px solid var(--stroke);animation:fade .15s}
+.dialog{width:100%;max-width:420px;background:var(--surface-hi);border-radius:26px;padding:20px;border:1px solid var(--stroke)}
+.scrim.enter .dialog{animation:fade .15s}
 @keyframes up{from{transform:translateY(40px);opacity:.4}}
 @keyframes fade{from{opacity:0}}
-.overlay{position:fixed;inset:0;z-index:30;background:var(--bg);overflow:auto;animation:slide .2s ease-out}
+.overlay{position:fixed;inset:0;z-index:30;background:var(--bg);overflow:auto;overscroll-behavior:contain}
+.overlay.enter{animation:slide .2s ease-out}
 @keyframes slide{from{transform:translateX(-30px);opacity:0}}
 .overlay .inner{max-width:var(--maxw);margin:0 auto;padding:calc(env(safe-area-inset-top) + 6px) 16px calc(env(safe-area-inset-bottom) + 40px);position:relative;z-index:1}
 .ohead{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 0 10px;margin:0 -16px;padding-left:16px;padding-right:16px;border-bottom:1px solid var(--stroke)}
@@ -803,13 +816,28 @@ async function parseSchedule(buf, today = todayEd()) {
 /* ======================= Хранилище ======================= */
 const LS = {
   get(k, d) { try { const v = localStorage.getItem('kgmu.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('kgmu.' + k, JSON.stringify(v)); } catch (e) { toast('Не удалось сохранить: память браузера переполнена'); } },
+  set(k, v) { try { localStorage.setItem('kgmu.' + k, JSON.stringify(v)); } catch (e) { toast(tr('Не удалось сохранить: память браузера переполнена')); } },
   del(k) { try { localStorage.removeItem('kgmu.' + k); } catch (e) {} },
 };
 const b64 = {
   enc(buf) { let s = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); },
   dec(str) { const s = atob(str); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; },
 };
+
+/* ======================= Языки ======================= */
+// Ключ — русский текст; словарь общий с Android-приложением (app/src/main/assets/i18n.json).
+const I18N = /*@@I18N-START*/{"{0} мин":{"ar":"{0} د","de":"{0} Min.","en":"{0} min","es":"{0} min","fr":"{0} min","zh":"{0} 分钟"},"{0} неделя":{"ar":"الأسبوع {0}","de":"Woche {0}","en":"Week {0}","es":"Semana {0}","fr":"Semaine {0}","zh":"第{0}周"},"{0} поток":{"ar":"الدفعة {0}","de":"Zug {0}","en":"Stream {0}","es":"Grupo {0}","fr":"Flux {0}","zh":"第{0}大班"},"{0} ч":{"ar":"{0} س","de":"{0} Std.","en":"{0} h","es":"{0} h","fr":"{0} h","zh":"{0} 小时"},"{0} ч {1} мин":{"ar":"{0} س {1} د","de":"{0} Std. {1} Min.","en":"{0} h {1} min","es":"{0} h {1} min","fr":"{0} h {1} min","zh":"{0} 小时 {1} 分钟"},"Аттестация":{"ar":"التقييم","de":"Prüfungsform","en":"Assessment","es":"Evaluación","fr":"Évaluation","zh":"考核"},"БЛИЖАЙШАЯ":{"ar":"القادمة","de":"DEMNÄCHST","en":"UPCOMING","es":"PRÓXIMA","fr":"PROCHAIN","zh":"即将"},"Ближайшая пара":{"ar":"الحصة القادمة","de":"Nächster Kurs","en":"Upcoming class","es":"Próxima clase","fr":"Prochain cours","zh":"最近的课"},"Больше занятий в расписании нет":{"ar":"لا توجد حصص أخرى في الجدول","de":"Keine weiteren Kurse im Plan","en":"No more classes in the schedule","es":"No hay más clases en el horario","fr":"Plus aucun cours au programme","zh":"课表中没有更多课程"},"Браузер не поддерживает уведомления":{"ar":"المتصفح لا يدعم الإشعارات","de":"Dieser Browser unterstützt keine Benachrichtigungen","en":"This browser doesn't support notifications","es":"El navegador no admite notificaciones","fr":"Ce navigateur ne prend pas en charge les notifications","zh":"浏览器不支持通知"},"Будущих пар по предмету нет":{"ar":"لا توجد حصص قادمة لهذه المادة","de":"Keine kommenden Kurse in diesem Fach","en":"No upcoming classes for this subject","es":"No hay próximas clases de esta asignatura","fr":"Aucun cours à venir pour cette matière","zh":"该科目没有后续课程"},"В расписании только отмеченные дисциплины.":{"ar":"تُعرض المواد المحددة فقط.","de":"Nur die markierten Fächer werden angezeigt.","en":"Only the selected subjects are shown.","es":"Solo se muestran las asignaturas marcadas.","fr":"Seules les matières cochées sont affichées.","zh":"课表中只显示已选课程。"},"В файле не найдено ни одного занятия":{"ar":"لم يتم العثور على أي حصص في الملف","de":"Keine Kurse in der Datei gefunden","en":"No classes found in the file","es":"No se encontraron clases en el archivo","fr":"Aucun cours trouvé dans le fichier","zh":"文件中未找到任何课程"},"В этот день занятий нет":{"ar":"لا توجد حصص في هذا اليوم","de":"An diesem Tag keine Kurse","en":"No classes on this day","es":"No hay clases este día","fr":"Pas de cours ce jour-là","zh":"这一天没有课"},"Ваш профиль студента":{"ar":"ملفك الطلابي","de":"Dein Studentenprofil","en":"Your student profile","es":"Tu perfil de estudiante","fr":"Votre profil étudiant","zh":"你的学生资料"},"Введите текст задания":{"ar":"أدخل نص الواجب","de":"Aufgabentext eingeben","en":"Enter the assignment text","es":"Escribe la tarea","fr":"Saisissez le devoir","zh":"请输入作业内容"},"Вечерние напоминания":{"ar":"تذكيرات المساء","de":"Abenderinnerungen","en":"Evening reminders","es":"Recordatorios nocturnos","fr":"Rappels du soir","zh":"晚间提醒"},"Вечерние напоминания в":{"ar":"تذكيرات المساء في","de":"Abenderinnerungen um","en":"Evening reminders at","es":"Recordatorios nocturnos a las","fr":"Rappels du soir à","zh":"晚间提醒时间"},"Вечерние напоминания в {0}":{"ar":"تذكيرات المساء في {0}","de":"Abenderinnerungen um {0}","en":"Evening reminders at {0}","es":"Recordatorios nocturnos a las {0}","fr":"Rappels du soir à {0}","zh":"晚间提醒时间 {0}"},"Вечерняя сводка расписания на следующий день":{"ar":"ملخص مسائي لجدول اليوم التالي","de":"Abendliche Übersicht für den nächsten Tag","en":"Evening summary of tomorrow's schedule","es":"Resumen nocturno del horario de mañana","fr":"Résumé du soir du programme du lendemain","zh":"晚间推送次日课表"},"Включить":{"ar":"تفعيل","de":"Aktivieren","en":"Enable","es":"Activar","fr":"Activer","zh":"开启"},"Время":{"ar":"الوقت","de":"Uhrzeit","en":"Time","es":"Hora","fr":"Heure","zh":"时间"},"Все задания будут здесь — с обратным отсчётом до пары":{"ar":"ستظهر جميع الواجبات هنا مع عدّ تنازلي حتى الحصة","de":"Alle Aufgaben erscheinen hier – mit Countdown bis zum Kurs","en":"All assignments will appear here, with a countdown to the class","es":"Todas las tareas aparecerán aquí, con cuenta atrás hasta la clase","fr":"Tous les devoirs apparaîtront ici, avec un compte à rebours","zh":"所有作业都会显示在这里，并附带距上课的倒计时"},"Все такие ({0})":{"ar":"كل المماثلة ({0})","de":"Alle gleichen ({0})","en":"All like this ({0})","es":"Todas iguales ({0})","fr":"Toutes ({0})","zh":"所有同类 ({0})"},"Вчера":{"ar":"أمس","de":"Gestern","en":"Yesterday","es":"Ayer","fr":"Hier","zh":"昨天"},"Выберите свой поток":{"ar":"اختر دفعتك","de":"Wähle deinen Zug","en":"Choose your stream","es":"Elige tu grupo de curso","fr":"Choisissez votre flux","zh":"选择你的大班"},"Выберите свою группу":{"ar":"اختر مجموعتك","de":"Wähle deine Gruppe","en":"Choose your group","es":"Elige tu grupo","fr":"Choisissez votre groupe","zh":"选择你的小组"},"Выберите свою дисциплину по выбору":{"ar":"اختر مادتك الاختيارية","de":"Wähle dein Wahlfach","en":"Choose your elective","es":"Elige tu optativa","fr":"Choisissez votre option","zh":"选择你的选修课"},"Выбрать файл .xlsx":{"ar":"اختر ملف ‎.xlsx","de":".xlsx-Datei wählen","en":"Choose .xlsx file","es":"Elegir archivo .xlsx","fr":"Choisir un fichier .xlsx","zh":"选择 .xlsx 文件"},"Выполнено":{"ar":"مكتمل","de":"Erledigt","en":"Done","es":"Hecho","fr":"Fait","zh":"已完成"},"Выполнено · {0}":{"ar":"مكتمل · {0}","de":"Erledigt · {0}","en":"Done · {0}","es":"Hecho · {0}","fr":"Fait · {0}","zh":"已完成 · {0}"},"Выходной ✨":{"ar":"يوم عطلة ✨","de":"Frei ✨","en":"Day off ✨","es":"Día libre ✨","fr":"Jour libre ✨","zh":"休息日 ✨"},"Где":{"ar":"المكان","de":"Ort","en":"Where","es":"Dónde","fr":"Lieu","zh":"地点"},"Где (корпус, аудитория)":{"ar":"المكان (المبنى، القاعة)","de":"Ort (Gebäude, Raum)","en":"Where (building, room)","es":"Dónde (edificio, aula)","fr":"Lieu (bâtiment, salle)","zh":"地点（楼、教室）"},"Готово":{"ar":"تم","de":"Fertig","en":"Done","es":"Listo","fr":"OK","zh":"完成"},"Группа {0}":{"ar":"المجموعة {0}","de":"Gruppe {0}","en":"Group {0}","es":"Grupo {0}","fr":"Groupe {0}","zh":"{0} 组"},"Группа {0}. От потока зависят дни лекций и физкультуры.":{"ar":"المجموعة {0}. تعتمد أيام المحاضرات والتربية البدنية على الدفعة.","de":"Gruppe {0}. Vom Zug hängen Vorlesungs- und Sporttage ab.","en":"Group {0}. Your stream determines lecture and PE days.","es":"Grupo {0}. Del grupo de curso dependen los días de clases magistrales y de educación física.","fr":"Groupe {0}. Le flux détermine les jours de cours magistraux et de sport.","zh":"{0} 组。大班决定讲座和体育课的日期。"},"Группу можно сменить позже в настройках":{"ar":"يمكنك تغيير المجموعة لاحقًا من الإعدادات","de":"Die Gruppe kannst du später in den Einstellungen ändern","en":"You can change the group later in settings","es":"Puedes cambiar el grupo más tarde en ajustes","fr":"Vous pourrez changer de groupe plus tard dans les paramètres","zh":"之后可以在设置中更改小组"},"ДЗ":{"ar":"الواجبات","de":"Aufgaben","en":"Homework","es":"Tareas","fr":"Devoirs","zh":"作业"},"ДЗ выполнено":{"ar":"تم إنجاز الواجب","de":"Aufgabe erledigt","en":"Homework done","es":"Tarea hecha","fr":"Devoir fait","zh":"作业已完成"},"ДЗ добавлено на {0}":{"ar":"أُضيف الواجب ليوم {0}","de":"Aufgabe für {0} hinzugefügt","en":"Homework added for {0}","es":"Tarea añadida para {0}","fr":"Devoir ajouté pour {0}","zh":"作业已添加到 {0}"},"ДЗ к этой паре":{"ar":"واجبات هذه الحصة","de":"Aufgaben für diesen Kurs","en":"Homework for this class","es":"Tareas para esta clase","fr":"Devoirs pour ce cours","zh":"本节课的作业"},"ДЗ на завтра: {0}":{"ar":"واجبات الغد: {0}","de":"Aufgaben für morgen: {0}","en":"Homework for tomorrow: {0}","es":"Tareas para mañana: {0}","fr":"Devoirs pour demain : {0}","zh":"明天的作业：{0}"},"ДЗ: {0}":{"ar":"الواجب: {0}","de":"Aufgabe: {0}","en":"Homework: {0}","es":"Tarea: {0}","fr":"Devoir : {0}","zh":"作业：{0}"},"Дата":{"ar":"التاريخ","de":"Datum","en":"Date","es":"Fecha","fr":"Date","zh":"日期"},"Дата и время":{"ar":"التاريخ والوقت","de":"Datum und Uhrzeit","en":"Date and time","es":"Fecha y hora","fr":"Date et heure","zh":"日期和时间"},"Дисциплина по выбору":{"ar":"مادة اختيارية","de":"Wahlfach","en":"Elective","es":"Optativa","fr":"Option","zh":"选修课"},"Дисциплины и кафедры":{"ar":"المواد والأقسام","de":"Fächer und Lehrstühle","en":"Subjects and departments","es":"Asignaturas y departamentos","fr":"Matières et départements","zh":"课程与教研室"},"Дисциплины по выбору":{"ar":"المواد الاختيارية","de":"Wahlfächer","en":"Electives","es":"Optativas","fr":"Options","zh":"选修课"},"Добавить ДЗ":{"ar":"إضافة واجب","de":"Aufgabe hinzufügen","en":"Add homework","es":"Añadir tarea","fr":"Ajouter un devoir","zh":"添加作业"},"Добавить домашнее задание":{"ar":"إضافة واجب منزلي","de":"Hausaufgabe hinzufügen","en":"Add homework","es":"Añadir tarea","fr":"Ajouter un devoir","zh":"添加作业"},"Добавить занятие на {0}":{"ar":"إضافة حصة يوم {0}","de":"Kurs am {0} hinzufügen","en":"Add a class on {0}","es":"Añadir clase el {0}","fr":"Ajouter un cours le {0}","zh":"在 {0} 添加课程"},"Домашние задания":{"ar":"الواجبات المنزلية","de":"Hausaufgaben","en":"Homework","es":"Tareas","fr":"Devoirs","zh":"作业"},"Есть ДЗ к этой паре ({0})":{"ar":"يوجد واجب لهذه الحصة ({0})","de":"Aufgaben für diesen Kurs ({0})","en":"Homework for this class ({0})","es":"Hay tareas para esta clase ({0})","fr":"Devoirs pour ce cours ({0})","zh":"本节课有作业（{0}）"},"Ещё {0} → все ДЗ":{"ar":"{0} أخرى ← كل الواجبات","de":"Noch {0} → alle Aufgaben","en":"{0} more → all homework","es":"{0} más → todas las tareas","fr":"Encore {0} → tous les devoirs","zh":"还有 {0} 项 → 全部作业"},"ЗАВТРА":{"ar":"غدًا","de":"MORGEN","en":"TOMORROW","es":"MAÑANA","fr":"DEMAIN","zh":"明天"},"Завтра":{"ar":"غدًا","de":"Morgen","en":"Tomorrow","es":"Mañana","fr":"Demain","zh":"明天"},"Завтра: {0}, первая в {1}":{"ar":"غدًا: {0}، الأولى في {1}","de":"Morgen: {0}, der erste um {1}","en":"Tomorrow: {0}, first at {1}","es":"Mañana: {0}, la primera a las {1}","fr":"Demain : {0}, le premier à {1}","zh":"明天：{0}，第一节 {1}"},"Загрузите расписание в приложении":{"ar":"حمّل الجدول في التطبيق","de":"Lade den Stundenplan in der App","en":"Load the schedule in the app","es":"Carga el horario en la app","fr":"Chargez l'emploi du temps dans l'appli","zh":"请在应用中加载课表"},"Загрузите файл расписания":{"ar":"حمّل ملف الجدول","de":"Lade die Stundenplandatei","en":"Load the schedule file","es":"Carga el archivo del horario","fr":"Chargez le fichier d'emploi du temps","zh":"加载课表文件"},"Загрузить новый .xlsx":{"ar":"تحميل ملف ‎.xlsx جديد","de":"Neue .xlsx laden","en":"Load new .xlsx","es":"Cargar nuevo .xlsx","fr":"Charger un nouveau .xlsx","zh":"加载新的 .xlsx"},"Задания, которые видит вся группа":{"ar":"واجبات تراها المجموعة كلها","de":"Aufgaben für die ganze Gruppe","en":"Assignments visible to the whole group","es":"Tareas visibles para todo el grupo","fr":"Devoirs visibles par tout le groupe","zh":"全组可见的作业"},"Закат":{"ar":"الغروب","de":"Sonnenuntergang","en":"Sunset","es":"Atardecer","fr":"Coucher de soleil","zh":"日落"},"Заметка":{"ar":"ملاحظة","de":"Notiz","en":"Note","es":"Nota","fr":"Note","zh":"备注"},"Занятие добавлено":{"ar":"تمت إضافة الحصة","de":"Kurs hinzugefügt","en":"Class added","es":"Clase añadida","fr":"Cours ajouté","zh":"课程已添加"},"Занятие удалено":{"ar":"تم حذف الحصة","de":"Kurs gelöscht","en":"Class deleted","es":"Clase eliminada","fr":"Cours supprimé","zh":"课程已删除"},"Золото":{"ar":"ذهبي","de":"Gold","en":"Gold","es":"Oro","fr":"Or","zh":"金色"},"Из расписания":{"ar":"من الجدول","de":"Aus dem Stundenplan","en":"From the schedule","es":"Del horario","fr":"D'après l'emploi du temps","zh":"课表原文"},"Изменения сохранены":{"ar":"تم حفظ التغييرات","de":"Änderungen gespeichert","en":"Changes saved","es":"Cambios guardados","fr":"Modifications enregistrées","zh":"更改已保存"},"Изменить":{"ar":"تعديل","de":"Bearbeiten","en":"Edit","es":"Editar","fr":"Modifier","zh":"编辑"},"Изменить занятие":{"ar":"تعديل الحصة","de":"Kurs bearbeiten","en":"Edit class","es":"Editar clase","fr":"Modifier le cours","zh":"编辑课程"},"Изменятся предмет, тип, время и место у всех пар «{0}» по {1} в {2}, начиная с этой. Даты останутся прежними.":{"ar":"ستتغير المادة والنوع والوقت والمكان لكل حصص «{0}» يوم {1} في {2} بدءًا من هذه. تبقى التواريخ كما هي.","de":"Fach, Art, Zeit und Ort ändern sich für alle Kurse „{0}“ am {1} um {2}, ab diesem. Die Daten bleiben gleich.","en":"Subject, type, time and place will change for all \"{0}\" classes on {1} at {2}, starting with this one. Dates stay the same.","es":"Cambiarán la asignatura, el tipo, la hora y el lugar de todas las clases «{0}» del {1} a las {2}, a partir de esta. Las fechas no cambian.","fr":"La matière, le type, l'heure et le lieu changeront pour tous les cours « {0} » du {1} à {2}, à partir de celui-ci. Les dates restent inchangées.","zh":"从本节开始，所有{1} {2}的「{0}」课程的科目、类型、时间和地点都会更改，日期不变。"},"Изменённых, добавленных и удалённых занятий: {0}":{"ar":"الحصص المعدلة والمضافة والمحذوفة: {0}","de":"Geänderte, hinzugefügte und gelöschte Kurse: {0}","en":"Edited, added and deleted classes: {0}","es":"Clases editadas, añadidas y eliminadas: {0}","fr":"Cours modifiés, ajoutés et supprimés : {0}","zh":"已修改、添加和删除的课程：{0}"},"Имя и аватар":{"ar":"الاسم والصورة","de":"Name und Avatar","en":"Name and avatar","es":"Nombre y avatar","fr":"Nom et avatar","zh":"姓名和头像"},"К сегодняшнему дню":{"ar":"العودة إلى اليوم","de":"Zurück zu heute","en":"Back to today","es":"Volver a hoy","fr":"Revenir à aujourd'hui","zh":"回到今天"},"К след. паре: {0}":{"ar":"للحصة التالية: {0}","de":"Zum nächsten Kurs: {0}","en":"For next class: {0}","es":"Para la próxima clase: {0}","fr":"Pour le prochain cours : {0}","zh":"下节课：{0}"},"К следующей паре: {0}":{"ar":"للحصة التالية: {0}","de":"Zum nächsten Kurs: {0}","en":"For the next class: {0}","es":"Para la próxima clase: {0}","fr":"Pour le prochain cours : {0}","zh":"下一节课：{0}"},"К этой паре":{"ar":"لهذه الحصة","de":"Zu diesem Kurs","en":"For this class","es":"Para esta clase","fr":"Pour ce cours","zh":"本节课"},"КГМУ\nРАСПИСАНИЕ":{"ar":"KSMU\nالجدول","de":"KSMU\nSTUNDENPLAN","en":"KSMU\nSCHEDULE","es":"KSMU\nHORARIO","fr":"KSMU\nEMPLOI DU TEMPS","zh":"KSMU\n课表"},"КГМУ<br>РАСПИСАНИЕ":{"ar":"KSMU<br>الجدول","de":"KSMU<br>STUNDENPLAN","en":"KSMU<br>SCHEDULE","es":"KSMU<br>HORARIO","fr":"KSMU<br>EMPLOI DU TEMPS","zh":"KSMU<br>课表"},"Как в системе":{"ar":"حسب النظام","de":"System","en":"System","es":"Sistema","fr":"Système","zh":"跟随系统"},"Кафедра / база":{"ar":"القسم / المقر","de":"Lehrstuhl / Standort","en":"Department / site","es":"Departamento / sede","fr":"Département / site","zh":"教研室 / 基地"},"Кибер-красный":{"ar":"أحمر سيبراني","de":"Cyber-Rot","en":"Cyber red","es":"Ciber rojo","fr":"Cyber rouge","zh":"赛博红"},"Конец пары должен быть позже начала":{"ar":"يجب أن يكون الانتهاء بعد البداية","de":"Ende muss nach dem Beginn liegen","en":"End time must be after start time","es":"El final debe ser posterior al inicio","fr":"La fin doit être après le début","zh":"结束时间必须晚于开始时间"},"Лекция":{"ar":"محاضرة","de":"Vorlesung","en":"Lecture","es":"Clase magistral","fr":"Cours magistral","zh":"讲座"},"Лёд":{"ar":"جليد","de":"Eis","en":"Ice","es":"Hielo","fr":"Glace","zh":"冰蓝"},"Матрица":{"ar":"ماتريكس","de":"Matrix","en":"Matrix","es":"Matrix","fr":"Matrix","zh":"矩阵"},"Можно также открыть файл из Telegram или проводника через «Открыть с помощью → КГМУ расписание».":{"ar":"يمكنك أيضًا فتح الملف من تيليجرام أو مدير الملفات عبر «فتح باستخدام ← KGMU schedule».","de":"Du kannst die Datei auch aus Telegram oder dem Dateimanager über „Öffnen mit → KGMU schedule“ öffnen.","en":"You can also open the file from Telegram or a file manager via \"Open with → KGMU schedule\".","es":"También puedes abrir el archivo desde Telegram o el gestor de archivos con «Abrir con → KGMU schedule».","fr":"Vous pouvez aussi ouvrir le fichier depuis Telegram ou le gestionnaire de fichiers via « Ouvrir avec → KGMU schedule ».","zh":"也可以在 Telegram 或文件管理器中通过“打开方式 → KGMU schedule”打开文件。"},"Можно удалить только эту пару или все такие пары «{0}» ({1}) — их {2}.":{"ar":"يمكنك حذف هذه الحصة فقط أو كل حصص «{0}» ({1}) وعددها {2}.","de":"Du kannst nur diesen Kurs oder alle Kurse „{0}“ ({1}) löschen – insgesamt {2}.","en":"You can delete only this class or all \"{0}\" classes ({1}): {2} in total.","es":"Puedes eliminar solo esta clase o todas las clases «{0}» ({1}): {2} en total.","fr":"Vous pouvez supprimer ce cours seulement ou tous les cours « {0} » ({1}) : {2} au total.","zh":"可以只删除这节课，或删除所有「{0}」（{1}）课程，共 {2} 节。"},"Мои правки расписания":{"ar":"تعديلاتي على الجدول","de":"Meine Planänderungen","en":"My schedule edits","es":"Mis cambios del horario","fr":"Mes modifications","zh":"我的课表修改"},"Моя группа":{"ar":"مجموعتي","de":"Meine Gruppe","en":"My group","es":"Mi grupo","fr":"Mon groupe","zh":"我的小组"},"На Xiaomi, Huawei, Honor и Samsung дополнительно включите «Автозапуск» и уберите ограничения батареи для приложения в настройках телефона — иначе система может блокировать напоминания.":{"ar":"على أجهزة Xiaomi وHuawei وHonor وSamsung فعّل أيضًا «التشغيل التلقائي» وأزل قيود البطارية للتطبيق، وإلا فقد يحظر النظام التذكيرات.","de":"Auf Xiaomi, Huawei, Honor und Samsung zusätzlich „Autostart“ aktivieren und Akku-Beschränkungen für die App aufheben – sonst kann das System Erinnerungen blockieren.","en":"On Xiaomi, Huawei, Honor and Samsung also enable \"Autostart\" and remove battery restrictions for the app in phone settings, otherwise the system may block reminders.","es":"En Xiaomi, Huawei, Honor y Samsung activa también el «Inicio automático» y quita las restricciones de batería de la app; si no, el sistema puede bloquear los recordatorios.","fr":"Sur Xiaomi, Huawei, Honor et Samsung, activez aussi le « Démarrage auto » et retirez les restrictions de batterie pour l'appli, sinon le système peut bloquer les rappels.","zh":"在小米、华为、荣耀和三星手机上，还需开启“自启动”并取消应用的电池限制，否则系统可能拦截提醒。"},"На сайте напоминания приходят, пока страница открыта (можно свернуть вкладку). Для напоминаний в фоне лучше Android-приложение.":{"ar":"على الموقع تصل التذكيرات ما دامت الصفحة مفتوحة (يمكن تصغير التبويب). للتذكيرات في الخلفية يُفضّل تطبيق أندرويد.","de":"Auf der Website kommen Erinnerungen, solange die Seite geöffnet ist (der Tab darf im Hintergrund sein). Für Erinnerungen im Hintergrund ist die Android-App besser.","en":"On the website, reminders arrive while the page is open (the tab can be in the background). For background reminders, use the Android app.","es":"En la web los recordatorios llegan mientras la página está abierta (la pestaña puede estar en segundo plano). Para recordatorios en segundo plano, usa la app de Android.","fr":"Sur le site, les rappels arrivent tant que la page est ouverte (l'onglet peut être en arrière-plan). Pour des rappels en arrière-plan, utilisez l'appli Android.","zh":"网页版仅在页面打开时发送提醒（标签页可以在后台）。如需后台提醒，请使用安卓应用。"},"Нажмите на пару в расписании или «+», чтобы добавить ДЗ к следующей паре":{"ar":"اضغط على حصة في الجدول أو «+» لإضافة واجب للحصة التالية","de":"Tippe auf einen Kurs oder „+“, um eine Aufgabe zum nächsten Kurs hinzuzufügen","en":"Tap a class in the schedule or \"+\" to add homework for the next class","es":"Toca una clase del horario o «+» para añadir tarea a la próxima clase","fr":"Touchez un cours ou « + » pour ajouter un devoir au prochain cours","zh":"点击课表中的课程或“+”，为下一节课添加作业"},"Назад":{"ar":"رجوع","de":"Zurück","en":"Back","es":"Atrás","fr":"Retour","zh":"返回"},"Название предмета":{"ar":"اسم المادة","de":"Fachname","en":"Subject name","es":"Nombre de la asignatura","fr":"Nom de la matière","zh":"科目名称"},"Напоминание за несколько минут до начала пары":{"ar":"تذكير قبل بدء الحصة ببضع دقائق","de":"Erinnerung einige Minuten vor Kursbeginn","en":"Reminder a few minutes before class","es":"Recordatorio unos minutos antes de la clase","fr":"Rappel quelques minutes avant le cours","zh":"上课前几分钟提醒"},"Напоминание о невыполненном ДЗ":{"ar":"تذكير بالواجبات غير المنجزة","de":"Erinnerung an offene Aufgaben","en":"Unfinished homework reminder","es":"Recordatorio de tareas pendientes","fr":"Rappel des devoirs non faits","zh":"未完成作业提醒"},"Напоминания могут опаздывать":{"ar":"قد تتأخر التذكيرات","de":"Erinnerungen können sich verspäten","en":"Reminders may be late","es":"Los recordatorios pueden retrasarse","fr":"Les rappels peuvent être en retard","zh":"提醒可能会延迟"},"Например: выучить тему 5, решить задачи 1–10":{"ar":"مثال: ذاكر الموضوع 5، حل المسائل 1–10","de":"Z. B.: Thema 5 lernen, Aufgaben 1–10 lösen","en":"E.g.: study topic 5, solve problems 1–10","es":"Ej.: estudiar el tema 5, resolver los problemas 1–10","fr":"Ex. : apprendre le thème 5, résoudre les exercices 1–10","zh":"例如：复习第 5 章，完成第 1–10 题"},"Настройки":{"ar":"الإعدادات","de":"Einstellungen","en":"Settings","es":"Ajustes","fr":"Paramètres","zh":"设置"},"Начало работы":{"ar":"البداية","de":"Los geht's","en":"Getting started","es":"Primeros pasos","fr":"Pour commencer","zh":"开始使用"},"Начало семестра: {0} · занятий: {1}":{"ar":"بداية الفصل: {0} · الحصص: {1}","de":"Semesterbeginn: {0} · Kurse: {1}","en":"Semester start: {0} · classes: {1}","es":"Inicio del semestre: {0} · clases: {1}","fr":"Début du semestre : {0} · cours : {1}","zh":"学期开始：{0} · 课程：{1}"},"Начинается: {0}":{"ar":"تبدأ الآن: {0}","de":"Beginnt: {0}","en":"Starting: {0}","es":"Empieza: {0}","fr":"Ça commence : {0}","zh":"开始上课：{0}"},"Не удалось прочитать расписание: {0}":{"ar":"تعذرت قراءة الجدول: {0}","de":"Stundenplan konnte nicht gelesen werden: {0}","en":"Couldn't read the schedule: {0}","es":"No se pudo leer el horario: {0}","fr":"Impossible de lire l'emploi du temps : {0}","zh":"无法读取课表：{0}"},"Не удалось прочитать файл: {0}":{"ar":"تعذرت قراءة الملف: {0}","de":"Datei konnte nicht gelesen werden: {0}","en":"Couldn't read the file: {0}","es":"No se pudo leer el archivo: {0}","fr":"Impossible de lire le fichier : {0}","zh":"无法读取文件：{0}"},"Невыполненное ДЗ на завтра":{"ar":"واجبات الغد غير المنجزة","de":"Offene Aufgaben für morgen","en":"Unfinished homework for tomorrow","es":"Tareas pendientes para mañana","fr":"Devoirs non faits pour demain","zh":"明天未完成的作业"},"Невыполненные ДЗ · {0}":{"ar":"واجبات غير منجزة · {0}","de":"Offene Aufgaben · {0}","en":"Unfinished homework · {0}","es":"Tareas pendientes · {0}","fr":"Devoirs à faire · {0}","zh":"未完成作业 · {0}"},"Неделя":{"ar":"الأسبوع","de":"Woche","en":"Week","es":"Semana","fr":"Semaine","zh":"本周"},"Неон":{"ar":"نيون","de":"Neon","en":"Neon","es":"Neón","fr":"Néon","zh":"霓虹"},"Новое занятие":{"ar":"حصة جديدة","de":"Neuer Kurs","en":"New class","es":"Nueva clase","fr":"Nouveau cours","zh":"新课程"},"Номер группы":{"ar":"رقم المجموعة","de":"Gruppennummer","en":"Group number","es":"Número de grupo","fr":"Numéro de groupe","zh":"小组编号"},"Общие":{"ar":"عام","de":"Allgemein","en":"General","es":"General","fr":"Général","zh":"通用"},"Общие ДЗ":{"ar":"واجبات مشتركة","de":"Gemeinsame Aufgaben","en":"Shared homework","es":"Tareas compartidas","fr":"Devoirs partagés","zh":"共享作业"},"Объявления":{"ar":"الإعلانات","de":"Ankündigungen","en":"Announcements","es":"Anuncios","fr":"Annonces","zh":"公告"},"Одногруппники":{"ar":"زملاء المجموعة","de":"Kommilitonen","en":"Groupmates","es":"Compañeros","fr":"Camarades","zh":"同组同学"},"Откройте приложение и загрузите файл":{"ar":"افتح التطبيق وحمّل الملف","de":"Öffne die App und lade die Datei","en":"Open the app and load the file","es":"Abre la app y carga el archivo","fr":"Ouvrez l'appli et chargez le fichier","zh":"打开应用并加载文件"},"Открыть ДЗ →":{"ar":"فتح الواجبات ←","de":"Aufgaben öffnen →","en":"Open homework →","es":"Abrir tareas →","fr":"Ouvrir les devoirs →","zh":"打开作业 →"},"Отмена":{"ar":"إلغاء","de":"Abbrechen","en":"Cancel","es":"Cancelar","fr":"Annuler","zh":"取消"},"Отметки о пропусках и отработках":{"ar":"الغيابات والتعويض","de":"Fehlzeiten und Nachholtermine","en":"Absences and make-up classes","es":"Faltas y recuperaciones","fr":"Absences et rattrapages","zh":"缺勤与补课记录"},"Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.":{"ar":"حدد موادك وستختفي البقية من الجدول. تُعرض كلها الآن.","de":"Markiere deine – die übrigen verschwinden aus dem Plan. Derzeit werden alle angezeigt.","en":"Tick yours and the rest will disappear from the schedule. All are shown now.","es":"Marca las tuyas y el resto desaparecerá del horario. Ahora se muestran todas.","fr":"Cochez les vôtres, les autres disparaîtront. Toutes sont affichées pour l'instant.","zh":"勾选你的课程，其余将从课表中隐藏。当前显示全部。"},"Ошибка импорта: {0}":{"ar":"خطأ في الاستيراد: {0}","de":"Importfehler: {0}","en":"Import error: {0}","es":"Error de importación: {0}","fr":"Erreur d'import : {0}","zh":"导入错误：{0}"},"ПАР БОЛЬШЕ НЕТ":{"ar":"لا مزيد من الحصص","de":"KEINE KURSE MEHR","en":"NO MORE CLASSES","es":"NO HAY MÁS CLASES","fr":"PLUS DE COURS","zh":"没有更多课程"},"Пар нет 🎉":{"ar":"لا حصص 🎉","de":"Keine Kurse 🎉","en":"No classes 🎉","es":"Sin clases 🎉","fr":"Pas de cours 🎉","zh":"没有课 🎉"},"Пара уже прошла · {0}":{"ar":"انتهت الحصة · {0}","de":"Kurs bereits vorbei · {0}","en":"Class already passed · {0}","es":"La clase ya pasó · {0}","fr":"Cours déjà passé · {0}","zh":"课程已结束 · {0}"},"Пары на завтра":{"ar":"حصص الغد","de":"Kurse für morgen","en":"Tomorrow's classes","es":"Clases de mañana","fr":"Cours de demain","zh":"明天的课程"},"Пары на завтра (вечером)":{"ar":"حصص الغد (مساءً)","de":"Kurse für morgen (abends)","en":"Tomorrow's classes (evening)","es":"Clases de mañana (por la noche)","fr":"Cours de demain (le soir)","zh":"明天的课程（晚间）"},"Перед началом пары":{"ar":"قبل بدء الحصة","de":"Vor Kursbeginn","en":"Before class","es":"Antes de la clase","fr":"Avant le cours","zh":"上课前"},"Перед парой":{"ar":"قبل الحصة","de":"Vor dem Kurs","en":"Before class","es":"Antes de clase","fr":"Avant le cours","zh":"课前"},"Перенос ДЗ и настроек на другое устройство":{"ar":"نقل الواجبات والإعدادات إلى جهاز آخر","de":"Aufgaben und Einstellungen auf ein anderes Gerät übertragen","en":"Move homework and settings to another device","es":"Pasar tareas y ajustes a otro dispositivo","fr":"Transférer devoirs et paramètres sur un autre appareil","zh":"将作业和设置迁移到其他设备"},"Перенос ДЗ и настроек на другой телефон":{"ar":"نقل الواجبات والإعدادات إلى هاتف آخر","de":"Aufgaben und Einstellungen auf ein anderes Handy übertragen","en":"Move homework and settings to another phone","es":"Pasar tareas y ajustes a otro teléfono","fr":"Transférer devoirs et paramètres sur un autre téléphone","zh":"将作业和设置迁移到其他手机"},"Переносы пар и новости от старосты":{"ar":"تغييرات الحصص وأخبار رئيس المجموعة","de":"Kursverlegungen und News vom Gruppensprecher","en":"Class changes and news from the group leader","es":"Cambios de clases y noticias del delegado","fr":"Changements de cours et nouvelles du délégué","zh":"调课通知和班长消息"},"По выбору":{"ar":"اختيارية","de":"Wahlfach","en":"Elective","es":"Optativa","fr":"Option","zh":"选修"},"Повторять каждую неделю":{"ar":"تكرار كل أسبوع","de":"Jede Woche wiederholen","en":"Repeat every week","es":"Repetir cada semana","fr":"Répéter chaque semaine","zh":"每周重复"},"Подходит файл того же формата, что выкладывает учебный отдел. Можно также открыть .xlsx из Telegram или проводника через «Открыть с помощью».":{"ar":"يناسب ملف بنفس الصيغة التي ينشرها القسم الأكاديمي. يمكنك أيضًا فتح ‎.xlsx من تيليجرام أو مدير الملفات عبر «فتح باستخدام».","de":"Geeignet ist eine Datei im gleichen Format wie vom Studienbüro. Du kannst die .xlsx auch aus Telegram oder dem Dateimanager über „Öffnen mit“ öffnen.","en":"Use a file in the same format the academic office publishes. You can also open the .xlsx from Telegram or a file manager via \"Open with\".","es":"Sirve un archivo con el mismo formato que publica la secretaría académica. También puedes abrir el .xlsx desde Telegram o el gestor de archivos con «Abrir con».","fr":"Utilisez un fichier au même format que celui publié par la scolarité. Vous pouvez aussi ouvrir le .xlsx depuis Telegram ou le gestionnaire de fichiers via « Ouvrir avec ».","zh":"请使用与教务处发布格式相同的文件。也可以在 Telegram 或文件管理器中通过“打开方式”打开 .xlsx。"},"Пока пусто":{"ar":"لا شيء بعد","de":"Noch leer","en":"Nothing here yet","es":"Aún vacío","fr":"Rien pour l'instant","zh":"暂无内容"},"Показывать все":{"ar":"عرض الكل","de":"Alle anzeigen","en":"Show all","es":"Mostrar todas","fr":"Tout afficher","zh":"显示全部"},"Посещаемость":{"ar":"الحضور","de":"Anwesenheit","en":"Attendance","es":"Asistencia","fr":"Présence","zh":"出勤"},"Поток":{"ar":"الدفعة","de":"Zug","en":"Stream","es":"Grupo de curso","fr":"Flux","zh":"大班"},"Поток можно сменить позже в настройках":{"ar":"يمكنك تغيير الدفعة لاحقًا من الإعدادات","de":"Den Zug kannst du später in den Einstellungen ändern","en":"You can change the stream later in settings","es":"Puedes cambiar el grupo de curso más tarde en ajustes","fr":"Vous pourrez changer de flux plus tard dans les paramètres","zh":"之后可以在设置中更改大班"},"Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя».":{"ar":"لا توجد تعديلات. اضغط على حصة لتعديلها أو حذفها؛ والإضافة من تبويب «الأسبوع».","de":"Keine Änderungen. Tippe auf einen Kurs, um ihn zu bearbeiten oder zu löschen; hinzufügen im Tab „Woche“.","en":"No edits. Tap a class to edit or delete it; add classes in the \"Week\" tab.","es":"Sin cambios. Toca una clase para editarla o eliminarla; añade clases en la pestaña «Semana».","fr":"Aucune modification. Touchez un cours pour le modifier ou le supprimer ; ajoutez-en dans l'onglet « Semaine ».","zh":"暂无修改。点击课程可编辑或删除；在“本周”标签页中添加课程。"},"Практика":{"ar":"عملي","de":"Praktikum","en":"Practical","es":"Práctica","fr":"TP","zh":"实践课"},"Предмет":{"ar":"المادة","de":"Fach","en":"Subject","es":"Asignatura","fr":"Matière","zh":"科目"},"Предстоящие · {0}":{"ar":"القادمة · {0}","de":"Anstehend · {0}","en":"Upcoming · {0}","es":"Próximas · {0}","fr":"À venir · {0}","zh":"待完成 · {0}"},"Предыдущая неделя":{"ar":"الأسبوع السابق","de":"Vorherige Woche","en":"Previous week","es":"Semana anterior","fr":"Semaine précédente","zh":"上一周"},"Предыдущий месяц":{"ar":"الشهر السابق","de":"Vorheriger Monat","en":"Previous month","es":"Mes anterior","fr":"Mois précédent","zh":"上个月"},"Применить ко всем таким парам ({0} шт.)":{"ar":"تطبيق على كل الحصص المماثلة ({0})","de":"Auf alle solchen Kurse anwenden ({0})","en":"Apply to all such classes ({0})","es":"Aplicar a todas estas clases ({0})","fr":"Appliquer à tous ces cours ({0})","zh":"应用到所有同类课程（{0} 节）"},"Проверить уведомление":{"ar":"اختبار الإشعار","de":"Benachrichtigung testen","en":"Test notification","es":"Probar notificación","fr":"Tester la notification","zh":"测试通知"},"Профиль":{"ar":"الملف الشخصي","de":"Profil","en":"Profile","es":"Perfil","fr":"Profil","zh":"个人资料"},"Профиль пока недоступен":{"ar":"الملف الشخصي غير متاح بعد","de":"Profil noch nicht verfügbar","en":"Profile isn't available yet","es":"El perfil aún no está disponible","fr":"Le profil n'est pas encore disponible","zh":"个人资料暂不可用"},"Профиль 🔒":{"ar":"الملف الشخصي 🔒","de":"Profil 🔒","en":"Profile 🔒","es":"Perfil 🔒","fr":"Profil 🔒","zh":"个人资料 🔒"},"РАСПИСАНИЕ":{"ar":"الجدول","de":"STUNDENPLAN","en":"SCHEDULE","es":"HORARIO","fr":"EMPLOI DU TEMPS","zh":"课表"},"Работа в фоне разрешена":{"ar":"العمل في الخلفية مسموح","de":"Hintergrundaktivität erlaubt","en":"Background activity allowed","es":"Actividad en segundo plano permitida","fr":"Activité en arrière-plan autorisée","zh":"已允许后台运行"},"Раздел в разработке — здесь появятся функции для всей группы.":{"ar":"القسم قيد التطوير — ستظهر هنا ميزات للمجموعة كلها.","de":"In Arbeit – hier erscheinen Funktionen für die ganze Gruppe.","en":"Under construction: features for the whole group will appear here.","es":"En desarrollo: aquí aparecerán funciones para todo el grupo.","fr":"Section en cours de développement : des fonctions pour tout le groupe apparaîtront ici.","zh":"开发中——这里将推出面向全组的功能。"},"Раздел появится в следующих обновлениях.":{"ar":"سيظهر هذا القسم في التحديثات القادمة.","de":"Dieser Bereich kommt in einem der nächsten Updates.","en":"This section will arrive in a future update.","es":"Esta sección llegará en próximas actualizaciones.","fr":"Cette section arrivera dans une prochaine mise à jour.","zh":"该功能将在后续更新中推出。"},"Разрешить":{"ar":"سماح","de":"Erlauben","en":"Allow","es":"Permitir","fr":"Autoriser","zh":"允许"},"Расписание загружено: {0} занятий":{"ar":"تم تحميل الجدول: {0} حصة","de":"Stundenplan geladen: {0} Kurse","en":"Schedule loaded: {0} classes","es":"Horario cargado: {0} clases","fr":"Emploi du temps chargé : {0} cours","zh":"课表已加载：{0} 节课"},"Резервная копия":{"ar":"نسخة احتياطية","de":"Backup","en":"Backup","es":"Copia de seguridad","fr":"Sauvegarde","zh":"备份"},"Ручные правки сброшены":{"ar":"تمت إعادة ضبط التعديلات اليدوية","de":"Manuelle Änderungen zurückgesetzt","en":"Manual edits reset","es":"Cambios manuales restablecidos","fr":"Modifications manuelles réinitialisées","zh":"手动修改已重置"},"СЕГОДНЯ":{"ar":"اليوم","de":"HEUTE","en":"TODAY","es":"HOY","fr":"AUJOURD'HUI","zh":"今天"},"СЕЙЧАС ИДЁТ":{"ar":"جارية الآن","de":"LÄUFT GERADE","en":"IN PROGRESS","es":"EN CURSO","fr":"EN COURS","zh":"正在上课"},"СЛЕДУЮЩАЯ ПАРА":{"ar":"الحصة التالية","de":"NÄCHSTER KURS","en":"NEXT CLASS","es":"SIGUIENTE CLASE","fr":"COURS SUIVANT","zh":"下一节课"},"Сбросить все правки":{"ar":"إعادة ضبط كل التعديلات","de":"Alle Änderungen zurücksetzen","en":"Reset all edits","es":"Restablecer todos los cambios","fr":"Réinitialiser les modifications","zh":"重置所有修改"},"Светлая":{"ar":"فاتح","de":"Hell","en":"Light","es":"Claro","fr":"Clair","zh":"浅色"},"Сегодня":{"ar":"اليوم","de":"Heute","en":"Today","es":"Hoy","fr":"Aujourd'hui","zh":"今天"},"Сегодня пар нет":{"ar":"لا حصص اليوم","de":"Heute keine Kurse","en":"No classes today","es":"Hoy no hay clases","fr":"Pas de cours aujourd'hui","zh":"今天没有课"},"Сейчас идёт":{"ar":"جارية الآن","de":"Läuft gerade","en":"In progress","es":"En curso","fr":"En cours","zh":"正在上课"},"Сейчас показаны все варианты сразу. Нажмите, чтобы оставить в расписании только вашу.":{"ar":"تُعرض كل الخيارات الآن. اضغط لإبقاء مادتك فقط في الجدول.","de":"Derzeit werden alle Optionen angezeigt. Tippe, um nur deine zu behalten.","en":"All options are shown at once. Tap to keep only yours in the schedule.","es":"Ahora se muestran todas las opciones. Toca para dejar solo la tuya.","fr":"Toutes les options sont affichées. Touchez pour ne garder que la vôtre.","zh":"当前显示所有选项。点击仅保留你的选修课。"},"Семестр завершён 🎉":{"ar":"انتهى الفصل 🎉","de":"Semester vorbei 🎉","en":"Semester is over 🎉","es":"Semestre terminado 🎉","fr":"Semestre terminé 🎉","zh":"学期结束 🎉"},"Синтвейв":{"ar":"سينثويف","de":"Synthwave","en":"Synthwave","es":"Synthwave","fr":"Synthwave","zh":"合成波"},"Синхронизация":{"ar":"المزامنة","de":"Synchronisierung","en":"Sync","es":"Sincronización","fr":"Synchronisation","zh":"同步"},"Система может «усыплять» напоминания":{"ar":"قد يقوم النظام «بتنويم» التذكيرات","de":"Das System kann Erinnerungen „einschläfern“","en":"The system may put reminders to sleep","es":"El sistema puede «dormir» los recordatorios","fr":"Le système peut mettre les rappels en veille","zh":"系统可能会“休眠”提醒"},"Следующая неделя":{"ar":"الأسبوع التالي","de":"Nächste Woche","en":"Next week","es":"Semana siguiente","fr":"Semaine suivante","zh":"下一周"},"Следующая пара":{"ar":"الحصة التالية","de":"Nächster Kurs","en":"Next class","es":"Siguiente clase","fr":"Cours suivant","zh":"下一节课"},"Следующий месяц":{"ar":"الشهر التالي","de":"Nächster Monat","en":"Next month","es":"Mes siguiente","fr":"Mois suivant","zh":"下个月"},"Сохранение и восстановление данных":{"ar":"حفظ البيانات واستعادتها","de":"Daten sichern und wiederherstellen","en":"Save and restore your data","es":"Guardar y restaurar datos","fr":"Sauvegarde et restauration des données","zh":"数据备份与恢复"},"Сохранить":{"ar":"حفظ","de":"Speichern","en":"Save","es":"Guardar","fr":"Enregistrer","zh":"保存"},"Сохранить ДЗ":{"ar":"حفظ الواجب","de":"Aufgabe speichern","en":"Save homework","es":"Guardar tarea","fr":"Enregistrer le devoir","zh":"保存作业"},"Список группы и контакты старосты":{"ar":"قائمة المجموعة وجهات اتصال رئيسها","de":"Gruppenliste und Kontakt zum Gruppensprecher","en":"Group list and group leader contacts","es":"Lista del grupo y contactos del delegado","fr":"Liste du groupe et contacts du délégué","zh":"小组名单和班长联系方式"},"Так будет выглядеть напоминание перед парой":{"ar":"هكذا سيبدو التذكير قبل الحصة","de":"So sieht eine Erinnerung vor dem Kurs aus","en":"This is what a class reminder looks like","es":"Así se verá un recordatorio antes de clase","fr":"Voici à quoi ressemble un rappel de cours","zh":"课前提醒将是这个样子"},"Тема оформления":{"ar":"المظهر","de":"Design","en":"Theme","es":"Tema","fr":"Thème","zh":"主题"},"Тип занятия":{"ar":"نوع الحصة","de":"Kursart","en":"Class type","es":"Tipo de clase","fr":"Type de cours","zh":"课程类型"},"Только эту":{"ar":"هذه فقط","de":"Nur diesen","en":"Only this one","es":"Solo esta","fr":"Seulement celui-ci","zh":"仅此一节"},"Точные напоминания включены":{"ar":"التذكيرات الدقيقة مفعّلة","de":"Genaue Erinnerungen aktiviert","en":"Exact reminders enabled","es":"Recordatorios exactos activados","fr":"Rappels exacts activés","zh":"已开启精确提醒"},"Тёмная":{"ar":"داكن","de":"Dunkel","en":"Dark","es":"Oscuro","fr":"Sombre","zh":"深色"},"Уведомления":{"ar":"الإشعارات","de":"Benachrichtigungen","en":"Notifications","es":"Notificaciones","fr":"Notifications","zh":"通知"},"Уведомления выключены":{"ar":"الإشعارات متوقفة","de":"Benachrichtigungen aus","en":"Notifications are off","es":"Notificaciones desactivadas","fr":"Notifications désactivées","zh":"通知已关闭"},"Уведомления работают ✨":{"ar":"الإشعارات تعمل ✨","de":"Benachrichtigungen funktionieren ✨","en":"Notifications work ✨","es":"Las notificaciones funcionan ✨","fr":"Les notifications fonctionnent ✨","zh":"通知正常 ✨"},"Уведомления разрешены":{"ar":"الإشعارات مسموحة","de":"Benachrichtigungen erlaubt","en":"Notifications allowed","es":"Notificaciones permitidas","fr":"Notifications autorisées","zh":"已允许通知"},"Удалено занятий: {0}":{"ar":"الحصص المحذوفة: {0}","de":"Gelöschte Kurse: {0}","en":"Classes deleted: {0}","es":"Clases eliminadas: {0}","fr":"Cours supprimés : {0}","zh":"已删除课程：{0}"},"Удалить":{"ar":"حذف","de":"Löschen","en":"Delete","es":"Eliminar","fr":"Supprimer","zh":"删除"},"Удалить занятие?":{"ar":"حذف الحصة؟","de":"Kurs löschen?","en":"Delete class?","es":"¿Eliminar clase?","fr":"Supprimer le cours ?","zh":"删除课程？"},"Удалить расписание":{"ar":"حذف الجدول","de":"Stundenplan löschen","en":"Delete schedule","es":"Eliminar horario","fr":"Supprimer l'emploi du temps","zh":"删除课表"},"Удалить расписание? ДЗ и настройки сохранятся.":{"ar":"حذف الجدول؟ ستبقى الواجبات والإعدادات.","de":"Stundenplan löschen? Aufgaben und Einstellungen bleiben erhalten.","en":"Delete the schedule? Homework and settings will be kept.","es":"¿Eliminar el horario? Las tareas y ajustes se conservarán.","fr":"Supprimer l'emploi du temps ? Les devoirs et paramètres seront conservés.","zh":"删除课表？作业和设置将保留。"},"Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, недели и дисциплины по выбору.":{"ar":"ملف ‎.xlsx من موقع القسم الأكاديمي أو من دردشة المجموعة. سيتعرف التطبيق بنفسه على الحصص والأسابيع والمواد الاختيارية.","de":"Eine .xlsx-Datei von der Website des Studienbüros oder aus dem Gruppenchat. Die App erkennt Kurse, Wochen und Wahlfächer selbst.","en":"An .xlsx file from the academic office website or your group chat. The app will figure out classes, weeks and electives by itself.","es":"Un archivo .xlsx de la web de la secretaría o del chat del grupo. La app reconocerá sola las clases, semanas y optativas.","fr":"Un fichier .xlsx du site de la scolarité ou du chat du groupe. L'appli reconnaîtra seule les cours, les semaines et les options.","zh":"来自教务处网站或小组群聊的 .xlsx 文件。应用会自动识别课程、周次和选修课。"},"Файл .xlsx с сайта учебного отдела или из чата группы. Сайт сам разберёт пары, недели, потоки и дисциплины по выбору. Файл никуда не отправляется — всё работает прямо в браузере.":{"ar":"ملف ‎.xlsx من موقع القسم الأكاديمي أو من دردشة المجموعة. سيتعرف الموقع على الحصص والأسابيع والدفعات والمواد الاختيارية. لا يُرسل الملف إلى أي مكان — كل شيء يعمل في المتصفح.","de":"Eine .xlsx-Datei von der Website des Studienbüros oder aus dem Gruppenchat. Die Seite erkennt Kurse, Wochen, Züge und Wahlfächer. Die Datei wird nirgendwohin gesendet – alles läuft im Browser.","en":"An .xlsx file from the academic office website or your group chat. The site will figure out classes, weeks, streams and electives. The file isn't uploaded anywhere: everything runs in your browser.","es":"Un archivo .xlsx de la web de la secretaría o del chat del grupo. La web reconocerá clases, semanas, grupos de curso y optativas. El archivo no se envía a ningún sitio: todo funciona en el navegador.","fr":"Un fichier .xlsx du site de la scolarité ou du chat du groupe. Le site reconnaîtra les cours, semaines, flux et options. Le fichier n'est envoyé nulle part : tout fonctionne dans le navigateur.","zh":"来自教务处网站或小组群聊的 .xlsx 文件。网站会自动识别课程、周次、大班和选修课。文件不会上传到任何地方——一切都在浏览器中完成。"},"Файл и все данные хранятся только в этом браузере.":{"ar":"يُحفظ الملف وكل البيانات في هذا المتصفح فقط.","de":"Datei und alle Daten werden nur in diesem Browser gespeichert.","en":"The file and all data are stored only in this browser.","es":"El archivo y todos los datos se guardan solo en este navegador.","fr":"Le fichier et toutes les données sont stockés uniquement dans ce navigateur.","zh":"文件和所有数据仅保存在此浏览器中。"},"Файл недоступен":{"ar":"الملف غير متاح","de":"Datei nicht verfügbar","en":"File unavailable","es":"Archivo no disponible","fr":"Fichier indisponible","zh":"文件不可用"},"Файл расписания":{"ar":"ملف الجدول","de":"Stundenplandatei","en":"Schedule file","es":"Archivo del horario","fr":"Fichier d'emploi du temps","zh":"课表文件"},"Через {0} мин: {1}":{"ar":"بعد {0} د: {1}","de":"In {0} Min.: {1}","en":"In {0} min: {1}","es":"En {0} min: {1}","fr":"Dans {0} min : {1}","zh":"{0} 分钟后：{1}"},"Читаю файл…":{"ar":"جارٍ قراءة الملف…","de":"Datei wird gelesen…","en":"Reading file…","es":"Leyendo archivo…","fr":"Lecture du fichier…","zh":"正在读取文件…"},"Что будет":{"ar":"ما سيأتي","de":"Was kommt","en":"Coming soon","es":"Próximamente","fr":"À venir","zh":"即将推出"},"Что задали?":{"ar":"ما المطلوب؟","de":"Was ist aufgegeben?","en":"What was assigned?","es":"¿Qué han mandado?","fr":"Qu'y a-t-il à faire ?","zh":"布置了什么？"},"Что здесь будет":{"ar":"ما سيكون هنا","de":"Was hier kommt","en":"What's coming here","es":"Lo que habrá aquí","fr":"Ce qui arrivera ici","zh":"这里将会有"},"Язык":{"ar":"اللغة","de":"Sprache","en":"Language","es":"Idioma","fr":"Langue","zh":"语言"},"группа {0}":{"ar":"المجموعة {0}","de":"Gruppe {0}","en":"group {0}","es":"grupo {0}","fr":"groupe {0}","zh":"{0} 组"},"да":{"ar":"نعم","de":"ja","en":"yes","es":"sí","fr":"oui","zh":"是"},"дней":{"ar":"يوم|أيام","de":"Tag|Tage","en":"day|days","es":"día|días","fr":"jour|jours","zh":"天"},"до":{"ar":"حتى","de":"bis","en":"until","es":"hasta","fr":"jusqu'au","zh":"截至"},"до {0}":{"ar":"حتى {0}","de":"bis {0}","en":"until {0}","es":"hasta {0}","fr":"jusqu'au {0}","zh":"截至 {0}"},"до конца":{"ar":"ينتهي بعد","de":"endet in","en":"ends in","es":"termina en","fr":"fin dans","zh":"距下课"},"до конца %s":{"ar":"ينتهي بعد %s","de":"endet in %s","en":"ends in %s","es":"termina en %s","fr":"fin dans %s","zh":"距下课 %s"},"другое время":{"ar":"وقت مختلف","de":"andere Zeit","en":"different time","es":"otra hora","fr":"autre horaire","zh":"时间变更"},"есть ДЗ к этой паре":{"ar":"يوجد واجب لهذه الحصة","de":"Aufgaben für diesen Kurs","en":"homework for this class","es":"hay tarea para esta clase","fr":"devoirs pour ce cours","zh":"本节课有作业"},"за 1 час":{"ar":"قبل ساعة","de":"1 Std. vorher","en":"1 hour before","es":"1 hora antes","fr":"1 h avant","zh":"提前 1 小时"},"за {0} мин":{"ar":"قبل {0} د","de":"{0} Min. vorher","en":"{0} min before","es":"{0} min antes","fr":"{0} min avant","zh":"提前 {0} 分钟"},"занятий":{"ar":"حصة|حصص","de":"Kurs|Kurse","en":"class|classes","es":"clase|clases","fr":"cours|cours","zh":"节课"},"идёт · до конца {0}":{"ar":"جارية · تنتهي بعد {0}","de":"läuft · endet in {0}","en":"in progress · ends in {0}","es":"en curso · termina en {0}","fr":"en cours · fin dans {0}","zh":"进行中 · 距下课 {0}"},"изменено":{"ar":"معدّل","de":"geändert","en":"edited","es":"editado","fr":"modifié","zh":"已修改"},"изменено вручную":{"ar":"معدّل يدويًا","de":"manuell geändert","en":"edited manually","es":"editado a mano","fr":"modifié manuellement","zh":"手动修改"},"к паре: {0}":{"ar":"للحصة: {0}","de":"zum Kurs: {0}","en":"for class: {0}","es":"para la clase: {0}","fr":"pour le cours : {0}","zh":"对应课程：{0}"},"начало через {0}":{"ar":"تبدأ بعد {0}","de":"beginnt in {0}","en":"starts in {0}","es":"empieza en {0}","fr":"début dans {0}","zh":"{0} 后开始"},"онлайн":{"ar":"عن بُعد","de":"online","en":"online","es":"en línea","fr":"en ligne","zh":"线上"},"пар":{"ar":"حصة|حصص","de":"Kurs|Kurse","en":"class|classes","es":"clase|clases","fr":"cours|cours","zh":"节课"},"пара была {0}":{"ar":"كانت الحصة {0}","de":"Kurs war {0}","en":"class was {0}","es":"la clase fue {0}","fr":"cours passé : {0}","zh":"课程在{0}"},"переключить":{"ar":"تبديل","de":"umschalten","en":"toggle","es":"alternar","fr":"basculer","zh":"切换"},"перерыв · продолжение в {0}":{"ar":"استراحة · تُستأنف في {0}","de":"Pause · weiter um {0}","en":"break · resumes at {0}","es":"descanso · continúa a las {0}","fr":"pause · reprise à {0}","zh":"课间休息 · {0} 继续"},"поток":{"ar":"الدفعة","de":"Zug","en":"stream","es":"grupo","fr":"flux","zh":"大班"},"скоро":{"ar":"قريبًا","de":"bald","en":"soon","es":"pronto","fr":"bientôt","zh":"即将"},"часть {0} из {1} · до перерыва {2}":{"ar":"الجزء {0} من {1} · استراحة بعد {2}","de":"Teil {0} von {1} · Pause in {2}","en":"part {0} of {1} · break in {2}","es":"parte {0} de {1} · descanso en {2}","fr":"partie {0} sur {1} · pause dans {2}","zh":"第 {0}/{1} 部分 · 距休息 {2}"},"через":{"ar":"بعد","de":"in","en":"in","es":"en","fr":"dans","zh":"还有"},"через %s":{"ar":"بعد %s","de":"in %s","en":"in %s","es":"en %s","fr":"dans %s","zh":"还有 %s"},"через {0}":{"ar":"بعد {0}","de":"in {0}","en":"in {0}","es":"en {0}","fr":"dans {0}","zh":"还有 {0}"},"через {0} д {1} ч":{"ar":"بعد {0} ي {1} س","de":"in {0} T. {1} Std.","en":"in {0} d {1} h","es":"en {0} d {1} h","fr":"dans {0} j {1} h","zh":"还有 {0} 天 {1} 小时"}}/*@@I18N-END*/;
+const LANGS = [['ru', 'Русский', '🇷🇺'], ['en', 'English', '🇬🇧'], ['fr', 'Français', '🇫🇷'], ['de', 'Deutsch', '🇩🇪'], ['es', 'Español', '🇪🇸'], ['ar', 'العربية', '🇸🇦'], ['zh', '中文', '🇨🇳']];
+let LANG = LS.get('lang', null) || (() => { const n = (navigator.language || 'ru').slice(0, 2); return LANGS.some((l) => l[0] === n) ? n : 'ru'; })();
+function tr(k, ...a) {
+  let s = LANG === 'ru' ? k : (I18N[k] && I18N[k][LANG]) || k;
+  a.forEach((x, i) => { s = s.split('{' + i + '}').join(x); });
+  return s;
+}
+function applyLang() {
+  document.documentElement.lang = LANG;
+  document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr';
+}
 
 /* ======================= Темы ======================= */
 const PALETTES = [
@@ -909,16 +937,24 @@ const needsStream = () => S.schedule && S.schedule.streams.length && !S.schedule
 const WD_FULL = ['', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 const WD_SHORT = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const MON_GEN = ['', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-const dayMonth = (e) => { const [, m, d] = edParts(e); return `${d} ${MON_GEN[m]}`; };
-const relDay = (e, t = todayEd()) => e === t ? 'Сегодня' : e === t + 1 ? 'Завтра' : e === t - 1 ? 'Вчера' : `${WD_SHORT[dow(e)]}, ${dayMonth(e)}`;
-const plural = (n, a, b, c) => { const n10 = n % 10, n100 = n % 100; return n10 === 1 && n100 !== 11 ? a : n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14) ? b : c; };
+const DTF = {};
+const dtf = (o) => { const k = LANG + JSON.stringify(o); return DTF[k] || (DTF[k] = new Intl.DateTimeFormat(LANG === 'ar' ? 'ar-u-nu-latn' : LANG, Object.assign({ timeZone: 'UTC' }, o))); };
+const dateOf = (e) => new Date(e * DAY_MS);
+const dayMonth = (e) => { if (LANG !== 'ru') return dtf({ day: 'numeric', month: 'long' }).format(dateOf(e)); const [, m, d] = edParts(e); return `${d} ${MON_GEN[m]}`; };
+const wdFull = (e) => LANG === 'ru' ? WD_FULL[dow(e)] : cap(dtf({ weekday: 'long' }).format(dateOf(e)));
+const wdShort = (e) => LANG === 'ru' ? WD_SHORT[dow(e)] : cap(dtf({ weekday: 'short' }).format(dateOf(e)).replace(/\.$/, ''));
+const relDay = (e, t = todayEd()) => e === t ? tr('Сегодня') : e === t + 1 ? tr('Завтра') : e === t - 1 ? tr('Вчера') : `${wdShort(e)}, ${dayMonth(e)}`;
+const plural = (n, a, b, c) => {
+  if (LANG !== 'ru') { const f = tr(c).split('|'); return n === 1 || f.length === 1 ? f[0] : f[1]; }
+  const n10 = n % 10, n100 = n % 100; return n10 === 1 && n100 !== 11 ? a : n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14) ? b : c;
+};
 function timer(ms) {
   const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 function humanize(ms) {
   const s = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-  return d > 0 ? `${d} ${plural(d, 'день', 'дня', 'дней')}${h ? ` ${h} ч` : ''}` : h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+  return d > 0 ? `${d} ${plural(d, 'день', 'дня', 'дней')}${h ? ' ' + tr('{0} ч', h) : ''}` : h > 0 ? tr('{0} ч {1} мин', h, m) : tr('{0} мин', m);
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICON = {
@@ -935,7 +971,7 @@ const ICON = {
   del: '<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>',
   check: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
 };
-const icon = (n, st = '') => `<svg class="i" viewBox="0 0 24 24" style="${st}">${ICON[n]}</svg>`;
+const icon = (n, st = '') => `<svg class="i${n === 'back' || n === 'left' || n === 'right' ? ' mir' : ''}" viewBox="0 0 24 24" style="${st}">${ICON[n]}</svg>`;
 
 /* ======================= Карточки ======================= */
 function lessonState(l, now) {
@@ -948,16 +984,16 @@ function lessonCard(l, now) {
   const st = lessonState(l, now), k = KINDS[l.kind], hw = hwFor(l), pending = hw.some((h) => !h.done);
   let status = '';
   if (st === 'now') status = `<div class="progress" style="margin-top:10px" data-from="${startMs(l)}" data-to="${endMs(l)}"><i></i></div>
-    <div class="small-status tnum" style="margin-top:6px">идёт · до конца <span data-cd="${endMs(l)}">${timer(endMs(l) - now)}</span></div>`;
-  else if (st === 'soon') status = `<div class="small-status tnum" style="color:var(--primary)">начало через <span data-cd="${startMs(l)}">${timer(startMs(l) - now)}</span></div>`;
+    <div class="small-status tnum" style="margin-top:6px">${tr('идёт · до конца {0}', `<span data-cd="${endMs(l)}">${timer(endMs(l) - now)}</span>`)}</div>`;
+  else if (st === 'soon') status = `<div class="small-status tnum" style="color:var(--primary)">${tr('начало через {0}', `<span data-cd="${startMs(l)}">${timer(startMs(l) - now)}</span>`)}</div>`;
   return `<div class="card click lesson ${st === 'past' ? 'past' : ''} ${st === 'now' ? 'glow' : ''}" style="--a:${k.c}" data-act="open" data-key="${esc(lessonKey(l))}">
     <div class="time tnum"><div class="t1 glowtxt">${fmtMin(startOf(l))}</div><div class="t2">${fmtMin(endOf(l))}</div></div>
     <div class="bar"></div>
     <div class="body">
-      <div class="chips"><span class="chip" style="--a:${k.c}">${k.title}</span>${l.online ? '<span class="chip" style="--a:var(--warning)">онлайн</span>' : ''}${l.specialTime ? '<span class="chip" style="--a:var(--warning)">другое время</span>' : ''}${l.editId ? '<span class="chip" style="--a:var(--warning)">изменено</span>' : ''}</div>
+      <div class="chips"><span class="chip" style="--a:${k.c}">${tr(k.title)}</span>${l.online ? `<span class="chip" style="--a:var(--warning)">${tr('онлайн')}</span>` : ''}${l.specialTime ? `<span class="chip" style="--a:var(--warning)">${tr('другое время')}</span>` : ''}${l.editId ? `<span class="chip" style="--a:var(--warning)">${tr('изменено')}</span>` : ''}</div>
       <div class="subj">${esc(l.subject)}</div>
       ${l.location ? `<div class="loc">${icon('place')}<span>${esc(l.location)}</span></div>` : ''}
-      ${hw.length ? `<div class="loc" style="color:${pending ? 'var(--secondary)' : 'var(--success)'};font-weight:700">${icon('edit')}<span>${pending ? `Есть ДЗ к этой паре (${hw.length})` : 'ДЗ выполнено'}</span></div>` : ''}
+      ${hw.length ? `<div class="loc" style="color:${pending ? 'var(--secondary)' : 'var(--success)'};font-weight:700">${icon('edit')}<span>${pending ? tr('Есть ДЗ к этой паре ({0})', hw.length) : tr('ДЗ выполнено')}</span></div>` : ''}
       ${status}
     </div></div>`;
 }
@@ -970,29 +1006,30 @@ function screenToday(now) {
   const next = S.lessons.find((l) => startMs(l) > now);
   const nextDay = (S.lessons.find((l) => l.date > t) || {}).date;
   const pendingHw = groupHw().filter((h) => !h.done && h.dueDate >= t).sort((a, b) => a.dueDate - b.dueDate || a.dueStart - b.dueStart);
-  let h = `<button class="iconbtn" data-act="settings" aria-label="Настройки">${icon('gear')}</button>
+  let h = `<div class="topbtns"><button class="iconbtn" data-act="settings" aria-label="${tr('Настройки')}">${icon('gear')}</button>
+    <button class="iconbtn langbtn" data-act="lang" aria-label="${tr('Язык')}">${LANG.toUpperCase()}</button></div>
     <div class="clock tnum glowtxt" data-clock>${clockText()}</div>
-    <div class="datebig">${WD_FULL[dow(t)]}, ${dayMonth(t)}</div>
-    <div class="center-chips"><span class="chip">группа ${esc(S.group)}</span>${S.stream && sch.streams.length ? `<span class="chip" style="--a:var(--tertiary)">${S.stream} поток</span>` : ''}${sch.hasWeekParity ? `<span class="chip" style="--a:var(--secondary)">${weekType(sch, t)} неделя</span>` : ''}</div>
+    <div class="datebig">${wdFull(t)}, ${dayMonth(t)}</div>
+    <div class="center-chips"><span class="chip">${tr('группа {0}', esc(S.group))}</span>${S.stream && sch.streams.length ? `<span class="chip" style="--a:var(--tertiary)">${tr('{0} поток', S.stream)}</span>` : ''}${sch.hasWeekParity ? `<span class="chip" style="--a:var(--secondary)">${tr('{0} неделя', weekType(sch, t))}</span>` : ''}</div>
     <div style="height:14px"></div>`;
   h += heroCard(current, next, now);
   if (sch.electives.length && !S.electives.length) h += `<div class="card click" style="--a:var(--success)" data-act="settings">
-    <div style="color:var(--success);font-weight:800;font-size:16px">Выберите свою дисциплину по выбору</div>
-    <div class="muted" style="font-size:13px">Сейчас показаны все варианты сразу. Нажмите, чтобы оставить в расписании только вашу.</div></div>`;
-  h += `<div class="section">${todayL.length ? `Сегодня · ${todayL.length} ${plural(todayL.length, 'занятие', 'занятия', 'занятий')}` : 'Сегодня пар нет'}</div>`;
+    <div style="color:var(--success);font-weight:800;font-size:16px">${tr('Выберите свою дисциплину по выбору')}</div>
+    <div class="muted" style="font-size:13px">${tr('Сейчас показаны все варианты сразу. Нажмите, чтобы оставить в расписании только вашу.')}</div></div>`;
+  h += `<div class="section">${todayL.length ? `${tr('Сегодня')} · ${todayL.length} ${plural(todayL.length, 'занятие', 'занятия', 'занятий')}` : tr('Сегодня пар нет')}</div>`;
   h += todayL.map((l) => lessonCard(l, now)).join('');
   if (nextDay != null) {
-    h += `<div class="section" style="color:var(--tertiary)">${relDay(nextDay, t)} · ${WD_FULL[dow(nextDay)]}</div>`;
+    h += `<div class="section" style="color:var(--tertiary)">${relDay(nextDay, t)} · ${wdFull(nextDay)}</div>`;
     h += lessonsOn(nextDay).map((l) => lessonCard(l, now)).join('');
   }
   if (pendingHw.length) {
-    h += `<div class="section" style="color:var(--secondary)">Невыполненные ДЗ · ${pendingHw.length}</div><div class="card click" style="--a:var(--secondary)" data-act="tab" data-tab="hw">`;
+    h += `<div class="section" style="color:var(--secondary)">${tr('Невыполненные ДЗ · {0}', pendingHw.length)}</div><div class="card click" style="--a:var(--secondary)" data-act="tab" data-tab="hw">`;
     pendingHw.slice(0, 4).forEach((x, i) => {
       h += `${i ? '<div style="height:10px"></div>' : ''}<div style="color:var(--secondary);font-weight:800;font-size:14px">${esc(x.subject)}</div>
         <div style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.text.split('\n')[0])}</div>
-        <div class="muted" style="font-size:12px">к паре: ${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)}</div>`;
+        <div class="muted" style="font-size:12px">${tr('к паре: {0}', `${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)}`)}</div>`;
     });
-    h += `<div style="margin-top:10px;color:var(--primary);font-weight:600;font-size:13px">${pendingHw.length > 4 ? `Ещё ${pendingHw.length - 4} → все ДЗ` : 'Открыть ДЗ →'}</div></div>`;
+    h += `<div style="margin-top:10px;color:var(--primary);font-weight:600;font-size:13px">${pendingHw.length > 4 ? tr('Ещё {0} → все ДЗ', pendingHw.length - 4) : tr('Открыть ДЗ →')}</div></div>`;
   }
   return h;
 }
@@ -1003,26 +1040,26 @@ function heroCard(current, next, now) {
     const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
     const slot = current.slots.find((s) => nowMin < s[1]);
     let part = '';
-    if (current.slots.length > 1 && slot) part = nowMin < slot[0] ? `перерыв · продолжение в ${fmtMin(slot[0])}` : `часть ${current.slots.indexOf(slot) + 1} из ${current.slots.length} · до перерыва <span data-cd="${msAt(current.date, slot[1])}">${timer(msAt(current.date, slot[1]) - now)}</span>`;
+    if (current.slots.length > 1 && slot) part = nowMin < slot[0] ? tr('перерыв · продолжение в {0}', fmtMin(slot[0])) : tr('часть {0} из {1} · до перерыва {2}', current.slots.indexOf(slot) + 1, current.slots.length, `<span data-cd="${msAt(current.date, slot[1])}">${timer(msAt(current.date, slot[1]) - now)}</span>`);
     return `<div class="card glow click" style="--a:${k.c}" data-act="open" data-key="${esc(lessonKey(current))}">
-      <div class="label" style="color:var(--secondary)">Сейчас идёт</div>
+      <div class="label" style="color:var(--secondary)">${tr('Сейчас идёт')}</div>
       <div class="hero-title">${esc(current.subject)}</div>
       <div class="progress" style="margin-top:12px" data-from="${startMs(current)}" data-to="${endMs(current)}"><i></i></div>
-      <div style="margin-top:10px"><span class="muted">до конца </span><span class="big-timer tnum glowtxt" style="--a:var(--secondary)" data-cd="${endMs(current)}">${timer(endMs(current) - now)}</span></div>
+      <div style="margin-top:10px"><span class="muted">${tr('до конца')} </span><span class="big-timer tnum glowtxt" style="--a:var(--secondary)" data-cd="${endMs(current)}">${timer(endMs(current) - now)}</span></div>
       ${part ? `<div class="muted tnum" style="font-size:13px">${part}</div>` : ''}</div>`;
   }
   if (next) {
     const t = todayEd(), left = startMs(next) - now;
     const hw = hwFor(next).filter((x) => !x.done).length;
     return `<div class="card glow click" data-act="open" data-key="${esc(lessonKey(next))}">
-      <div class="label" style="color:var(--primary)">${next.date === t ? 'Следующая пара' : 'Ближайшая пара · ' + relDay(next.date, t).toUpperCase()}</div>
+      <div class="label" style="color:var(--primary)">${next.date === t ? tr('Следующая пара') : tr('Ближайшая пара') + ' · ' + relDay(next.date, t).toUpperCase()}</div>
       <div class="hero-title">${esc(next.subject)}</div>
-      <div class="muted">${timeText(next)} · ${KINDS[next.kind].title}</div>
+      <div class="muted">${timeText(next)} · ${tr(KINDS[next.kind].title)}</div>
       ${next.location ? `<div class="muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(next.location)}</div>` : ''}
-      <div style="margin-top:10px"><span class="muted">через </span><span class="big-timer tnum glowtxt" data-cd="${startMs(next)}" data-long="1">${left < 86400e3 ? timer(left) : humanize(left)}</span></div>
-      ${hw ? '<div style="margin-top:6px"><span class="chip" style="--a:var(--secondary)">есть ДЗ к этой паре</span></div>' : ''}</div>`;
+      <div style="margin-top:10px"><span class="muted">${tr('через')} </span><span class="big-timer tnum glowtxt" data-cd="${startMs(next)}" data-long="1">${left < 86400e3 ? timer(left) : humanize(left)}</span></div>
+      ${hw ? `<div style="margin-top:6px"><span class="chip" style="--a:var(--secondary)">${tr('есть ДЗ к этой паре')}</span></div>` : ''}</div>`;
   }
-  return `<div class="card" style="--a:var(--success)"><div style="color:var(--success);font-size:20px;font-weight:800">Семестр завершён 🎉</div><div class="muted">Больше занятий в расписании нет</div></div>`;
+  return `<div class="card" style="--a:var(--success)"><div style="color:var(--success);font-size:20px;font-weight:800">${tr('Семестр завершён 🎉')}</div><div class="muted">${tr('Больше занятий в расписании нет')}</div></div>`;
 }
 
 function screenWeek(now) {
@@ -1031,28 +1068,28 @@ function screenWeek(now) {
   const list = lessonsOn(sel);
   let h = `<div class="weekhead"><button class="iconbtn" style="box-shadow:none" data-act="week" data-d="-7">${icon('left')}</button>
     <div class="mid"><div style="font-size:17px;font-weight:800">${dayMonth(mon)} — ${dayMonth(mon + 6)}</div>
-    ${sch.hasWeekParity ? `<div class="glowtxt" style="--a:var(--secondary);color:var(--secondary);font-size:13px;font-weight:700">${weekType(sch, mon)} неделя</div>` : ''}</div>
+    ${sch.hasWeekParity ? `<div class="glowtxt" style="--a:var(--secondary);color:var(--secondary);font-size:13px;font-weight:700">${tr('{0} неделя', weekType(sch, mon))}</div>` : ''}</div>
     <button class="iconbtn" style="box-shadow:none" data-act="week" data-d="7">${icon('right')}</button></div>
-    <div class="days">${days.map((d) => `<button class="day ${d === sel ? 'sel' : ''} ${d === t ? 'today' : ''}" data-act="day" data-d="${d}"><div class="w">${WD_SHORT[dow(d)]}</div><div class="n">${edParts(d)[2]}</div><div class="dots">${'<i></i>'.repeat(Math.min(4, lessonsOn(d).length))}</div></button>`).join('')}</div>`;
-  if (sel !== t) h += `<button style="color:var(--primary);margin:12px 4px 0;font-size:14px" data-act="day" data-d="${t}">↺ к сегодняшнему дню</button>`;
-  h += `<div class="section" style="color:var(--primary)">${WD_FULL[dow(sel)]}, ${dayMonth(sel)}</div>`;
-  h += list.length ? list.map((l) => lessonCard(l, now)).join('') : `<div class="card" style="--a:var(--success)"><div style="color:var(--success);font-size:18px;font-weight:800">Выходной ✨</div><div class="muted">В этот день занятий нет</div></div>`;
-  h += `<button class="btn out" style="margin-top:4px" data-act="addLesson">${icon('add')} Добавить занятие на ${WD_SHORT[dow(sel)].toLowerCase()}, ${dayMonth(sel)}</button>`;
+    <div class="days">${days.map((d) => `<button class="day ${d === sel ? 'sel' : ''} ${d === t ? 'today' : ''}" data-act="day" data-d="${d}"><div class="w">${wdShort(d)}</div><div class="n">${edParts(d)[2]}</div><div class="dots">${'<i></i>'.repeat(Math.min(4, lessonsOn(d).length))}</div></button>`).join('')}</div>`;
+  if (sel !== t) h += `<button class="btn grad todaybtn" data-act="day" data-d="${t}">↺&nbsp; ${tr('К сегодняшнему дню')}</button>`;
+  h += `<div class="section" style="color:var(--primary)">${wdFull(sel)}, ${dayMonth(sel)}</div>`;
+  h += list.length ? list.map((l) => lessonCard(l, now)).join('') : `<div class="card" style="--a:var(--success)"><div style="color:var(--success);font-size:18px;font-weight:800">${tr('Выходной ✨')}</div><div class="muted">${tr('В этот день занятий нет')}</div></div>`;
+  h += `<button class="btn out" style="margin-top:4px" data-act="addLesson">${icon('add')} ${tr('Добавить занятие на {0}', `${wdShort(sel).toLowerCase()}, ${dayMonth(sel)}`)}</button>`;
   return h;
 }
 
 function hwRow(x, now, withMeta = true) {
   const due = msAt(x.dueDate, x.dueStart), left = due - now, t = todayEd();
-  const footer = x.done ? `${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)}` : left < 0 ? `пара была ${relDay(x.dueDate, t).toLowerCase()}` : `${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)} · через ${humanize(left)}`;
+  const footer = x.done ? `${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)}` : left < 0 ? tr('пара была {0}', relDay(x.dueDate, t).toLowerCase()) : `${relDay(x.dueDate, t)}, ${fmtMin(x.dueStart)} · ${tr('через {0}', humanize(left))}`;
   const urgent = !x.done && left >= 0 && left < 86400e3;
   return `<div class="card" style="--a:${x.done ? 'var(--success)' : 'var(--secondary)'};border-radius:18px"><div class="row" style="align-items:flex-start">
-    <button class="check ${x.done ? 'on' : ''}" data-act="hwToggle" data-id="${x.id}" aria-label="Выполнено">${x.done ? icon('check', 'width:16px;height:16px') : ''}</button>
+    <button class="check ${x.done ? 'on' : ''}" data-act="hwToggle" data-id="${x.id}" aria-label="${tr('Выполнено')}">${x.done ? icon('check', 'width:16px;height:16px') : ''}</button>
     <div class="grow" ${withMeta ? `data-act="hwOpen" data-id="${x.id}" style="cursor:pointer"` : ''}>
       ${withMeta ? `<div style="color:${x.done ? 'var(--success)' : 'var(--primary)'};font-size:12px;font-weight:800">${esc(x.subject)}</div>` : ''}
       <div style="font-size:15px;white-space:pre-wrap;${x.done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${esc(x.text)}</div>
       ${withMeta ? `<div style="font-size:12px;margin-top:2px;color:${urgent ? 'var(--secondary)' : 'var(--muted)'}">${footer}</div>` : ''}
     </div>
-    <button data-act="hwDelete" data-id="${x.id}" aria-label="Удалить" style="color:var(--dim)">${icon('del')}</button></div></div>`;
+    <button data-act="hwDelete" data-id="${x.id}" aria-label="${tr('Удалить')}" style="color:var(--dim)">${icon('del')}</button></div></div>`;
 }
 
 function screenHw(now) {
@@ -1061,23 +1098,23 @@ function screenHw(now) {
   const overdue = active.filter((x) => msAt(x.dueDate, x.dueStart) < now);
   const upcoming = active.filter((x) => !overdue.includes(x));
   const done = all.filter((x) => x.done).reverse();
-  let h = `<h1 class="t glowtxt" style="--a:var(--secondary)">Домашние задания</h1>
-    <div class="muted" style="font-size:13px;margin:2px 4px 0">Нажмите на пару в расписании или «+», чтобы добавить ДЗ к следующей паре</div>`;
-  if (!all.length) h += `<div class="section"></div><div class="card" style="--a:var(--tertiary)"><div style="color:var(--tertiary);font-size:18px;font-weight:800">Пока пусто</div><div class="muted">Все задания будут здесь — с обратным отсчётом до пары</div></div>`;
-  if (upcoming.length) h += `<div class="section" style="color:var(--primary)">Предстоящие · ${upcoming.length}</div>` + upcoming.map((x) => hwRow(x, now)).join('');
-  if (overdue.length) h += `<div class="section" style="color:var(--warning)">Пара уже прошла · ${overdue.length}</div>` + overdue.map((x) => hwRow(x, now)).join('');
-  if (done.length) h += `<div class="section" style="color:var(--success)">Выполнено · ${done.length}</div>` + done.map((x) => hwRow(x, now)).join('');
+  let h = `<h1 class="t glowtxt" style="--a:var(--secondary)">${tr('Домашние задания')}</h1>
+    <div class="muted" style="font-size:13px;margin:2px 4px 0">${tr('Нажмите на пару в расписании или «+», чтобы добавить ДЗ к следующей паре')}</div>`;
+  if (!all.length) h += `<div class="section"></div><div class="card" style="--a:var(--tertiary)"><div style="color:var(--tertiary);font-size:18px;font-weight:800">${tr('Пока пусто')}</div><div class="muted">${tr('Все задания будут здесь — с обратным отсчётом до пары')}</div></div>`;
+  if (upcoming.length) h += `<div class="section" style="color:var(--primary)">${tr('Предстоящие · {0}', upcoming.length)}</div>` + upcoming.map((x) => hwRow(x, now)).join('');
+  if (overdue.length) h += `<div class="section" style="color:var(--warning)">${tr('Пара уже прошла · {0}', overdue.length)}</div>` + overdue.map((x) => hwRow(x, now)).join('');
+  if (done.length) h += `<div class="section" style="color:var(--success)">${tr('Выполнено · {0}', done.length)}</div>` + done.map((x) => hwRow(x, now)).join('');
   return h;
 }
 
 function screenGroup() {
   const planned = [['👥', 'Одногруппники', 'Список группы и контакты старосты', 'var(--primary)'], ['📝', 'Общие ДЗ', 'Задания, которые видит вся группа', 'var(--secondary)'],
     ['📣', 'Объявления', 'Переносы пар и новости от старосты', 'var(--tertiary)'], ['📊', 'Посещаемость', 'Отметки о пропусках и отработках', 'var(--success)']];
-  return `<h1 class="t glowtxt">Моя группа</h1><div style="height:10px"></div>
-    <div class="card glow"><div class="glowtxt" style="font-size:34px;font-weight:900;color:var(--primary)">Группа ${esc(S.group)}</div>
-    <div class="muted" style="font-size:13px">${esc(S.schedule.title)}</div><div style="margin:10px 0 6px"><span class="chip fill" style="--a:var(--secondary)">скоро</span></div>
-    <div style="font-size:14px">Раздел в разработке — здесь появятся функции для всей группы.</div></div>
-    <div class="section">Что будет</div>` + planned.map(([e, t, d, c]) => `<div class="card" style="--a:${c}"><div class="row"><div style="font-size:26px">${e}</div><div class="grow"><div style="color:${c};font-weight:800">${t}</div><div class="muted" style="font-size:13px">${d}</div></div><div>🔒</div></div></div>`).join('');
+  return `<h1 class="t glowtxt">${tr('Моя группа')}</h1><div style="height:10px"></div>
+    <div class="card glow"><div class="glowtxt" style="font-size:34px;font-weight:900;color:var(--primary)">${tr('Группа {0}', esc(S.group))}</div>
+    <div class="muted" style="font-size:13px">${esc(S.schedule.title)}</div><div style="margin:10px 0 6px"><span class="chip fill" style="--a:var(--secondary)">${tr('скоро')}</span></div>
+    <div style="font-size:14px">${tr('Раздел в разработке — здесь появятся функции для всей группы.')}</div></div>
+    <div class="section">${tr('Что будет')}</div>` + planned.map(([e, t, d, c]) => `<div class="card" style="--a:${c}"><div class="row"><div style="font-size:26px">${e}</div><div class="grow"><div style="color:${c};font-weight:800">${tr(t)}</div><div class="muted" style="font-size:13px">${tr(d)}</div></div><div>🔒</div></div></div>`).join('');
 }
 
 /* ======================= Настройки ======================= */
@@ -1085,62 +1122,62 @@ function groupGrid(groups, sel, act) {
   return `<div class="grid4">${groups.map((g) => `<button class="tile ${g === sel ? 'sel' : ''}" data-act="${act}" data-v="${esc(g)}">${esc(g)}</button>`).join('')}</div>`;
 }
 function streamPicker(sel) {
-  return `<div class="row">${S.schedule.streams.map((n) => `<button class="tile ${n === sel ? 'sel' : ''}" style="flex:1;aspect-ratio:auto;padding:16px 0;display:block" data-act="pickStream" data-v="${n}"><div style="font-size:28px;font-weight:900">${n}</div><div style="font-size:13px;font-weight:600;opacity:.8">поток</div></button>`).join('')}</div>`;
+  return `<div class="row">${S.schedule.streams.map((n) => `<button class="tile ${n === sel ? 'sel' : ''}" style="flex:1;aspect-ratio:auto;padding:16px 0;display:block" data-act="pickStream" data-v="${n}"><div style="font-size:28px;font-weight:900">${n}</div><div style="font-size:13px;font-weight:600;opacity:.8">${tr('поток')}</div></button>`).join('')}</div>`;
 }
 function screenSettings() {
   const sch = S.schedule;
-  let h = `<div class="ohead"><div class="row" style="height:56px;margin-bottom:8px"><button class="iconbtn" data-act="closeSettings" aria-label="Назад">${icon('back')}</button>
-    <div class="glowtxt" style="--a:var(--tertiary);font-size:26px;font-weight:800">Настройки</div></div>
-    <div class="seg"><button class="${S.settingsTab === 0 ? 'on' : ''}" data-act="stab" data-v="0">Общие</button><button class="${S.settingsTab === 1 ? 'on' : ''}" data-act="stab" data-v="1">Профиль 🔒</button></div></div>`;
+  let h = `<div class="ohead"><div class="row" style="height:56px;margin-bottom:8px"><button class="iconbtn" data-act="closeSettings" aria-label="${tr('Назад')}">${icon('back')}</button>
+    <div class="glowtxt" style="--a:var(--tertiary);font-size:26px;font-weight:800">${tr('Настройки')}</div></div>
+    <div class="seg"><button class="${S.settingsTab === 0 ? 'on' : ''}" data-act="stab" data-v="0">${tr('Общие')}</button><button class="${S.settingsTab === 1 ? 'on' : ''}" data-act="stab" data-v="1">${tr('Профиль')} 🔒</button></div></div>`;
   if (S.settingsTab === 1) {
-    return h + `<div style="height:12px"></div><div class="card glow" style="--a:var(--tertiary)"><div style="font-size:36px">🔒</div><div style="font-size:20px;font-weight:800;color:var(--tertiary);margin-top:6px">Профиль пока недоступен</div><div class="muted">Раздел появится в следующих обновлениях.</div></div>
-      <div class="section">Что здесь будет</div>` + [['Имя и аватар', 'Ваш профиль студента'], ['Синхронизация', 'Перенос ДЗ и настроек на другое устройство'], ['Резервная копия', 'Сохранение и восстановление данных']].map(([a, b]) => `<div class="card" style="--a:var(--stroke)"><div class="muted" style="font-weight:700">${a}</div><div class="dim" style="font-size:13px">${b}</div></div>`).join('');
+    return h + `<div style="height:12px"></div><div class="card glow" style="--a:var(--tertiary)"><div style="font-size:36px">🔒</div><div style="font-size:20px;font-weight:800;color:var(--tertiary);margin-top:6px">${tr('Профиль пока недоступен')}</div><div class="muted">${tr('Раздел появится в следующих обновлениях.')}</div></div>
+      <div class="section">${tr('Что здесь будет')}</div>` + [['Имя и аватар', 'Ваш профиль студента'], ['Синхронизация', 'Перенос ДЗ и настроек на другое устройство'], ['Резервная копия', 'Сохранение и восстановление данных']].map(([a, b]) => `<div class="card" style="--a:var(--stroke)"><div class="muted" style="font-weight:700">${tr(a)}</div><div class="dim" style="font-size:13px">${tr(b)}</div></div>`).join('');
   }
-  h += `<div class="section" style="color:var(--primary)">Тема оформления</div>
-    <div class="seg" style="margin-bottom:12px">${MODES.map(([id, t]) => `<button class="${S.mode === id ? 'on' : ''}" data-act="mode" data-v="${id}">${t}</button>`).join('')}</div>
+  h += `<div class="section" style="color:var(--primary)">${tr('Тема оформления')}</div>
+    <div class="seg" style="margin-bottom:12px">${MODES.map(([id, t]) => `<button class="${S.mode === id ? 'on' : ''}" data-act="mode" data-v="${id}">${tr(t)}</button>`).join('')}</div>
     <div class="grid4">${PALETTES.map((p) => { const sc = buildScheme(p, isDark()); const sel = p.id === S.theme;
       return `<button class="accent" data-act="theme" data-v="${p.id}" style="background:linear-gradient(180deg,${sc.surfaceHi},${sc.bg});border-color:${sel ? sc.primary : sc.stroke};${sel ? `border-width:2px;box-shadow:0 0 14px ${sc.primary}` : ''}">
-        <div class="dot" style="background:conic-gradient(${sc.primary},${sc.tertiary},${sc.secondary},${sc.primary})"></div><span style="color:${sel ? sc.primary : sc.text}">${p.name}</span></button>`; }).join('')}</div>`;
-  h += `<div class="section" style="color:var(--primary)">Номер группы</div>` + groupGrid(sch.groups, S.group, 'pickGroup');
-  if (sch.streams.length) h += `<div class="section" style="color:var(--primary)">Поток</div>` + streamPicker(S.stream);
-  h += `<div class="section" style="color:var(--primary)">Уведомления</div>` + notifCard();
+        <div class="dot" style="background:conic-gradient(${sc.primary},${sc.tertiary},${sc.secondary},${sc.primary})"></div><span style="color:${sel ? sc.primary : sc.text}">${tr(p.name)}</span></button>`; }).join('')}</div>`;
+  h += `<div class="section" style="color:var(--primary)">${tr('Номер группы')}</div>` + groupGrid(sch.groups, S.group, 'pickGroup');
+  if (sch.streams.length) h += `<div class="section" style="color:var(--primary)">${tr('Поток')}</div>` + streamPicker(S.stream);
+  h += `<div class="section" style="color:var(--primary)">${tr('Уведомления')}</div>` + notifCard();
   if (sch.electives.length) {
-    h += `<div class="section" style="color:var(--success)">Дисциплины по выбору</div><div class="card" style="--a:var(--success)">
-      <div class="muted" style="font-size:13px;margin-bottom:6px">${S.electives.length ? 'В расписании только отмеченные дисциплины.' : 'Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.'}</div>
-      ${sch.electives.map((e) => { const on = S.electives.includes(e); return `<button class="row" style="width:100%;padding:6px 0;text-align:left" data-act="elective" data-v="${esc(e)}"><span class="check ${on ? 'on' : ''}" style="border-color:${on ? 'var(--success)' : 'var(--muted)'}">${on ? icon('check', 'width:16px;height:16px') : ''}</span><span class="grow" style="${on ? 'color:var(--success);font-weight:700' : ''}">${esc(e)}</span></button>`; }).join('')}
-      ${S.electives.length ? '<button style="color:var(--primary);margin-top:8px" data-act="clearElectives">Показывать все</button>' : ''}</div>`;
+    h += `<div class="section" style="color:var(--success)">${tr('Дисциплины по выбору')}</div><div class="card" style="--a:var(--success)">
+      <div class="muted" style="font-size:13px;margin-bottom:6px">${S.electives.length ? tr('В расписании только отмеченные дисциплины.') : tr('Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.')}</div>
+      ${sch.electives.map((e) => { const on = S.electives.includes(e); return `<button class="row" style="width:100%;padding:6px 0;text-align:start" data-act="elective" data-v="${esc(e)}"><span class="check ${on ? 'on' : ''}" style="border-color:${on ? 'var(--success)' : 'var(--muted)'}">${on ? icon('check', 'width:16px;height:16px') : ''}</span><span class="grow" style="${on ? 'color:var(--success);font-weight:700' : ''}">${esc(e)}</span></button>`; }).join('')}
+      ${S.electives.length ? `<button style="color:var(--primary);margin-top:8px" data-act="clearElectives">${tr('Показывать все')}</button>` : ''}</div>`;
   }
   const n = S.edits.filter((e) => e.group === S.group).length;
-  h += `<div class="section" style="color:var(--warning)">Мои правки расписания</div><div class="card" style="--a:var(--warning)">
-    <div style="font-size:14px">${n ? `Изменённых, добавленных и удалённых занятий: ${n}` : 'Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя».'}</div>
-    ${n ? '<button class="btn out" style="--a:var(--warning);margin-top:10px;height:44px" data-act="resetEdits">Сбросить все правки</button>' : ''}</div>`;
-  h += `<div class="section" style="color:var(--secondary)">Файл расписания</div><div class="card" style="--a:var(--secondary)">
+  h += `<div class="section" style="color:var(--warning)">${tr('Мои правки расписания')}</div><div class="card" style="--a:var(--warning)">
+    <div style="font-size:14px">${n ? tr('Изменённых, добавленных и удалённых занятий: {0}', n) : tr('Правок нет. Чтобы изменить или удалить пару, нажмите на неё; добавить — во вкладке «Неделя».')}</div>
+    ${n ? `<button class="btn out" style="--a:var(--warning);margin-top:10px;height:44px" data-act="resetEdits">${tr('Сбросить все правки')}</button>` : ''}</div>`;
+  h += `<div class="section" style="color:var(--secondary)">${tr('Файл расписания')}</div><div class="card" style="--a:var(--secondary)">
     <div style="font-weight:650">${esc(sch.title)}</div>
-    <div class="muted" style="font-size:13px">Начало семестра: ${dayMonth(sch.semesterStart)} ${edParts(sch.semesterStart)[0]} · занятий: ${sch.lessons.length}</div>
-    <button class="btn" style="background:var(--secondary);margin-top:12px;height:46px" data-act="import">Загрузить новый .xlsx</button>
-    <button class="btn out" style="--a:var(--muted);margin-top:8px;height:44px" data-act="removeSchedule">Удалить расписание</button>
-    <div class="dim" style="font-size:12px;margin-top:8px">Файл и все данные хранятся только в этом браузере.</div></div>`;
+    <div class="muted" style="font-size:13px">${tr('Начало семестра: {0} · занятий: {1}', `${dayMonth(sch.semesterStart)} ${edParts(sch.semesterStart)[0]}`, sch.lessons.length)}</div>
+    <button class="btn" style="background:var(--secondary);margin-top:12px;height:46px" data-act="import">${tr('Загрузить новый .xlsx')}</button>
+    <button class="btn out" style="--a:var(--muted);margin-top:8px;height:44px" data-act="removeSchedule">${tr('Удалить расписание')}</button>
+    <div class="dim" style="font-size:12px;margin-top:8px">${tr('Файл и все данные хранятся только в этом браузере.')}</div></div>`;
   if (sch.disciplines.length) {
     const seen = new Set();
-    h += `<div class="section" style="color:var(--tertiary)">Дисциплины и кафедры</div>` + sch.disciplines.filter((d) => !seen.has(d.name) && seen.add(d.name)).map((d) => `<div class="card" style="--a:var(--tertiary);border-radius:18px"><div style="font-weight:650">${esc(d.name)}</div>${d.department ? `<div class="muted" style="font-size:13px">${esc(d.department)}</div>` : ''}${d.attestation ? `<div style="color:var(--secondary);font-weight:800;font-size:13px">${esc(cap(d.attestation))}</div>` : ''}</div>`).join('');
+    h += `<div class="section" style="color:var(--tertiary)">${tr('Дисциплины и кафедры')}</div>` + sch.disciplines.filter((d) => !seen.has(d.name) && seen.add(d.name)).map((d) => `<div class="card" style="--a:var(--tertiary);border-radius:18px"><div style="font-weight:650">${esc(d.name)}</div>${d.department ? `<div class="muted" style="font-size:13px">${esc(d.department)}</div>` : ''}${d.attestation ? `<div style="color:var(--secondary);font-weight:800;font-size:13px">${esc(cap(d.attestation))}</div>` : ''}</div>`).join('');
   }
   return h;
 }
 
 function notifCard() {
   const n = S.notif, supported = 'Notification' in window, perm = supported ? Notification.permission : 'denied';
-  const sw = (on, act) => `<button class="switch ${on ? 'on' : ''}" data-act="${act}" aria-label="переключить"></button>`;
+  const sw = (on, act) => `<button class="switch ${on ? 'on' : ''}" data-act="${act}" aria-label="${tr('переключить')}"></button>`;
   return `<div class="card">
     <div class="row" style="padding:4px 0"><span style="font-weight:800;color:${perm === 'granted' ? 'var(--success)' : 'var(--warning)'}">${perm === 'granted' ? '✓' : '!'}</span>
-      <span class="grow" style="font-size:14px;${perm === 'granted' ? '' : 'color:var(--warning)'}">${!supported ? 'Браузер не поддерживает уведомления' : perm === 'granted' ? 'Уведомления разрешены' : perm === 'denied' ? 'Уведомления запрещены в браузере' : 'Уведомления ещё не разрешены'}</span>
-      ${supported && perm === 'default' ? '<button class="btn out" style="--a:var(--warning);width:auto;height:36px;padding:0 14px;font-size:13px" data-act="askNotif">Разрешить</button>' : ''}</div>
-    <div class="row" style="padding:6px 0"><span class="grow">Перед началом пары</span>${sw(n.before, 'nBefore')}</div>
-    ${n.before ? `<div class="hscroll">${[5, 10, 15, 30, 60].map((m) => `<button class="fchip ${n.lead === m ? 'on' : ''}" data-act="nLead" data-v="${m}">${m === 60 ? 'за 1 час' : `за ${m} мин`}</button>`).join('')}</div>` : ''}
-    <div class="row" style="padding:6px 0"><span class="grow">Пары на завтра (вечером)</span>${sw(n.evening, 'nEvening')}</div>
-    <div class="row" style="padding:6px 0"><span class="grow">Невыполненное ДЗ на завтра</span>${sw(n.homework, 'nHw')}</div>
-    ${n.evening || n.homework ? `<div class="row" style="padding:6px 0"><span class="grow">Вечерние напоминания в</span><input type="time" class="field" style="width:120px;padding:8px 10px" value="${String(Math.floor(n.eveningAt / 60)).padStart(2, '0')}:${String(n.eveningAt % 60).padStart(2, '0')}" data-change="nEveningAt"></div>` : ''}
-    <button class="btn out" style="--a:var(--secondary);margin-top:8px;height:44px" data-act="testNotif">Проверить уведомление</button>
-    <div class="dim" style="font-size:12px;margin-top:8px">На сайте напоминания приходят, пока страница открыта (можно свернуть вкладку). Для напоминаний в фоне лучше Android-приложение.</div></div>`;
+      <span class="grow" style="font-size:14px;${perm === 'granted' ? '' : 'color:var(--warning)'}">${tr(!supported ? 'Браузер не поддерживает уведомления' : perm === 'granted' ? 'Уведомления разрешены' : perm === 'denied' ? 'Уведомления запрещены в браузере' : 'Уведомления ещё не разрешены')}</span>
+      ${supported && perm === 'default' ? '<button class="btn out" style="--a:var(--warning);width:auto;height:36px;padding:0 14px;font-size:13px" data-act="askNotif">' + tr('Разрешить') + '</button>' : ''}</div>
+    <div class="row" style="padding:6px 0"><span class="grow">${tr('Перед началом пары')}</span>${sw(n.before, 'nBefore')}</div>
+    ${n.before ? `<div class="hscroll">${[5, 10, 15, 30, 60].map((m) => `<button class="fchip ${n.lead === m ? 'on' : ''}" data-act="nLead" data-v="${m}">${m === 60 ? tr('за 1 час') : tr('за {0} мин', m)}</button>`).join('')}</div>` : ''}
+    <div class="row" style="padding:6px 0"><span class="grow">${tr('Пары на завтра (вечером)')}</span>${sw(n.evening, 'nEvening')}</div>
+    <div class="row" style="padding:6px 0"><span class="grow">${tr('Невыполненное ДЗ на завтра')}</span>${sw(n.homework, 'nHw')}</div>
+    ${n.evening || n.homework ? `<div class="row" style="padding:6px 0"><span class="grow">${tr('Вечерние напоминания в')}</span><input type="time" class="field" style="width:120px;padding:8px 10px" value="${String(Math.floor(n.eveningAt / 60)).padStart(2, '0')}:${String(n.eveningAt % 60).padStart(2, '0')}" data-change="nEveningAt"></div>` : ''}
+    <button class="btn out" style="--a:var(--secondary);margin-top:8px;height:44px" data-act="testNotif">${tr('Проверить уведомление')}</button>
+    <div class="dim" style="font-size:12px;margin-top:8px">${tr('На сайте напоминания приходят, пока страница открыта (можно свернуть вкладку). Для напоминаний в фоне лучше Android-приложение.')}</div></div>`;
 }
 
 /* ======================= Модальные окна ======================= */
@@ -1166,81 +1203,86 @@ function modalHtml(now) {
     if (m.toNext == null) m.toNext = !!next;
     const info = (lab, v) => v ? `<div class="info-l">${lab}</div><div style="font-size:14px">${esc(v)}</div>` : '';
     return `<div class="scrim" data-act="close"><div class="sheet" data-stop><div class="grab"></div>
-      <div class="chips"><span class="chip fill" style="--a:${k.c}">${k.title}</span>${l.online ? '<span class="chip" style="--a:var(--warning)">онлайн</span>' : ''}${l.specialTime ? '<span class="chip" style="--a:var(--warning)">другое время</span>' : ''}${l.editId ? '<span class="chip" style="--a:var(--warning)">изменено вручную</span>' : ''}</div>
+      <div class="chips"><span class="chip fill" style="--a:${k.c}">${tr(k.title)}</span>${l.online ? `<span class="chip" style="--a:var(--warning)">${tr('онлайн')}</span>` : ''}${l.specialTime ? `<span class="chip" style="--a:var(--warning)">${tr('другое время')}</span>` : ''}${l.editId ? `<span class="chip" style="--a:var(--warning)">${tr('изменено вручную')}</span>` : ''}</div>
       <div class="glowtxt" style="--a:${k.c};font-size:22px;font-weight:800;margin-top:10px">${esc(l.fullSubject)}</div>
-      <div style="color:${k.c};font-weight:700;margin-top:6px">${WD_SHORT[dow(l.date)]}, ${dayMonth(l.date)} · ${l.slots.map((s) => `${fmtMin(s[0])}–${fmtMin(s[1])}`).join('  ·  ')}</div>
-      ${info('Где', l.location)}${info('Кафедра / база', d && d.department !== l.location ? d.department : '')}${info('Аттестация', d && d.attestation)}${info('Из расписания', l.details)}
-      <div class="row" style="margin-top:16px"><button class="btn out" style="height:46px" data-act="editLesson">${icon('edit')} Изменить</button><button class="btn out" style="--a:var(--secondary);height:46px" data-act="askDelete">${icon('del')} Удалить</button></div>
-      ${hw.length ? `<div class="section" style="color:var(--secondary)">ДЗ к этой паре</div>` + hw.map((x) => hwRow(x, now, false)).join('') : ''}
-      <div class="section" style="color:var(--primary)">Добавить домашнее задание</div>
-      <div class="hscroll">${next ? `<button class="fchip ${m.toNext ? 'on' : ''}" data-act="hwTarget" data-v="1">К след. паре: ${WD_SHORT[dow(next.date)]}, ${dayMonth(next.date)}</button>` : ''}<button class="fchip ${!m.toNext || !next ? 'on' : ''}" data-act="hwTarget" data-v="0">К этой паре</button></div>
-      <textarea class="field" style="margin-top:8px" id="hwText" placeholder="Например: выучить тему 5, решить задачи 1–10">${esc(m.text || '')}</textarea>
-      <button class="btn" style="margin-top:12px" data-act="saveHw">${icon('add')} Сохранить ДЗ</button></div></div>`;
+      <div style="color:${k.c};font-weight:700;margin-top:6px">${wdShort(l.date)}, ${dayMonth(l.date)} · ${l.slots.map((s) => `${fmtMin(s[0])}–${fmtMin(s[1])}`).join('  ·  ')}</div>
+      ${info(tr('Где'), l.location)}${info(tr('Кафедра / база'), d && d.department !== l.location ? d.department : '')}${info(tr('Аттестация'), d && d.attestation)}${info(tr('Из расписания'), l.details)}
+      <div class="row" style="margin-top:16px"><button class="btn out" style="height:46px" data-act="editLesson">${icon('edit')} ${tr('Изменить')}</button><button class="btn out" style="--a:var(--secondary);height:46px" data-act="askDelete">${icon('del')} ${tr('Удалить')}</button></div>
+      ${hw.length ? `<div class="section" style="color:var(--secondary)">${tr('ДЗ к этой паре')}</div>` + hw.map((x) => hwRow(x, now, false)).join('') : ''}
+      <div class="section" style="color:var(--primary)">${tr('Добавить домашнее задание')}</div>
+      <div class="hscroll">${next ? `<button class="fchip ${m.toNext ? 'on' : ''}" data-act="hwTarget" data-v="1">${tr('К след. паре: {0}', `${wdShort(next.date)}, ${dayMonth(next.date)}`)}</button>` : ''}<button class="fchip ${!m.toNext || !next ? 'on' : ''}" data-act="hwTarget" data-v="0">${tr('К этой паре')}</button></div>
+      <textarea class="field" style="margin-top:8px" id="hwText" placeholder="${tr('Например: выучить тему 5, решить задачи 1–10')}">${esc(m.text || '')}</textarea>
+      <button class="btn" style="margin-top:12px" data-act="saveHw">${icon('add')} ${tr('Сохранить ДЗ')}</button></div></div>`;
   }
   if (m.type === 'editor') {
     const e = m.form, orig = m.key ? findLesson(m.key) : null;
     const sim = orig ? similarLessons(orig).length : 0;
     const hhmm = (x) => `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
     return `<div class="scrim" data-act="close"><div class="sheet" data-stop><div class="grab"></div>
-      <div class="glowtxt" style="font-size:22px;font-weight:800">${orig ? 'Изменить занятие' : 'Новое занятие'}</div>
-      <div class="lbl">Предмет</div><input class="field" data-change="fSubject" value="${esc(e.subject)}" placeholder="Название предмета">
+      <div class="glowtxt" style="font-size:22px;font-weight:800">${orig ? tr('Изменить занятие') : tr('Новое занятие')}</div>
+      <div class="lbl">${tr('Предмет')}</div><input class="field" data-change="fSubject" value="${esc(e.subject)}" placeholder="${tr('Название предмета')}">
       <div class="hscroll" style="margin-top:6px">${subjects().map((s) => `<button class="fchip ${s === e.subject ? 'on' : ''}" data-act="fSubjectPick" data-v="${esc(s)}">${esc(s.length > 28 ? s.slice(0, 26) + '…' : s)}</button>`).join('')}</div>
-      <div class="lbl">Тип занятия</div><div class="hscroll">${Object.entries(KINDS).map(([id, k]) => `<button class="fchip ${e.kind === id ? 'on' : ''}" style="--a:${k.c}" data-act="fKind" data-v="${id}">${k.title}</button>`).join('')}</div>
-      <div class="lbl">Дата и время</div>
+      <div class="lbl">${tr('Тип занятия')}</div><div class="hscroll">${Object.entries(KINDS).map(([id, k]) => `<button class="fchip ${e.kind === id ? 'on' : ''}" style="--a:${k.c}" data-act="fKind" data-v="${id}">${tr(k.title)}</button>`).join('')}</div>
+      <div class="lbl">${tr('Дата и время')}</div>
       <div class="row"><input type="date" class="field" style="flex:1.4" value="${iso(e.date)}" data-change="fDate"><input type="time" class="field" style="flex:1" value="${hhmm(e.start)}" data-change="fStart"><input type="time" class="field" style="flex:1" value="${hhmm(e.end)}" data-change="fEnd"></div>
-      ${e.end <= e.start ? '<div style="color:var(--secondary);font-size:13px;margin-top:4px">Конец пары должен быть позже начала</div>' : ''}
-      <div class="lbl">Где (корпус, аудитория)</div><input class="field" data-change="fLoc" value="${esc(e.location)}">
-      <div class="lbl">Заметка</div><textarea class="field" data-change="fNote">${esc(e.note)}</textarea>
-      ${!orig ? `<div class="row" style="margin-top:14px"><span class="grow">Повторять каждую неделю</span><button class="switch ${e.repeat ? 'on' : ''}" data-act="fRepeat"></button></div>
-        ${e.repeat ? `<div class="row" style="margin-top:8px"><span class="grow muted">до</span><input type="date" class="field" style="width:60%" value="${iso(e.until)}" data-change="fUntil"></div>` : ''}`
-        : sim > 1 ? `<div class="row" style="margin-top:14px"><span class="grow">Применить ко всем таким парам (${sim} шт.)</span><button class="switch ${e.applyAll ? 'on' : ''}" data-act="fApplyAll"></button></div>
-        ${e.applyAll ? `<div class="muted" style="font-size:13px">Изменятся предмет, тип, время и место у всех пар «${esc(orig.subject)}» по ${WD_SHORT[dow(orig.date)].toLowerCase()} в ${fmtMin(startOf(orig))}, начиная с этой. Даты останутся прежними.</div>` : ''}` : ''}
-      <button class="btn" style="margin-top:16px" data-act="saveLesson" ${!e.subject.trim() || e.end <= e.start ? 'disabled' : ''}>Сохранить</button></div></div>`;
+      ${e.end <= e.start ? `<div style="color:var(--secondary);font-size:13px;margin-top:4px">${tr('Конец пары должен быть позже начала')}</div>` : ''}
+      <div class="lbl">${tr('Где (корпус, аудитория)')}</div><input class="field" data-change="fLoc" value="${esc(e.location)}">
+      <div class="lbl">${tr('Заметка')}</div><textarea class="field" data-change="fNote">${esc(e.note)}</textarea>
+      ${!orig ? `<div class="row" style="margin-top:14px"><span class="grow">${tr('Повторять каждую неделю')}</span><button class="switch ${e.repeat ? 'on' : ''}" data-act="fRepeat"></button></div>
+        ${e.repeat ? `<div class="row" style="margin-top:8px"><span class="grow muted">${tr('до')}</span><input type="date" class="field" style="width:60%" value="${iso(e.until)}" data-change="fUntil"></div>` : ''}`
+        : sim > 1 ? `<div class="row" style="margin-top:14px"><span class="grow">${tr('Применить ко всем таким парам ({0} шт.)', sim)}</span><button class="switch ${e.applyAll ? 'on' : ''}" data-act="fApplyAll"></button></div>
+        ${e.applyAll ? `<div class="muted" style="font-size:13px">${tr('Изменятся предмет, тип, время и место у всех пар «{0}» по {1} в {2}, начиная с этой. Даты останутся прежними.', esc(orig.subject), wdShort(orig.date).toLowerCase(), fmtMin(startOf(orig)))}</div>` : ''}` : ''}
+      <button class="btn" style="margin-top:16px" data-act="saveLesson" ${!e.subject.trim() || e.end <= e.start ? 'disabled' : ''}>${tr('Сохранить')}</button></div></div>`;
   }
   if (m.type === 'confirmDelete') {
     const l = findLesson(m.key), sim = l ? similarLessons(l).length : 0;
     return `<div class="scrim dialog-wrap" data-act="close"><div class="dialog" data-stop>
-      <div style="font-size:20px;font-weight:800">Удалить занятие?</div>
-      <div class="muted" style="margin-top:8px">${sim > 1 ? `Можно удалить только эту пару или все такие пары «${esc(l.subject)}» (${WD_SHORT[dow(l.date)].toLowerCase()}, ${timeText(l)}) — их ${sim}.` : `«${esc(l.subject)}», ${dayMonth(l.date)}`}</div>
+      <div style="font-size:20px;font-weight:800">${tr('Удалить занятие?')}</div>
+      <div class="muted" style="margin-top:8px">${sim > 1 ? tr('Можно удалить только эту пару или все такие пары «{0}» ({1}) — их {2}.', esc(l.subject), `${wdShort(l.date).toLowerCase()}, ${timeText(l)}`, sim) : `«${esc(l.subject)}», ${dayMonth(l.date)}`}</div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;margin-top:16px">
-        <button style="color:var(--secondary);font-weight:800" data-act="doDelete" data-v="0">Только эту</button>
-        ${sim > 1 ? `<button style="color:var(--secondary);font-weight:800" data-act="doDelete" data-v="1">Все такие (${sim})</button>` : ''}
-        <button class="muted" data-act="close">Отмена</button></div></div></div>`;
+        <button style="color:var(--secondary);font-weight:800" data-act="doDelete" data-v="0">${tr('Только эту')}</button>
+        ${sim > 1 ? `<button style="color:var(--secondary);font-weight:800" data-act="doDelete" data-v="1">${tr('Все такие ({0})', sim)}</button>` : ''}
+        <button class="muted" data-act="close">${tr('Отмена')}</button></div></div></div>`;
+  }
+  if (m.type === 'lang') {
+    return `<div class="scrim" data-act="close"><div class="sheet" data-stop><div class="grab"></div>
+      <div class="glowtxt" style="--a:var(--tertiary);font-size:22px;font-weight:800;margin-bottom:12px">${tr('Язык')}</div>
+      ${LANGS.map(([c, n, fl]) => `<button class="langrow ${c === LANG ? 'on' : ''}" data-act="setLang" data-v="${c}"><span style="font-size:22px">${fl}</span><span class="grow">${n}</span><b>${c.toUpperCase()}</b></button>`).join('')}</div></div>`;
   }
   if (m.type === 'addhw') {
-    if (!m.subject) return `<div class="scrim dialog-wrap" data-act="close"><div class="dialog" data-stop><div style="font-size:20px;font-weight:800;margin-bottom:8px">Предмет</div>
-      <div style="max-height:60vh;overflow:auto">${subjects().map((s) => `<button style="display:block;width:100%;text-align:left;padding:10px 4px;font-size:15px" data-act="addhwSubject" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
-      <div style="text-align:right;margin-top:8px"><button class="muted" data-act="close">Отмена</button></div></div></div>`;
+    if (!m.subject) return `<div class="scrim dialog-wrap" data-act="close"><div class="dialog" data-stop><div style="font-size:20px;font-weight:800;margin-bottom:8px">${tr('Предмет')}</div>
+      <div style="max-height:60vh;overflow:auto">${subjects().map((s) => `<button style="display:block;width:100%;text-align:start;padding:10px 4px;font-size:15px" data-act="addhwSubject" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+      <div style="text-align:right;margin-top:8px"><button class="muted" data-act="close">${tr('Отмена')}</button></div></div></div>`;
     const target = nextBySubject(m.subject);
     return `<div class="scrim dialog-wrap" data-act="close"><div class="dialog" data-stop><div style="font-size:20px;font-weight:800">${esc(m.subject)}</div>
-      <div style="font-size:13px;margin-top:6px;color:${target ? 'var(--primary)' : 'var(--warning)'}">${target ? `К следующей паре: ${WD_SHORT[dow(target.date)]}, ${dayMonth(target.date)}, ${timeText(target)}` : 'Будущих пар по предмету нет'}</div>
-      <textarea class="field" id="hwText2" style="margin-top:10px;min-height:90px" placeholder="Что задали?"></textarea>
-      <div class="row" style="justify-content:flex-end;margin-top:12px;gap:18px"><button class="muted" data-act="addhwBack">Назад</button><button style="color:var(--primary);font-weight:800" data-act="addhwSave" ${target ? '' : 'disabled'}>Сохранить</button></div></div></div>`;
+      <div style="font-size:13px;margin-top:6px;color:${target ? 'var(--primary)' : 'var(--warning)'}">${target ? tr('К следующей паре: {0}', `${wdShort(target.date)}, ${dayMonth(target.date)}, ${timeText(target)}`) : tr('Будущих пар по предмету нет')}</div>
+      <textarea class="field" id="hwText2" style="margin-top:10px;min-height:90px" placeholder="${tr('Что задали?')}"></textarea>
+      <div class="row" style="justify-content:flex-end;margin-top:12px;gap:18px"><button class="muted" data-act="addhwBack">${tr('Назад')}</button><button style="color:var(--primary);font-weight:800" data-act="addhwSave" ${target ? '' : 'disabled'}>${tr('Сохранить')}</button></div></div></div>`;
   }
   return '';
 }
 
 /* ======================= Онбординг ======================= */
 function onboarding() {
-  const logo = `<div class="glowtxt" style="font-size:40px;line-height:44px;font-weight:900;color:var(--primary)">КГМУ<br>РАСПИСАНИЕ</div>`;
+  const logo = `<div class="glowtxt" style="font-size:40px;line-height:44px;font-weight:900;color:var(--primary)">${tr('КГМУ<br>РАСПИСАНИЕ')}</div>`;
   if (!S.schedule) return `<div style="min-height:85vh;display:flex;flex-direction:column;justify-content:center">${logo}<div style="height:24px"></div>
-    <div class="card glow" style="--a:var(--secondary)"><div class="label" style="color:var(--secondary)">Начало работы</div>
-    <div style="font-size:22px;font-weight:800;margin-top:6px">Загрузите файл расписания</div>
-    <div class="muted" style="font-size:14px;margin-top:6px">Файл .xlsx с сайта учебного отдела или из чата группы. Сайт сам разберёт пары, недели, потоки и дисциплины по выбору. Файл никуда не отправляется — всё работает прямо в браузере.</div>
-    <button class="btn grad" style="margin-top:16px;height:54px" data-act="import" ${S.loading ? 'disabled' : ''}>${S.loading ? 'Читаю файл…' : 'Выбрать файл .xlsx'}</button>
+    <div class="card glow" style="--a:var(--secondary)"><div class="label" style="color:var(--secondary)">${tr('Начало работы')}</div>
+    <div style="font-size:22px;font-weight:800;margin-top:6px">${tr('Загрузите файл расписания')}</div>
+    <div class="muted" style="font-size:14px;margin-top:6px">${tr('Файл .xlsx с сайта учебного отдела или из чата группы. Сайт сам разберёт пары, недели, потоки и дисциплины по выбору. Файл никуда не отправляется — всё работает прямо в браузере.')}</div>
+    <button class="btn grad" style="margin-top:16px;height:54px" data-act="import" ${S.loading ? 'disabled' : ''}>${S.loading ? tr('Читаю файл…') : tr('Выбрать файл .xlsx')}</button>
     ${S.error ? `<div style="color:var(--secondary);margin-top:10px;font-size:14px">${esc(S.error)}</div>` : ''}</div></div>`;
   if (!S.group || !S.schedule.groups.includes(S.group)) return `<div style="min-height:85vh;display:flex;flex-direction:column;justify-content:center">${logo}
     <div class="muted" style="margin-top:8px;font-size:14px">${esc(S.schedule.title)}</div><div style="height:28px"></div>
-    <div class="glowtxt" style="--a:var(--secondary);font-size:20px;font-weight:800;color:var(--secondary)">Выберите свою группу</div><div style="height:16px"></div>
-    ${groupGrid(S.schedule.groups, null, 'pickGroup')}<div class="dim" style="font-size:13px;margin-top:16px">Группу можно сменить позже в настройках</div></div>`;
+    <div class="glowtxt" style="--a:var(--secondary);font-size:20px;font-weight:800;color:var(--secondary)">${tr('Выберите свою группу')}</div><div style="height:16px"></div>
+    ${groupGrid(S.schedule.groups, null, 'pickGroup')}<div class="dim" style="font-size:13px;margin-top:16px">${tr('Группу можно сменить позже в настройках')}</div></div>`;
   return `<div style="min-height:85vh;display:flex;flex-direction:column;justify-content:center">${logo}<div style="height:28px"></div>
-    <div class="glowtxt" style="--a:var(--secondary);font-size:20px;font-weight:800;color:var(--secondary)">Выберите свой поток</div>
-    <div class="muted" style="font-size:14px;margin:6px 0 16px">Группа ${esc(S.group)}. От потока зависят дни лекций и физкультуры.</div>
-    ${streamPicker(S.stream)}<div class="dim" style="font-size:13px;margin-top:16px">Поток можно сменить позже в настройках</div></div>`;
+    <div class="glowtxt" style="--a:var(--secondary);font-size:20px;font-weight:800;color:var(--secondary)">${tr('Выберите свой поток')}</div>
+    <div class="muted" style="font-size:14px;margin:6px 0 16px">${tr('Группа {0}. От потока зависят дни лекций и физкультуры.', esc(S.group))}</div>
+    ${streamPicker(S.stream)}<div class="dim" style="font-size:13px;margin-top:16px">${tr('Поток можно сменить позже в настройках')}</div></div>`;
 }
 
 /* ======================= Отрисовка ======================= */
-let nextBoundary = Infinity, lastDay = todayEd();
+let nextBoundary = Infinity, lastDay = todayEd(), shown = {};
 function clockText() { const d = new Date(); return [d.getHours(), d.getMinutes(), d.getSeconds()].map((x) => String(x).padStart(2, '0')).join(':'); }
 function render() {
   applyTheme();
@@ -1248,19 +1290,29 @@ function render() {
   const now = Date.now();
   lastDay = todayEd();
   const ready = S.schedule && S.group && S.schedule.groups.includes(S.group) && !needsStream();
-  if (!ready) { app.innerHTML = onboarding(); nav.innerHTML = ''; layer.innerHTML = ''; return; }
+  if (!ready) { app.innerHTML = onboarding(); nav.innerHTML = ''; layer.innerHTML = ''; shown = {}; return; }
+  // Анимация появления — только при открытии окна, а прокрутка сохраняется между перерисовками
+  // (иначе экран настроек и шторка «дёргаются» при каждом нажатии).
+  const keep = { ov: layer.querySelector('.overlay')?.scrollTop || 0, sh: layer.querySelector('.sheet, .dialog')?.scrollTop || 0 };
+  const sig = S.modal ? S.modal.type + '|' + (S.modal.key || '') + '|' + (S.modal.subject || '') : '';
+  const enterOverlay = S.settings && !shown.settings, enterModal = sig && sig !== shown.modal;
   if (S.settings) {
     app.innerHTML = '';
     nav.innerHTML = '';
-    layer.innerHTML = `<div class="overlay"><div class="inner">${screenSettings()}</div></div>` + modalHtml(now);
+    layer.innerHTML = `<div class="overlay ${enterOverlay ? 'enter' : ''}"><div class="inner">${screenSettings()}</div></div>` + modalHtml(now);
   } else {
     const scr = { today: screenToday, week: screenWeek, hw: screenHw, group: screenGroup }[S.tab](now);
     app.innerHTML = scr;
     const pending = groupHw().filter((h) => !h.done && h.dueDate >= todayEd()).length;
     const tabs = [['today', 'Сегодня', 'home'], ['week', 'Неделя', 'date'], ['hw', 'ДЗ', 'edit'], ['group', 'Моя группа', 'person']];
-    nav.innerHTML = `<div class="pill">${tabs.map(([id, t, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}"><div class="ic">${icon(ic)}</div><span>${t}</span>${id === 'hw' && pending ? `<b class="badge">${pending > 9 ? '9+' : pending}</b>` : ''}</button>`).join('')}</div>`;
-    layer.innerHTML = (S.tab === 'hw' ? `<button class="fab" data-act="addhw" aria-label="Добавить ДЗ">${icon('add', 'width:26px;height:26px')}</button>` : '') + modalHtml(now);
+    nav.innerHTML = `<div class="pill">${tabs.map(([id, t, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}"><div class="ic">${icon(ic)}</div><span>${tr(t)}</span>${id === 'hw' && pending ? `<b class="badge">${pending > 9 ? '9+' : pending}</b>` : ''}</button>`).join('')}</div>`;
+    layer.innerHTML = (S.tab === 'hw' ? `<button class="fab" data-act="addhw" aria-label="${tr('Добавить ДЗ')}">${icon('add', 'width:26px;height:26px')}</button>` : '') + modalHtml(now);
   }
+  const ov = layer.querySelector('.overlay'), scrim = layer.querySelector('.scrim'), box = layer.querySelector('.sheet, .dialog');
+  if (ov && !enterOverlay) ov.scrollTop = keep.ov;
+  if (scrim && enterModal) scrim.classList.add('enter');
+  if (box && !enterModal) box.scrollTop = keep.sh;
+  shown = { settings: S.settings, modal: S.modal ? sig : '' };
   // Ближайшая граница пары — тогда перерисуем экран.
   nextBoundary = Infinity;
   for (const l of S.lessons) { const s = startMs(l), e = endMs(l); if (s > now) nextBoundary = Math.min(nextBoundary, s); if (e > now) nextBoundary = Math.min(nextBoundary, e); if (s > now + 86400e3) break; }
@@ -1317,7 +1369,7 @@ function saveLessonForm() {
     }
   }
   S.edits = list; saveEdits();
-  toast(orig ? 'Изменения сохранены' : 'Занятие добавлено');
+  toast(orig ? tr('Изменения сохранены') : tr('Занятие добавлено'));
 }
 
 /* ======================= Уведомления (пока страница открыта) ======================= */
@@ -1348,14 +1400,14 @@ function scheduleNotifications() {
     for (const e of events.filter((x) => x.at === ev.at)) {
       if (e.kind === 'lesson') {
         const mins = Math.max(0, Math.round((startMs(e.l) - Date.now()) / 60e3));
-        const hw = hwFor(e.l).filter((x) => !x.done).map((x) => '📝 ДЗ: ' + x.text);
-        notify(mins ? `Через ${mins} мин: ${e.l.subject}` : `Начинается: ${e.l.subject}`, [`${timeText(e.l)} · ${KINDS[e.l.kind].title}`, e.l.location ? '📍 ' + e.l.location : '', ...hw].filter(Boolean).join('\n'));
+        const hw = hwFor(e.l).filter((x) => !x.done).map((x) => '📝 ' + tr('ДЗ: {0}', x.text));
+        notify(mins ? tr('Через {0} мин: {1}', mins, e.l.subject) : tr('Начинается: {0}', e.l.subject), [`${timeText(e.l)} · ${tr(KINDS[e.l.kind].title)}`, e.l.location ? '📍 ' + e.l.location : '', ...hw].filter(Boolean).join('\n'));
       } else if (e.kind === 'evening') {
         const ls = lessonsOn(e.day);
-        notify(`Завтра ${ls.length} ${plural(ls.length, 'пара', 'пары', 'пар')}, первая в ${fmtMin(startOf(ls[0]))}`, ls.map((l) => `${fmtMin(startOf(l))}  ${l.subject}`).join('\n'));
+        notify(tr('Завтра: {0}, первая в {1}', `${ls.length} ${plural(ls.length, 'пара', 'пары', 'пар')}`, fmtMin(startOf(ls[0]))), ls.map((l) => `${fmtMin(startOf(l))}  ${l.subject}`).join('\n'));
       } else {
         const items = groupHw().filter((h) => !h.done && h.dueDate === e.day);
-        notify(`ДЗ на завтра: ${items.length}`, items.map((h) => `• ${h.subject}: ${h.text}`).join('\n'));
+        notify(tr('ДЗ на завтра: {0}', items.length), items.map((h) => `• ${h.subject}: ${h.text}`).join('\n'));
       }
     }
     setTimeout(scheduleNotifications, 1000);
@@ -1367,13 +1419,13 @@ async function loadFromBuffer(buf, save) {
   S.loading = true; S.error = null; render();
   try {
     const sch = await parseSchedule(buf);
-    if (!sch.lessons.length) throw new Error('В файле не найдено ни одного занятия');
+    if (!sch.lessons.length) throw new Error(tr('В файле не найдено ни одного занятия'));
     S.schedule = sch;
-    if (save) { LS.set('file', b64.enc(buf)); toast(`Расписание загружено: ${sch.lessons.length} занятий`); }
+    if (save) { LS.set('file', b64.enc(buf)); toast(tr('Расписание загружено: {0} занятий', sch.lessons.length)); }
     if (S.group && !sch.groups.includes(S.group)) S.group = null;
     refreshLessons();
   } catch (e) {
-    S.error = 'Не удалось прочитать файл: ' + (e && e.message ? e.message : e);
+    S.error = tr('Не удалось прочитать файл: {0}', e && e.message ? e.message : e);
     if (save) toast(S.error);
   }
   S.loading = false; render();
@@ -1397,24 +1449,26 @@ document.addEventListener('click', (ev) => {
     case 'settings': S.settings = true; window.scrollTo(0, 0); break;
     case 'closeSettings': S.settings = false; break;
     case 'stab': S.settingsTab = +v; break;
+    case 'lang': S.modal = { type: 'lang' }; break;
+    case 'setLang': LANG = v; LS.set('lang', v); applyLang(); S.modal = null; scheduleNotifications(); break;
     case 'import': document.getElementById('file').click(); return;
-    case 'removeSchedule': if (!confirm('Удалить расписание? ДЗ и настройки сохранятся.')) return; LS.del('file'); S.schedule = null; S.settings = false; refreshLessons(); break;
+    case 'removeSchedule': if (!confirm(tr('Удалить расписание? ДЗ и настройки сохранятся.'))) return; LS.del('file'); S.schedule = null; S.settings = false; refreshLessons(); break;
     case 'pickGroup': S.group = v; LS.set('group', v); refreshLessons(); break;
     case 'pickStream': S.stream = +v; LS.set('stream', +v); refreshLessons(); break;
     case 'mode': S.mode = v; LS.set('mode', v); break;
     case 'theme': S.theme = v; LS.set('theme', v); break;
     case 'elective': S.electives = S.electives.includes(v) ? S.electives.filter((x) => x !== v) : S.electives.concat(v); LS.set('electives', S.electives); refreshLessons(); break;
     case 'clearElectives': S.electives = []; LS.set('electives', []); refreshLessons(); break;
-    case 'resetEdits': S.edits = S.edits.filter((e) => e.group !== S.group); saveEdits(); toast('Ручные правки сброшены'); break;
+    case 'resetEdits': S.edits = S.edits.filter((e) => e.group !== S.group); saveEdits(); toast(tr('Ручные правки сброшены')); break;
     case 'week': S.weekSel += +el.dataset.d; break;
     case 'day': S.weekSel = +el.dataset.d; break;
     case 'open': S.modal = { type: 'lesson', key: el.dataset.key }; break;
     case 'close': S.modal = null; break;
     case 'hwTarget': keepText(); m.toNext = v === '1'; break;
     case 'saveHw': {
-      const text = document.getElementById('hwText').value; if (!text.trim()) { toast('Введите текст задания'); return; }
+      const text = document.getElementById('hwText').value; if (!text.trim()) { toast(tr('Введите текст задания')); return; }
       const l = findLesson(m.key), next = nextOccurrence(l), target = m.toNext && next ? next : l;
-      addHomework(target, text); m.text = ''; toast(`ДЗ добавлено на ${WD_SHORT[dow(target.date)]}, ${dayMonth(target.date)}`); break;
+      addHomework(target, text); m.text = ''; toast(tr('ДЗ добавлено на {0}', `${wdShort(target.date)}, ${dayMonth(target.date)}`)); break;
     }
     case 'hwToggle': S.hw = S.hw.map((h) => (h.id === +el.dataset.id ? Object.assign({}, h, { done: !h.done }) : h)); saveHw(); break;
     case 'hwDelete': S.hw = S.hw.filter((h) => h.id !== +el.dataset.id); saveHw(); break;
@@ -1422,7 +1476,7 @@ document.addEventListener('click', (ev) => {
     case 'addhw': S.modal = { type: 'addhw' }; break;
     case 'addhwSubject': m.subject = v; break;
     case 'addhwBack': m.subject = null; break;
-    case 'addhwSave': { const text = document.getElementById('hwText2').value; const t = nextBySubject(m.subject); if (!text.trim() || !t) return; addHomework(t, text); S.modal = null; toast(`ДЗ добавлено на ${WD_SHORT[dow(t.date)]}, ${dayMonth(t.date)}`); break; }
+    case 'addhwSave': { const text = document.getElementById('hwText2').value; const t = nextBySubject(m.subject); if (!text.trim() || !t) return; addHomework(t, text); S.modal = null; toast(tr('ДЗ добавлено на {0}', `${wdShort(t.date)}, ${dayMonth(t.date)}`)); break; }
     case 'editLesson': { const l = findLesson(m.key); S.modal = { type: 'editor', key: m.key, form: { subject: l.subject, kind: l.kind, date: l.date, start: startOf(l), end: endOf(l), location: l.location || '', note: l.editId ? l.details : '', applyAll: false, repeat: false, until: l.date } }; break; }
     case 'addLesson': { const last = S.lessons.length ? S.lessons[S.lessons.length - 1].date : S.weekSel + 90; S.modal = { type: 'editor', key: null, form: { subject: '', kind: 'PRACTICE', date: S.weekSel, start: 480, end: 570, location: '', note: '', applyAll: false, repeat: false, until: Math.max(last, S.weekSel) } }; break; }
     case 'fSubjectPick': m.form.subject = v; break;
@@ -1435,13 +1489,13 @@ document.addEventListener('click', (ev) => {
       const l = findLesson(m.key), targets = v === '1' ? similarLessons(l) : [l];
       let list = S.edits, id = Date.now();
       for (const t of targets) list = upsert(list, t, null, id++);
-      S.edits = list; S.modal = null; saveEdits(); toast(targets.length > 1 ? `Удалено занятий: ${targets.length}` : 'Занятие удалено'); break;
+      S.edits = list; S.modal = null; saveEdits(); toast(targets.length > 1 ? tr('Удалено занятий: {0}', targets.length) : tr('Занятие удалено')); break;
     }
     case 'askNotif': Notification.requestPermission().then(() => { scheduleNotifications(); render(); }); return;
     case 'testNotif':
-      if (!('Notification' in window)) { toast('Браузер не поддерживает уведомления'); return; }
-      if (Notification.permission !== 'granted') { Notification.requestPermission().then((p) => { if (p === 'granted') notify('Уведомления работают ✨', 'Так будет выглядеть напоминание перед парой'); render(); }); return; }
-      notify('Уведомления работают ✨', 'Так будет выглядеть напоминание перед парой'); return;
+      if (!('Notification' in window)) { toast(tr('Браузер не поддерживает уведомления')); return; }
+      if (Notification.permission !== 'granted') { Notification.requestPermission().then((p) => { if (p === 'granted') notify(tr('Уведомления работают ✨'), tr('Так будет выглядеть напоминание перед парой')); render(); }); return; }
+      notify(tr('Уведомления работают ✨'), tr('Так будет выглядеть напоминание перед парой')); return;
     case 'nBefore': S.notif.before = !S.notif.before; break;
     case 'nEvening': S.notif.evening = !S.notif.evening; break;
     case 'nHw': S.notif.homework = !S.notif.homework; break;
@@ -1471,12 +1525,50 @@ document.addEventListener('input', (ev) => {
   if (k === 'fLoc') f.location = el.value;
   if (k === 'fNote') f.note = el.value;
 });
+// Шторку можно смахнуть вниз, как в приложении.
+let drag = null;
+document.addEventListener('touchstart', (ev) => {
+  const sh = ev.target.closest('.sheet');
+  if (!sh || ev.touches.length !== 1) { drag = null; return; }
+  // Тянем за «ручку» или когда содержимое прокручено до верха (не из поля ввода).
+  const fromGrab = !!ev.target.closest('.grab');
+  if (!fromGrab && (sh.scrollTop > 0 || ev.target.closest('textarea, input, .hscroll'))) { drag = null; return; }
+  drag = { sh, y0: ev.touches[0].clientY, t0: Date.now(), dy: 0, active: false };
+}, { passive: true });
+document.addEventListener('touchmove', (ev) => {
+  if (!drag) return;
+  const dy = ev.touches[0].clientY - drag.y0;
+  if (!drag.active) {
+    if (dy < 6) { if (dy < -6) drag = null; return; }
+    drag.active = true; drag.sh.style.transition = 'none';
+  }
+  drag.dy = Math.max(0, dy);
+  drag.sh.style.transform = `translateY(${drag.dy}px)`;
+  const scrim = drag.sh.parentElement; if (scrim) scrim.style.background = `rgba(0,0,0,${0.55 * Math.max(0.2, 1 - drag.dy / (drag.sh.offsetHeight || 1))})`;
+  ev.preventDefault();
+}, { passive: false });
+document.addEventListener('touchend', () => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.active) return;
+  const fast = d.dy / Math.max(1, Date.now() - d.t0) > 0.6;
+  d.sh.style.transition = 'transform .2s ease-out';
+  if (d.dy > Math.min(140, d.sh.offsetHeight * 0.3) || (fast && d.dy > 40)) {
+    d.sh.style.transform = 'translateY(105%)';
+    if (d.sh.parentElement) { d.sh.parentElement.style.transition = 'background .2s'; d.sh.parentElement.style.background = 'rgba(0,0,0,0)'; }
+    setTimeout(() => { S.modal = null; render(); }, 190);
+  } else {
+    d.sh.style.transform = '';
+    if (d.sh.parentElement) d.sh.parentElement.style.background = '';
+  }
+});
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { if (S.modal) S.modal = null; else if (S.settings) S.settings = false; else return; render(); } });
 if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => S.mode === 'SYSTEM' && render());
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 
 /* ======================= Старт ======================= */
 (async () => {
+  applyLang();
   applyTheme();
   const saved = LS.get('file', null);
   if (saved) await loadFromBuffer(b64.dec(saved), false); else render();

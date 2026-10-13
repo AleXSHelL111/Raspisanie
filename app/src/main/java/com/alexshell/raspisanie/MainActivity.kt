@@ -1,5 +1,6 @@
 package com.alexshell.raspisanie
 
+import com.alexshell.raspisanie.ui.tr
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -107,6 +108,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        com.alexshell.raspisanie.ui.I18n.init(this)
         Notifier.createChannels(this)
         // Тема — до первой отрисовки, чтобы не было «мигания» цветов.
         val prefs = Repository.prefs(this)
@@ -127,7 +129,15 @@ class MainActivity : ComponentActivity() {
                 window.setBackgroundDrawable(ColorDrawable(bg.toArgb()))
             }
             NeonTheme {
-                NeonBackground { App(vm) }
+                // Смена языка пересобирает интерфейс целиком; арабский — справа налево.
+                val lang = com.alexshell.raspisanie.ui.I18n.lang
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.ui.platform.LocalLayoutDirection provides
+                        if (com.alexshell.raspisanie.ui.I18n.isRtl) androidx.compose.ui.unit.LayoutDirection.Rtl
+                        else androidx.compose.ui.unit.LayoutDirection.Ltr,
+                ) {
+                    androidx.compose.runtime.key(lang) { NeonBackground { App(vm) } }
+                }
             }
         }
     }
@@ -194,7 +204,7 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            "КГМУ\nРАСПИСАНИЕ",
+            tr("КГМУ\nРАСПИСАНИЕ"),
             fontSize = 40.sp,
             lineHeight = 44.sp,
             fontWeight = FontWeight.Black,
@@ -203,13 +213,12 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
         )
         Spacer(Modifier.height(24.dp))
         NeonCard(accent = Neon.Magenta, glow = true) {
-            Text("Начало работы", color = Neon.Magenta, fontSize = 12.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+            Text(tr("Начало работы"), color = Neon.Magenta, fontSize = 12.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
-            Text("Загрузите файл расписания", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(tr("Загрузите файл расписания"), fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
             Text(
-                "Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, " +
-                    "недели и дисциплины по выбору.",
+                tr("Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, недели и дисциплины по выбору."),
                 color = Neon.Muted, fontSize = 14.sp,
             )
             Spacer(Modifier.height(16.dp))
@@ -223,11 +232,11 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 if (vm.importing) CircularProgressIndicator(color = Neon.OnAccent, modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
-                else Text("Выбрать файл .xlsx", color = Neon.OnAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                else Text(tr("Выбрать файл .xlsx"), color = Neon.OnAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "Можно также открыть файл из Telegram или проводника через «Открыть с помощью → КГМУ расписание».",
+                tr("Можно также открыть файл из Telegram или проводника через «Открыть с помощью → КГМУ расписание»."),
                 color = Neon.Dim, fontSize = 12.sp,
             )
         }
@@ -242,7 +251,7 @@ private fun StreamOnboarding(vm: AppViewModel) {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            "КГМУ\nРАСПИСАНИЕ",
+            tr("КГМУ\nРАСПИСАНИЕ"),
             fontSize = 40.sp,
             lineHeight = 44.sp,
             fontWeight = FontWeight.Black,
@@ -251,19 +260,19 @@ private fun StreamOnboarding(vm: AppViewModel) {
         )
         Spacer(Modifier.height(32.dp))
         Text(
-            "Выберите свой поток",
+            tr("Выберите свой поток"),
             fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Magenta,
             style = TextStyle(shadow = Neon.glow(Neon.Magenta, 16f)),
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            "Группа ${vm.group}. От потока зависят дни лекций и физкультуры.",
+            tr("Группа {0}. От потока зависят дни лекций и физкультуры.", vm.group),
             color = Neon.Muted, fontSize = 14.sp,
         )
         Spacer(Modifier.height(16.dp))
         StreamPicker(vm.schedule?.streams.orEmpty(), vm.stream, vm::selectStream)
         Spacer(Modifier.height(16.dp))
-        Text("Поток можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
+        Text(tr("Поток можно сменить позже в настройках"), color = Neon.Dim, fontSize = 13.sp)
     }
 }
 
@@ -274,7 +283,7 @@ private fun Onboarding(vm: AppViewModel) {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            "КГМУ\nРАСПИСАНИЕ",
+            tr("КГМУ\nРАСПИСАНИЕ"),
             fontSize = 40.sp,
             lineHeight = 44.sp,
             fontWeight = FontWeight.Black,
@@ -285,14 +294,14 @@ private fun Onboarding(vm: AppViewModel) {
         Text(vm.schedule?.title.orEmpty(), color = Neon.Muted, fontSize = 14.sp)
         Spacer(Modifier.height(32.dp))
         Text(
-            "Выберите свою группу",
+            tr("Выберите свою группу"),
             fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Magenta,
             style = TextStyle(shadow = Neon.glow(Neon.Magenta, 16f)),
         )
         Spacer(Modifier.height(16.dp))
         GroupGrid(vm.schedule?.groups.orEmpty(), null, vm::selectGroup)
         Spacer(Modifier.height(16.dp))
-        Text("Группу можно сменить позже в настройках", color = Neon.Dim, fontSize = 13.sp)
+        Text(tr("Группу можно сменить позже в настройках"), color = Neon.Dim, fontSize = 13.sp)
     }
 }
 
@@ -333,7 +342,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                     onClick = { addDialog = true },
                     containerColor = Neon.Magenta,
                     contentColor = Neon.OnAccent,
-                ) { Icon(Icons.Filled.Add, "Добавить ДЗ") }
+                ) { Icon(Icons.Filled.Add, tr("Добавить ДЗ")) }
             }
         },
         bottomBar = {
@@ -341,7 +350,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 items = Tab.entries.map { t ->
                     val pending = if (t == Tab.HOMEWORK) vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() } else 0
                     NavItem(
-                        title = t.title,
+                        title = tr(t.title),
                         icon = when (t) {
                             Tab.TODAY -> Icons.Filled.Home
                             Tab.WEEK -> Icons.Filled.DateRange

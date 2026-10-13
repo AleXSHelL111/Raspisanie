@@ -191,3 +191,31 @@ fun NeonIconButton(
         androidx.compose.material3.Icon(icon, contentDescription = description, tint = color, modifier = Modifier.size(22.dp))
     }
 }
+
+/** Круглая неоновая кнопка с короткой подписью вместо иконки (например, код языка). */
+@Composable
+fun NeonLabelButton(
+    label: String,
+    description: String,
+    color: Color = Neon.Cyan,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(46.dp)
+            .shadow(12.dp, androidx.compose.foundation.shape.CircleShape, ambientColor = color, spotColor = color)
+            .clip(androidx.compose.foundation.shape.CircleShape)
+            .background(Brush.verticalGradient(listOf(Neon.SurfaceHi, Neon.Surface)))
+            .border(1.dp, Brush.linearGradient(listOf(color, Neon.Violet)), androidx.compose.foundation.shape.CircleShape)
+            .clickable(onClickLabel = description, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Text(
+            label,
+            color = color,
+            fontSize = 13.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            letterSpacing = 0.5.sp,
+        )
+    }
+}
