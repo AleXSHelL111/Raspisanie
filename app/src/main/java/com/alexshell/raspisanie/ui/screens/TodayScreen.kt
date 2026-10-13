@@ -134,11 +134,10 @@ fun TodayScreen(
 @Composable
 private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: () -> Unit) {
     val today = now.toLocalDate()
-    // Кнопка настроек — слева сверху, над часами.
     var langDialog by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    // Настройки — слева, язык — справа, в одну строку: часы остаются на прежнем месте.
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         NeonIconButton(Icons.Filled.Settings, tr("Настройки"), onClick = onOpenSettings)
-        // Под настройками — выбор языка интерфейса.
         com.alexshell.raspisanie.ui.components.NeonLabelButton(
             com.alexshell.raspisanie.ui.I18n.lang.uppercase(), tr("Язык"), color = Neon.Violet,
         ) { langDialog = true }
