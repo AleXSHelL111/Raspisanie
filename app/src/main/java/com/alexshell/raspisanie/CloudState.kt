@@ -92,8 +92,8 @@ class CloudState(private val vm: AppViewModel) {
         save()
     }
 
-    fun errorText(code: String): String = tr(
-        when (code) {
+    fun errorText(code: String): String {
+        val key = when (code) {
             "auth" -> "Сессия истекла — войдите снова"
             "bad_login" -> "Неверное имя или пароль"
             "name_taken" -> "Это имя в группе уже занято"
@@ -110,7 +110,8 @@ class CloudState(private val vm: AppViewModel) {
             "no_server" -> "Сначала укажите адрес сервера"
             else -> return tr("Ошибка сервера: {0}", code)
         }
-    )
+        return tr(key)
+    }
 
     private suspend fun api(action: String, params: JSONObject = JSONObject()): JSONObject {
         if (url.isBlank()) throw CloudError("no_server")
