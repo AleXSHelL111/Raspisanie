@@ -311,6 +311,14 @@
   "fr": "Restaurer",
   "zh": "恢复"
  },
+ "Восстановить из файла копии": {
+  "ar": "الاستعادة من ملف نسخة احتياطية",
+  "de": "Aus Sicherungsdatei wiederherstellen",
+  "en": "Restore from backup file",
+  "es": "Restaurar desde copia",
+  "fr": "Restaurer depuis une sauvegarde",
+  "zh": "从备份文件恢复"
+ },
  "Время": {
   "ar": "الوقت",
   "de": "Uhrzeit",

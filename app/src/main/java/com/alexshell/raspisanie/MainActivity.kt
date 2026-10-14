@@ -256,6 +256,11 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
         } else {
             WelcomeLogin(vm)
         }
+        Spacer(Modifier.height(10.dp))
+        val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::restoreBackupFile) }
+        OutlineButton(tr("Восстановить из файла копии"), Neon.Lime) {
+            restore.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
+        }
     }
     }
 }
