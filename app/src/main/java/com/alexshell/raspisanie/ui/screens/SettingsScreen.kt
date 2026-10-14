@@ -289,8 +289,8 @@ fun ThemePicker(vm: AppViewModel) {
 
 /** Экран настроек: шапка, разделы «Общие» и «Профиль». */
 @Composable
-fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) {
-    var section by rememberSaveable { mutableIntStateOf(0) }
+fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit, startSection: Int = 0) {
+    var section by rememberSaveable { mutableIntStateOf(startSection) }
     val density = LocalDensity.current
     var headerHeight by remember { mutableStateOf(140.dp) }
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -299,7 +299,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
         Box(Modifier.fillMaxSize()) {
             NeonBackground {
                 val pad = PaddingValues(top = headerHeight, bottom = bottom)
-                if (section == 0) SettingsScreen(vm, pad, onImport) else ProfileLocked(pad)
+                if (section == 0) SettingsScreen(vm, pad, onImport) else ProfileScreen(vm, pad)
             }
         }
         Column(
@@ -327,7 +327,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
                 )
             }
             SegmentedTabs(
-                items = listOf(tr("Общие") to true, tr("Профиль 🔒") to true),
+                items = listOf(tr("Общие") to true, tr("Профиль") to true),
                 selected = section,
                 onSelect = { section = it },
             )
@@ -338,7 +338,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit) 
 }
 
 @Composable
-private fun SegmentedTabs(
+fun SegmentedTabs(
     items: List<Pair<String, Boolean>>,
     selected: Int,
     onSelect: (Int) -> Unit,
@@ -380,47 +380,6 @@ private fun SegmentedTabs(
         }
     }
 }
-
-/** Раздел «Профиль» — пока недоступен. */
-@Composable
-private fun ProfileLocked(pad: PaddingValues) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp, end = 16.dp,
-            top = pad.calculateTopPadding() + 12.dp,
-            bottom = pad.calculateBottomPadding() + 24.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item {
-            NeonCard(accent = Neon.Violet, glow = true) {
-                Text("🔒", fontSize = 36.sp)
-                Spacer(Modifier.height(8.dp))
-                Text(tr("Профиль пока недоступен"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    tr("Раздел появится в следующих обновлениях."),
-                    color = Neon.Muted, fontSize = 14.sp,
-                )
-            }
-        }
-        item { SectionTitle(tr("Что здесь будет")) }
-        listOf(
-            tr("Имя и аватар") to tr("Ваш профиль студента"),
-            tr("Синхронизация") to tr("Перенос ДЗ и настроек на другой телефон"),
-            tr("Резервная копия") to tr("Сохранение и восстановление данных"),
-        ).forEach { (title, text) ->
-            item {
-                NeonCard(accent = Neon.Stroke) {
-                    Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Neon.Muted)
-                    Text(text, color = Neon.Dim, fontSize = 13.sp)
-                }
-            }
-        }
-    }
-}
-
 
 /** Выбор потока: от него зависят лекции и физкультура. */
 @Composable

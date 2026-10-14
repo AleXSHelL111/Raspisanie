@@ -86,6 +86,14 @@ input,textarea,select{font:inherit;color:var(--text)}
 .langrow.on{background:linear-gradient(90deg,var(--primary),var(--tertiary));color:var(--on-accent);border-color:transparent;font-weight:800}
 .langrow.on b{color:var(--on-accent)}
 html[dir=rtl] svg.i.mir{transform:scaleX(-1)}
+.ava{display:inline-grid;place-items:center;flex:none;border-radius:50%;background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--c) 55%,transparent),color-mix(in srgb,var(--c) 18%,var(--surface)));border:2px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 45%,transparent)}
+.avagrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.avapick{aspect-ratio:1;border-radius:10px;font-size:20px;display:grid;place-items:center;border:1px solid transparent}
+.avapick.on{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 18%,transparent)}
+.avacol{width:30px;height:30px;border-radius:50%;border:2px solid transparent}
+.avacol.on{border-color:var(--text);box-shadow:0 0 10px currentColor}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:380px){.avagrid{grid-template-columns:repeat(5,1fr)}}
 html[dir=rtl] .loc span,html[dir=rtl] .subj,html[dir=rtl] .hero-title{unicode-bidi:plaintext}
 .iconbtn{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--primary);
   background:linear-gradient(180deg,var(--surface-hi),var(--surface)) padding-box,linear-gradient(135deg,var(--primary),var(--tertiary)) border-box;border:1px solid transparent;
@@ -187,6 +195,7 @@ a{color:var(--primary)}
 <div id="app"></div>
 <div id="nav"></div>
 <div id="layer"></div>
+<input type="file" id="backupInput" accept=".json,application/json" hidden>
 <input type="file" id="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
 <script>
 // @@PARSER-START
@@ -973,6 +982,7 @@ const ICON = {
   add: '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
   del: '<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>',
   check: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
+  sync: '<path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>',
 };
 const icon = (n, st = '') => `<svg class="i${n === 'back' || n === 'left' || n === 'right' ? ' mir' : ''}" viewBox="0 0 24 24" style="${st}">${ICON[n]}</svg>`;
 
@@ -1110,15 +1120,6 @@ function screenHw(now) {
   return h;
 }
 
-function screenGroup() {
-  const planned = [['👥', 'Одногруппники', 'Список группы и контакты старосты', 'var(--primary)'], ['📝', 'Общие ДЗ', 'Задания, которые видит вся группа', 'var(--secondary)'],
-    ['📣', 'Объявления', 'Переносы пар и новости от старосты', 'var(--tertiary)'], ['📊', 'Посещаемость', 'Отметки о пропусках и отработках', 'var(--success)']];
-  return `<h1 class="t glowtxt">${tr('Моя группа')}</h1><div style="height:10px"></div>
-    <div class="card glow"><div class="glowtxt" style="font-size:34px;font-weight:900;color:var(--primary)">${tr('Группа {0}', esc(S.group))}</div>
-    <div class="muted" style="font-size:13px">${esc(S.schedule.title)}</div><div style="margin:10px 0 6px"><span class="chip fill" style="--a:var(--secondary)">${tr('скоро')}</span></div>
-    <div style="font-size:14px">${tr('Раздел в разработке — здесь появятся функции для всей группы.')}</div></div>
-    <div class="section">${tr('Что будет')}</div>` + planned.map(([e, t, d, c]) => `<div class="card" style="--a:${c}"><div class="row"><div style="font-size:26px">${e}</div><div class="grow"><div style="color:${c};font-weight:800">${tr(t)}</div><div class="muted" style="font-size:13px">${tr(d)}</div></div><div>🔒</div></div></div>`).join('');
-}
 
 /* ======================= Настройки ======================= */
 function groupGrid(groups, sel, act) {
@@ -1131,11 +1132,9 @@ function screenSettings() {
   const sch = S.schedule;
   let h = `<div class="ohead"><div class="row" style="height:56px;margin-bottom:8px"><button class="iconbtn" data-act="closeSettings" aria-label="${tr('Назад')}">${icon('back')}</button>
     <div class="glowtxt" style="--a:var(--tertiary);font-size:26px;font-weight:800">${tr('Настройки')}</div></div>
-    <div class="seg"><button class="${S.settingsTab === 0 ? 'on' : ''}" data-act="stab" data-v="0">${tr('Общие')}</button><button class="${S.settingsTab === 1 ? 'on' : ''}" data-act="stab" data-v="1">${tr('Профиль')} 🔒</button></div></div>`;
-  if (S.settingsTab === 1) {
-    return h + `<div style="height:12px"></div><div class="card glow" style="--a:var(--tertiary)"><div style="font-size:36px">🔒</div><div style="font-size:20px;font-weight:800;color:var(--tertiary);margin-top:6px">${tr('Профиль пока недоступен')}</div><div class="muted">${tr('Раздел появится в следующих обновлениях.')}</div></div>
-      <div class="section">${tr('Что здесь будет')}</div>` + [['Имя и аватар', 'Ваш профиль студента'], ['Синхронизация', 'Перенос ДЗ и настроек на другое устройство'], ['Резервная копия', 'Сохранение и восстановление данных']].map(([a, b]) => `<div class="card" style="--a:var(--stroke)"><div class="muted" style="font-weight:700">${tr(a)}</div><div class="dim" style="font-size:13px">${tr(b)}</div></div>`).join('');
-  }
+    <div class="seg"><button class="${S.settingsTab === 0 ? 'on' : ''}" data-act="stab" data-v="0">${tr('Общие')}</button><button class="${S.settingsTab === 1 ? 'on' : ''}" data-act="stab" data-v="1">${tr('Профиль')}</button></div></div>`;
+  if (S.settingsTab === 1) return h + screenProfile();
+
   h += `<div class="section" style="color:var(--primary)">${tr('Тема оформления')}</div>
     <div class="seg" style="margin-bottom:12px">${MODES.map(([id, t]) => `<button class="${S.mode === id ? 'on' : ''}" data-act="mode" data-v="${id}">${tr(t)}</button>`).join('')}</div>
     <div class="grid4">${PALETTES.map((p) => { const sc = buildScheme(p, isDark()); const sel = p.id === S.theme;
@@ -1199,6 +1198,8 @@ function similarLessons(l) { return S.lessons.filter((x) => x.subject === l.subj
 function modalHtml(now) {
   const m = S.modal;
   if (!m) return '';
+  const cm = cloudModal(m);
+  if (cm !== null) return cm;
   if (m.type === 'lesson') {
     const l = findLesson(m.key);
     if (!l) { S.modal = null; return ''; }
@@ -1213,7 +1214,7 @@ function modalHtml(now) {
       <div class="row" style="margin-top:16px"><button class="btn out" style="height:46px" data-act="editLesson">${icon('edit')} ${tr('Изменить')}</button><button class="btn out" style="--a:var(--secondary);height:46px" data-act="askDelete">${icon('del')} ${tr('Удалить')}</button></div>
       ${hw.length ? `<div class="section" style="color:var(--secondary)">${tr('ДЗ к этой паре')}</div>` + hw.map((x) => hwRow(x, now, false)).join('') : ''}
       <div class="section" style="color:var(--primary)">${tr('Добавить домашнее задание')}</div>
-      <div class="hscroll">${next ? `<button class="fchip ${m.toNext ? 'on' : ''}" data-act="hwTarget" data-v="1">${tr('К след. паре: {0}', `${wdShort(next.date)}, ${dayMonth(next.date)}`)}</button>` : ''}<button class="fchip ${!m.toNext || !next ? 'on' : ''}" data-act="hwTarget" data-v="0">${tr('К этой паре')}</button></div>
+      <div class="hscroll">${next ? `<button class="fchip ${m.toNext ? 'on' : ''}" data-act="hwTarget" data-v="1">${tr('К след. паре: {0}', `${wdShort(next.date)}, ${dayMonth(next.date)}`)}</button>` : ''}<button class="fchip ${!m.toNext || !next ? 'on' : ''}" data-act="hwTarget" data-v="0">${tr('К этой паре')}</button>${C.token ? `<button class="fchip ${m.share ? 'on' : ''}" style="--a:var(--secondary)" data-act="hwShare">👥 ${tr('Поделиться с группой')}</button>` : ''}</div>
       <textarea class="field" style="margin-top:8px" id="hwText" placeholder="${tr('Например: выучить тему 5, решить задачи 1–10')}">${esc(m.text || '')}</textarea>
       <button class="btn" style="margin-top:12px" data-act="saveHw">${icon('add')} ${tr('Сохранить ДЗ')}</button></div></div>`;
   }
@@ -1265,7 +1266,465 @@ function modalHtml(now) {
   return '';
 }
 
+/* ======================= Облако: профиль, копия, группа ======================= */
+// Ссылку на свой сервер (Apps Script → Веб-приложение → …/exec) можно вписать сюда,
+// тогда её не придётся вводить в настройках.
+const DEFAULT_SERVER = '';
+const C = {
+  url: LS.get('server', '') || DEFAULT_SERVER,
+  token: LS.get('token', null), user: LS.get('user', null),
+  data: LS.get('groupData', null), dataAt: LS.get('groupDataAt', 0),
+  auto: LS.get('autoSync', true), syncAt: LS.get('syncAt', null),
+  busy: null, error: null, authMode: 'login', editing: false, avatar: null,
+  gtab: 'news', attAll: false,
+};
+const AVATAR_EMOJI = ['🦊', '🐼', '🐱', '🐶', '🦁', '🐸', '🐧', '🦉', '🐙', '🦄', '🐝', '🐳', '🌸', '⚡', '🔥', '🩺', '💊', '🧠', '🫀', '🧬'];
+const AVATAR_COLORS = ['#00E5FF', '#FF2E97', '#B98CFF', '#3DFF7A', '#FFCF4D', '#FF8A3D', '#5CD6FF', '#FF4060'];
+const ROLE_TITLE = { starosta: 'Староста', deputy: 'Заместитель', member: 'Участник' };
+const NEWS_KIND = { news: ['Новость', 'var(--primary)'], move: ['Перенос пары', 'var(--warning)'], important: ['Важно', 'var(--secondary)'] };
+const ATT_STATUS = { absent: ['Пропуск', 'var(--secondary)'], excused: ['Уважительная', 'var(--tertiary)'], done: ['Отработано', 'var(--success)'] };
+const ERRORS = {
+  auth: 'Сессия истекла — войдите снова', bad_login: 'Неверное имя или пароль', name_taken: 'Это имя в группе уже занято',
+  password_short: 'Пароль — минимум 4 символа', forbidden: 'Недостаточно прав', not_found: 'Запись не найдена',
+  name: 'Введите имя', text: 'Введите текст', subject: 'Выберите предмет', date: 'Неверная дата', group: 'Сначала выберите группу',
+  too_big: 'Слишком большая копия', network: 'Нет связи с сервером', no_server: 'Сначала укажите адрес сервера',
+};
+const isLead = () => C.user && (C.user.role === 'starosta' || C.user.role === 'deputy');
+const avatarParts = (a) => { const [e, c] = String(a || '').split('|'); return [e || '🙂', c || '#00E5FF']; };
+const avatarHtml = (a, size = 44) => { const [e, c] = avatarParts(a); return `<span class="ava" style="--c:${c};width:${size}px;height:${size}px;font-size:${Math.round(size * 0.52)}px">${esc(e)}</span>`; };
+const isoToEd = (s) => { const [y, m, d] = String(s).split('-').map(Number); return ed(y, m, d); };
+const fmtWhen = (s) => { const d = new Date(s); if (isNaN(d)) return ''; const e = ed(d.getFullYear(), d.getMonth() + 1, d.getDate()); return `${relDay(e)}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+function contactHref(c) {
+  c = String(c || '').trim();
+  if (/^@\w{3,}$/.test(c)) return 'https://t.me/' + c.slice(1);
+  if (/^https?:\/\//.test(c)) return c;
+  if (/^\+?[\d\s()-]{7,}$/.test(c)) return 'tel:' + c.replace(/[^\d+]/g, '');
+  if (/^[^@\s]+@[^@\s]+\.\w+$/.test(c)) return 'mailto:' + c;
+  return null;
+}
+function saveCloud() {
+  LS.set('server', C.url); LS.set('token', C.token); LS.set('user', C.user);
+  LS.set('autoSync', C.auto); LS.set('syncAt', C.syncAt);
+}
+
+async function api(action, params) {
+  if (!C.url) throw new Error(tr(ERRORS.no_server));
+  let j;
+  try {
+    const r = await fetch(C.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, token: C.token }, params || {})) });
+    j = await r.json();
+  } catch (e) { throw new Error(tr(ERRORS.network)); }
+  if (!j.ok) {
+    if (j.error === 'auth' && C.token) { C.token = null; C.user = null; saveCloud(); }
+    throw new Error(tr(ERRORS[j.error] || 'Ошибка сервера: {0}', j.error));
+  }
+  return j;
+}
+/** Запрос с индикатором загрузки и сообщением об ошибке. */
+async function run(label, fn) {
+  C.busy = label; C.error = null; render();
+  try { return await fn(); } catch (e) { C.error = e.message; toast(e.message); return null; } finally { C.busy = null; render(); }
+}
+
+/* ----- Резервная копия: общий формат для сайта и Android-приложения ----- */
+function exportData(withFile = true) {
+  return {
+    app: 'kgmu', v: 1, created: new Date().toISOString(),
+    settings: { group: S.group, stream: S.stream, electives: S.electives, theme: S.theme, mode: S.mode, lang: LANG, notif: S.notif },
+    hw: S.hw.map((h) => Object.assign({}, h, { dueDate: iso(h.dueDate) })),
+    edits: S.edits.map((e) => ({ id: e.id, group: e.group, origKey: e.origKey || null, lesson: e.lesson ? {
+      date: iso(e.lesson.date), slots: e.lesson.slots, subject: e.lesson.subject, fullSubject: e.lesson.fullSubject, kind: e.lesson.kind,
+      location: e.lesson.location || '', details: e.lesson.details || '', online: !!e.lesson.online, elective: e.lesson.elective || '' } : null })),
+    file: withFile ? LS.get('file', null) : null,
+  };
+}
+async function importData(d) {
+  if (!d || d.app !== 'kgmu') throw new Error(tr('Это не файл копии КГМУ расписания'));
+  const st = d.settings || {};
+  S.hw = (d.hw || []).map((h) => Object.assign({}, h, { dueDate: isoToEd(h.dueDate) }));
+  S.edits = (d.edits || []).map((e) => ({ id: e.id, group: e.group, origKey: e.origKey || null, lesson: e.lesson ? {
+    date: isoToEd(e.lesson.date), slots: e.lesson.slots, subject: e.lesson.subject, fullSubject: e.lesson.fullSubject || e.lesson.subject,
+    kind: e.lesson.kind || 'PRACTICE', groups: [e.group], location: e.lesson.location || null, details: e.lesson.details || '',
+    online: !!e.lesson.online, specialTime: false, elective: e.lesson.elective || null, stream: null, editId: null } : null }));
+  if (st.group) S.group = String(st.group);
+  S.stream = st.stream || null; S.electives = st.electives || [];
+  if (st.theme) S.theme = st.theme; if (st.mode) S.mode = st.mode;
+  if (st.notif) S.notif = Object.assign({}, S.notif, st.notif);
+  if (st.lang && LANGS.some((l) => l[0] === st.lang)) { LANG = st.lang; LS.set('lang', LANG); applyLang(); }
+  ['hw', 'edits', 'group', 'stream', 'electives', 'theme', 'mode', 'notif'].forEach((k) => LS.set(k, S[k]));
+  if (d.file) { await loadFromBuffer(b64.dec(d.file), false); LS.set('file', d.file); }
+  else refreshLessons();
+}
+let cloudTimer = null;
+/** Автосохранение в облако через несколько секунд после изменений. */
+function cloudChanged() {
+  if (!C.token || !C.auto || !C.url) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(() => { cloudUpload(true); }, 5000);
+}
+async function cloudUpload(silent) {
+  const go = async () => { await api('backupSave', { data: JSON.stringify(exportData()) }); C.syncAt = new Date().toISOString(); saveCloud(); if (!silent) toast(tr('Сохранено в облако')); };
+  if (silent) { try { await go(); if (S.settings) render(); } catch (e) {} } else await run('upload', go);
+}
+async function cloudDownload() {
+  await run('download', async () => {
+    const r = await api('backupLoad');
+    if (!r.data) { toast(tr('В облаке пока нет копии')); return; }
+    await importData(JSON.parse(r.data)); C.syncAt = new Date().toISOString(); saveCloud();
+    toast(tr('Данные загружены из облака'));
+  });
+}
+async function afterLogin(r) {
+  C.token = r.token; C.user = r.user; C.data = null; saveCloud();
+  try {
+    const info = await api('backupInfo');
+    if (info.updated) S.modal = { type: 'restoreAsk', updated: info.updated };
+    else await cloudUpload(true);
+  } catch (e) {}
+  pullGroup(true);
+}
+async function pullGroup(quiet) {
+  if (!C.token || C.pulling) return;
+  C.pulling = true; if (!quiet) render();
+  try {
+    const r = await api('group');
+    C.data = r; C.user = r.user; C.dataAt = Date.now();
+    LS.set('groupData', r); LS.set('groupDataAt', C.dataAt); saveCloud();
+    C.error = null;
+  } catch (e) { C.error = e.message; }
+  C.pulling = false; render();
+}
+const unseenNews = () => (C.data && C.token ? C.data.news.filter((n) => n.authorId !== C.user.id && n.created > LS.get('newsSeen', '')).length : 0);
+
+/* ----- Экран профиля (Настройки → Профиль) ----- */
+function serverCard() {
+  return `<div class="section" style="color:var(--tertiary)">${tr('Сервер')}</div><div class="card" style="--a:var(--tertiary)">
+    <div class="muted" style="font-size:13px">${tr('Адрес веб-приложения Google Apps Script (заканчивается на /exec). Его даёт тот, кто настроил таблицу группы.')}</div>
+    <input class="field" style="margin-top:8px" id="srvUrl" data-keep placeholder="https://script.google.com/macros/s/…/exec" value="${esc(C.url)}">
+    <button class="btn out" style="--a:var(--tertiary);margin-top:8px;height:44px" data-act="srvSave" ${C.busy ? 'disabled' : ''}>${C.busy === 'ping' ? tr('Проверяю…') : tr('Сохранить и проверить')}</button></div>`;
+}
+function avatarPicker(cur) {
+  const [e, c] = avatarParts(cur);
+  return `<div class="lbl">${tr('Аватар')}</div><div class="avagrid">${AVATAR_EMOJI.map((x) => `<button class="avapick ${x === e ? 'on' : ''}" data-act="avaEmoji" data-v="${x}">${x}</button>`).join('')}</div>
+    <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">${AVATAR_COLORS.map((x) => `<button class="avacol ${x === c ? 'on' : ''}" style="background:${x}" data-act="avaColor" data-v="${x}" aria-label="${x}"></button>`).join('')}</div>`;
+}
+function screenProfile() {
+  let h = '';
+  if (!C.token) {
+    const reg = C.authMode === 'register';
+    if (C.avatar == null) C.avatar = AVATAR_EMOJI[Math.floor(Math.random() * AVATAR_EMOJI.length)] + '|' + AVATAR_COLORS[0];
+    h += `<div style="height:12px"></div><div class="card glow" style="--a:var(--tertiary)">
+      <div style="font-size:20px;font-weight:800;color:var(--tertiary)">${reg ? tr('Регистрация') : tr('Вход')}</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">${tr('Профиль нужен для синхронизации и раздела «Моя группа». Группа: {0}', esc(S.group))}</div>
+      <div class="seg" style="margin-top:12px"><button class="${reg ? '' : 'on'}" data-act="authMode" data-v="login">${tr('Вход')}</button><button class="${reg ? 'on' : ''}" data-act="authMode" data-v="register">${tr('Регистрация')}</button></div>
+      <div class="lbl">${tr('Имя и фамилия')}</div><input class="field" id="auName" data-keep autocomplete="username" placeholder="${tr('Как вас видит группа')}">
+      <div class="lbl">${tr('Пароль')}</div><input class="field" id="auPass" data-keep type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" placeholder="${tr('Минимум 4 символа')}">
+      ${reg ? `<div class="lbl">${tr('Контакт (необязательно)')}</div><input class="field" id="auContact" data-keep placeholder="${tr('@telegram или телефон')}">${avatarPicker(C.avatar)}` : ''}
+      <button class="btn grad" style="margin-top:14px" data-act="${reg ? 'doRegister' : 'doLogin'}" ${C.busy ? 'disabled' : ''}>${C.busy === 'auth' ? tr('Подождите…') : reg ? tr('Создать профиль') : tr('Войти')}</button>
+      ${!reg ? `<div class="dim" style="font-size:12px;margin-top:8px">${tr('Первый зарегистрированный в группе становится старостой.')}</div>` : ''}</div>`;
+    h += backupCard() + serverCard();
+    return h;
+  }
+  const u = C.user;
+  h += `<div style="height:12px"></div><div class="card glow" style="--a:var(--tertiary)"><div class="row" style="gap:14px">${avatarHtml(u.avatar, 64)}
+    <div class="grow"><div style="font-size:22px;font-weight:800">${esc(u.name)}</div><div class="muted" style="font-size:13px">${tr('Группа {0}', esc(u.group))} · ${tr(ROLE_TITLE[u.role] || 'Участник')}</div>
+    ${u.contact ? `<div style="font-size:13px;color:var(--primary)">${esc(u.contact)}</div>` : ''}</div></div>
+    ${C.editing ? `<div class="lbl">${tr('Имя и фамилия')}</div><input class="field" id="pfName" data-keep value="${esc(u.name)}">
+      <div class="lbl">${tr('Контакт (необязательно)')}</div><input class="field" id="pfContact" data-keep value="${esc(u.contact)}" placeholder="${tr('@telegram или телефон')}">
+      ${avatarPicker(C.avatar || u.avatar)}
+      <div class="lbl">${tr('Новый пароль (необязательно)')}</div><input class="field" id="pfPass" data-keep type="password" autocomplete="new-password">
+      <div class="row" style="margin-top:12px"><button class="btn out" style="--a:var(--muted);height:46px" data-act="pfCancel">${tr('Отмена')}</button><button class="btn" style="height:46px" data-act="pfSave" ${C.busy ? 'disabled' : ''}>${C.busy === 'profile' ? tr('Подождите…') : tr('Сохранить')}</button></div>`
+      : `<button class="btn out" style="--a:var(--tertiary);margin-top:12px;height:44px" data-act="pfEdit">${icon('edit')} ${tr('Изменить профиль')}</button>`}
+    ${u.group !== S.group ? `<div style="color:var(--warning);font-size:13px;margin-top:8px">${tr('Профиль привязан к группе {0}, а в расписании выбрана {1}.', esc(u.group), esc(S.group))}</div>` : ''}</div>`;
+  h += `<div class="section" style="color:var(--primary)">${tr('Синхронизация')}</div><div class="card">
+    <div class="muted" style="font-size:13px">${tr('ДЗ, правки расписания, настройки и сам файл расписания хранятся в облаке группы. Войдите с тем же именем на другом телефоне или на сайте — и всё перенесётся.')}</div>
+    <div style="font-size:13px;margin-top:6px">${C.syncAt ? tr('Последнее сохранение: {0}', fmtWhen(C.syncAt)) : tr('Ещё не сохранялось')}</div>
+    <div class="row" style="margin-top:10px"><button class="btn" style="height:46px" data-act="cloudUp" ${C.busy ? 'disabled' : ''}>${C.busy === 'upload' ? tr('Сохраняю…') : '☁↑ ' + tr('Сохранить')}</button>
+    <button class="btn out" style="height:46px" data-act="cloudDown" ${C.busy ? 'disabled' : ''}>${C.busy === 'download' ? tr('Загружаю…') : '☁↓ ' + tr('Загрузить')}</button></div>
+    <div class="row" style="padding:10px 0 0"><span class="grow">${tr('Автосохранение после изменений')}</span><button class="switch ${C.auto ? 'on' : ''}" data-act="autoSync"></button></div></div>`;
+  h += backupCard();
+  h += `<div class="section" style="color:var(--muted)">${tr('Аккаунт')}</div><div class="card" style="--a:var(--stroke)">
+    <button class="btn out" style="--a:var(--muted);height:44px" data-act="logout">${tr('Выйти из профиля')}</button>
+    <button class="btn out" style="--a:var(--secondary);height:44px;margin-top:8px" data-act="deleteAccount">${tr('Удалить профиль')}</button></div>` + serverCard();
+  return h;
+}
+function backupCard() {
+  return `<div class="section" style="color:var(--success)">${tr('Резервная копия')}</div><div class="card" style="--a:var(--success)">
+    <div class="muted" style="font-size:13px">${tr('Файл со всеми ДЗ, правками и настройками. Его можно открыть и в Android-приложении.')}</div>
+    <div class="row" style="margin-top:10px"><button class="btn out" style="--a:var(--success);height:46px" data-act="backupFile">${tr('Сохранить файл')}</button>
+    <button class="btn out" style="--a:var(--success);height:46px" data-act="restoreFile">${tr('Восстановить')}</button></div></div>`;
+}
+
+/* ----- Экран «Моя группа» ----- */
+function screenGroup() {
+  let h = `<div class="row"><h1 class="t glowtxt grow">${tr('Моя группа')}</h1>${C.token ? `<button class="iconbtn" data-act="gRefresh" aria-label="${tr('Обновить')}" style="${C.pulling ? 'animation:spin 1s linear infinite' : ''}">${icon('sync')}</button>` : ''}</div>`;
+  if (!C.token) {
+    return h + `<div style="height:10px"></div><div class="card glow"><div class="glowtxt" style="font-size:30px;font-weight:900;color:var(--primary)">${tr('Группа {0}', esc(S.group))}</div>
+      <div style="font-size:15px;margin-top:6px">${tr('Войдите в профиль, чтобы видеть объявления старосты, общие ДЗ, одногруппников и вести учёт пропусков.')}</div>
+      <button class="btn grad" style="margin-top:14px" data-act="openProfile">${tr('Войти или зарегистрироваться')}</button></div>`
+      + [['📣', 'Объявления', 'Переносы пар и новости от старосты', 'var(--tertiary)'], ['📝', 'Общие ДЗ', 'Задания, которые видит вся группа', 'var(--secondary)'],
+        ['👥', 'Одногруппники', 'Список группы и контакты старосты', 'var(--primary)'], ['📊', 'Посещаемость', 'Отметки о пропусках и отработках', 'var(--success)']]
+        .map(([e, t, d, c]) => `<div class="card" style="--a:${c}"><div class="row"><div style="font-size:26px">${e}</div><div class="grow"><div style="color:${c};font-weight:800">${tr(t)}</div><div class="muted" style="font-size:13px">${tr(d)}</div></div></div></div>`).join('');
+  }
+  const d = C.data;
+  const tabs = [['news', 'Объявления'], ['hw', 'ДЗ'], ['members', 'Группа'], ['att', 'Пропуски']];
+  h += `<div class="seg" style="margin-top:8px">${tabs.map(([id, t]) => `<button class="${C.gtab === id ? 'on' : ''}" data-act="gtab" data-v="${id}">${tr(t)}${id === 'news' && unseenNews() ? ' •' : ''}</button>`).join('')}</div>`;
+  if (C.error && !d) h += `<div class="card" style="--a:var(--warning);margin-top:12px"><div style="color:var(--warning);font-weight:700">${esc(C.error)}</div><button class="btn out" style="--a:var(--warning);margin-top:10px;height:44px" data-act="gRefresh">${tr('Повторить')}</button></div>`;
+  if (d && C.gtab === 'news') LS.set('newsSeen', d.news.reduce((x, n) => (n.created > x ? n.created : x), LS.get('newsSeen', '')));
+  if (!d) return h + (C.pulling ? `<div class="muted" style="text-align:center;margin-top:30px">${tr('Загрузка…')}</div>` : '');
+  if (C.gtab === 'news') h += groupNews(d);
+  if (C.gtab === 'hw') h += groupHwTab(d);
+  if (C.gtab === 'members') h += groupMembers(d);
+  if (C.gtab === 'att') h += groupAtt(d);
+  return h;
+}
+function groupNews(d) {
+  let h = isLead() ? `<button class="btn grad" style="margin-top:12px" data-act="newsNew">${icon('add')} ${tr('Новое объявление')}</button>` : '';
+  if (!d.news.length) h += `<div class="card" style="--a:var(--tertiary);margin-top:12px"><div style="color:var(--tertiary);font-weight:800;font-size:17px">${tr('Объявлений пока нет')}</div><div class="muted">${tr('Здесь появятся переносы пар и новости от старосты.')}</div></div>`;
+  return h + d.news.map((n) => {
+    const [kt, kc] = NEWS_KIND[n.kind] || NEWS_KIND.news, mine = n.authorId === C.user.id;
+    return `<div class="card" style="--a:${kc};margin-top:12px"><div class="row"><span class="chip" style="--a:${kc}">${tr(kt)}</span><span class="grow"></span>
+      ${mine || C.user.role === 'starosta' ? `<button data-act="newsDel" data-id="${n.id}" aria-label="${tr('Удалить')}" style="color:var(--dim)">${icon('del')}</button>` : ''}</div>
+      ${n.title ? `<div style="font-size:18px;font-weight:800;margin-top:6px">${esc(n.title)}</div>` : ''}
+      <div style="font-size:15px;white-space:pre-wrap;margin-top:4px">${esc(n.text)}</div>
+      <div class="dim" style="font-size:12px;margin-top:6px">${esc(n.author)} · ${fmtWhen(n.created)}</div></div>`;
+  }).join('');
+}
+function groupHwTab(d) {
+  const t = todayEd(), imported = LS.get('importedHw', []);
+  const up = d.homework.filter((x) => isoToEd(x.date) >= t), past = d.homework.filter((x) => isoToEd(x.date) < t).reverse().slice(0, 15);
+  const card = (x) => {
+    const e = isoToEd(x.date), have = imported.includes(x.id), mine = x.authorId === C.user.id;
+    return `<div class="card" style="--a:var(--secondary);border-radius:18px"><div class="row" style="align-items:flex-start"><div class="grow">
+      <div style="color:var(--secondary);font-size:13px;font-weight:800">${esc(x.subject)}</div>
+      <div style="font-size:15px;white-space:pre-wrap">${esc(x.text)}</div>
+      <div class="dim" style="font-size:12px;margin-top:4px">${tr('к паре: {0}', `${relDay(e, t)}, ${fmtMin(x.start)}`)} · ${esc(x.author)}</div></div>
+      ${mine || isLead() ? `<button data-act="ghwDel" data-id="${x.id}" aria-label="${tr('Удалить')}" style="color:var(--dim)">${icon('del')}</button>` : ''}</div>
+      ${e >= t ? `<button class="btn out" style="--a:${have ? 'var(--success)' : 'var(--primary)'};height:38px;margin-top:8px;font-size:14px" data-act="ghwTake" data-id="${x.id}" ${have ? 'disabled' : ''}>${have ? '✓ ' + tr('Уже в моих ДЗ') : icon('add') + ' ' + tr('Добавить в мои ДЗ')}</button>` : ''}</div>`;
+  };
+  let h = `<button class="btn grad" style="margin-top:12px" data-act="ghwNew">${icon('add')} ${tr('Поделиться ДЗ с группой')}</button>`;
+  if (!d.homework.length) h += `<div class="card" style="--a:var(--secondary);margin-top:12px"><div style="color:var(--secondary);font-weight:800;font-size:17px">${tr('Общих ДЗ пока нет')}</div><div class="muted">${tr('Поделитесь заданием — его увидит вся группа и сможет добавить себе.')}</div></div>`;
+  if (up.length) h += `<div class="section" style="color:var(--secondary)">${tr('Предстоящие · {0}', up.length)}</div>` + up.map(card).join('');
+  if (past.length) h += `<div class="section" style="color:var(--muted)">${tr('Прошедшие')}</div>` + past.map(card).join('');
+  return h;
+}
+function groupMembers(d) {
+  return `<div class="section">${tr('Участники · {0}', d.members.length)}</div>` + d.members.map((m) => {
+    const href = contactHref(m.contact), rc = m.role === 'starosta' ? 'var(--secondary)' : m.role === 'deputy' ? 'var(--tertiary)' : 'var(--muted)';
+    return `<div class="card click" style="--a:${m.role === 'member' ? 'var(--stroke)' : rc};border-radius:18px" data-act="member" data-id="${m.id}"><div class="row" style="gap:12px">${avatarHtml(m.avatar)}
+      <div class="grow"><div style="font-weight:800">${esc(m.name)}${m.id === C.user.id ? ` <span class="dim" style="font-weight:500">(${tr('вы')})</span>` : ''}</div>
+      ${m.contact ? `<div style="font-size:13px;color:var(--primary)">${esc(m.contact)}</div>` : ''}</div>
+      ${m.role !== 'member' ? `<span class="chip" style="--a:${rc}">${tr(ROLE_TITLE[m.role])}</span>` : ''}</div></div>`;
+  }).join('');
+}
+function attCounts(list) { const c = { absent: 0, excused: 0, done: 0 }; list.forEach((a) => { c[a.status] = (c[a.status] || 0) + 1; }); return c; }
+function groupAtt(d) {
+  const mine = d.attendance.filter((a) => a.userId === C.user.id), c = attCounts(mine);
+  let h = `<div class="card glow" style="--a:var(--success);margin-top:12px"><div class="row" style="justify-content:space-around;text-align:center">
+    ${[['absent', c.absent], ['excused', c.excused], ['done', c.done]].map(([k, n]) => `<div><div style="font-size:30px;font-weight:900;color:${ATT_STATUS[k][1]}">${n}</div><div class="muted" style="font-size:12px">${tr(ATT_STATUS[k][0])}</div></div>`).join('')}</div>
+    ${c.absent ? `<div style="text-align:center;margin-top:8px;color:var(--secondary);font-weight:700;font-size:14px">${tr('Осталось отработать: {0}', c.absent)}</div>` : ''}</div>
+    <button class="btn grad" data-act="attNew">${icon('add')} ${tr('Отметить пропуск')}</button>`;
+  if (isLead()) h += `<div class="seg" style="margin-top:12px"><button class="${C.attAll ? '' : 'on'}" data-act="attAll" data-v="0">${tr('Мои')}</button><button class="${C.attAll ? 'on' : ''}" data-act="attAll" data-v="1">${tr('Вся группа')}</button></div>`;
+  if (isLead() && C.attAll) {
+    return h + d.members.map((m) => { const l = d.attendance.filter((a) => a.userId === m.id), k = attCounts(l);
+      return `<div class="card" style="--a:var(--stroke);border-radius:18px"><div class="row" style="gap:12px">${avatarHtml(m.avatar, 36)}<div class="grow" style="font-weight:700">${esc(m.name)}</div>
+        ${['absent', 'excused', 'done'].map((s) => `<span class="chip" style="--a:${ATT_STATUS[s][1]}" title="${tr(ATT_STATUS[s][0])}">${k[s]}</span>`).join('')}</div>
+        ${l.length ? `<div style="margin-top:8px">${l.slice(0, 8).map((a) => `<div class="dim" style="font-size:12px">${relDay(isoToEd(a.date))} · ${esc(a.subject)} · <span style="color:${ATT_STATUS[a.status][1]}">${tr(ATT_STATUS[a.status][0])}</span></div>`).join('')}</div>` : ''}</div>`; }).join('');
+  }
+  if (!mine.length) return h + `<div class="card" style="--a:var(--success);margin-top:12px"><div style="color:var(--success);font-weight:800;font-size:17px">${tr('Пропусков нет 🎉')}</div><div class="muted">${tr('Отмечайте пропуски, чтобы не забыть их отработать.')}</div></div>`;
+  return h + `<div class="section">${tr('История')}</div>` + mine.map((a) => { const [st, sc] = ATT_STATUS[a.status] || ATT_STATUS.absent;
+    return `<div class="card" style="--a:${sc};border-radius:18px"><div class="row" style="align-items:flex-start"><div class="grow">
+      <div style="font-weight:800">${esc(a.subject)}</div><div class="muted" style="font-size:13px">${relDay(isoToEd(a.date))}${a.note ? ' · ' + esc(a.note) : ''}</div></div>
+      <span class="chip" style="--a:${sc}">${tr(st)}</span></div>
+      <div class="row" style="margin-top:8px;gap:8px">${a.status !== 'done' ? `<button class="btn out" style="--a:var(--success);height:36px;font-size:13px" data-act="attSet" data-id="${a.id}" data-v="done">✓ ${tr('Отработано')}</button>`
+        : `<button class="btn out" style="--a:var(--muted);height:36px;font-size:13px" data-act="attSet" data-id="${a.id}" data-v="absent">${tr('Вернуть в пропуски')}</button>`}
+      <button class="btn out" style="--a:var(--muted);height:36px;font-size:13px;width:auto;padding:0 14px" data-act="attDel" data-id="${a.id}" aria-label="${tr('Удалить')}">${icon('del')}</button></div></div>`; }).join('');
+}
+
+/* ----- Модальные окна облака ----- */
+function cloudModal(m) {
+  const wrap = (inner) => `<div class="scrim" data-act="close"><div class="sheet" data-stop><div class="grab"></div>${inner}</div></div>`;
+  if (m.type === 'newsNew') return wrap(`<div class="glowtxt" style="--a:var(--tertiary);font-size:22px;font-weight:800">${tr('Новое объявление')}</div>
+    <div class="hscroll" style="margin-top:10px">${Object.entries(NEWS_KIND).map(([k, [t, c]]) => `<button class="fchip ${m.kind === k ? 'on' : ''}" style="--a:${c}" data-act="newsKind" data-v="${k}">${tr(t)}</button>`).join('')}</div>
+    <div class="lbl">${tr('Заголовок')}</div><input class="field" id="nwTitle" data-keep placeholder="${tr('Например: Перенос фармакологии')}">
+    <div class="lbl">${tr('Текст')}</div><textarea class="field" id="nwText" data-keep style="min-height:110px"></textarea>
+    <button class="btn" style="margin-top:14px" data-act="newsSend" ${C.busy ? 'disabled' : ''}>${C.busy === 'news' ? tr('Отправляю…') : tr('Опубликовать')}</button>`);
+  if (m.type === 'ghwNew') {
+    const target = m.subject ? nextBySubject(m.subject) : null;
+    return wrap(`<div class="glowtxt" style="--a:var(--secondary);font-size:22px;font-weight:800">${tr('Поделиться ДЗ с группой')}</div>
+      <div class="lbl">${tr('Предмет')}</div><div class="hscroll">${subjects().map((s) => `<button class="fchip ${s === m.subject ? 'on' : ''}" data-act="ghwSubj" data-v="${esc(s)}">${esc(s.length > 28 ? s.slice(0, 26) + '…' : s)}</button>`).join('')}</div>
+      ${m.subject ? `<div style="font-size:13px;margin-top:8px;color:${target ? 'var(--primary)' : 'var(--warning)'}">${target ? tr('К следующей паре: {0}', `${wdShort(target.date)}, ${dayMonth(target.date)}, ${timeText(target)}`) : tr('Будущих пар по предмету нет')}</div>` : ''}
+      <div class="lbl">${tr('Что задали?')}</div><textarea class="field" id="ghwText" data-keep style="min-height:100px"></textarea>
+      <button class="btn" style="margin-top:14px" data-act="ghwSend" ${!target || C.busy ? 'disabled' : ''}>${C.busy === 'ghw' ? tr('Отправляю…') : tr('Отправить группе')}</button>`);
+  }
+  if (m.type === 'attNew') {
+    const day = lessonsOn(m.date), subs = day.length ? [...new Set(day.map((l) => l.subject))] : subjects();
+    return wrap(`<div class="glowtxt" style="--a:var(--success);font-size:22px;font-weight:800">${tr('Отметить пропуск')}</div>
+      <div class="lbl">${tr('Дата')}</div><input type="date" class="field" value="${iso(m.date)}" data-change="attDate">
+      <div class="lbl">${tr('Предмет')}</div><div class="hscroll">${subs.map((s) => `<button class="fchip ${s === m.subject ? 'on' : ''}" data-act="attSubj" data-v="${esc(s)}">${esc(s.length > 28 ? s.slice(0, 26) + '…' : s)}</button>`).join('')}</div>
+      <div class="lbl">${tr('Статус')}</div><div class="hscroll">${Object.entries(ATT_STATUS).map(([k, [t, c]]) => `<button class="fchip ${m.status === k ? 'on' : ''}" style="--a:${c}" data-act="attStatus" data-v="${k}">${tr(t)}</button>`).join('')}</div>
+      <div class="lbl">${tr('Заметка')}</div><input class="field" id="attNote" data-keep placeholder="${tr('Например: справка, отработка у преподавателя')}">
+      <button class="btn" style="margin-top:14px" data-act="attSend" ${!m.subject || C.busy ? 'disabled' : ''}>${C.busy === 'att' ? tr('Сохраняю…') : tr('Сохранить')}</button>`);
+  }
+  if (m.type === 'member') {
+    const u = C.data && C.data.members.find((x) => x.id === m.id);
+    if (!u) { S.modal = null; return ''; }
+    const href = contactHref(u.contact), me = C.user, canManage = me.role === 'starosta' && u.id !== me.id;
+    return wrap(`<div class="row" style="gap:14px">${avatarHtml(u.avatar, 60)}<div class="grow"><div style="font-size:21px;font-weight:800">${esc(u.name)}</div>
+      <div class="muted" style="font-size:13px">${tr(ROLE_TITLE[u.role])}</div></div></div>
+      ${u.contact ? `<div class="info-l">${tr('Контакт')}</div><div style="font-size:15px">${esc(u.contact)}</div>${href ? `<a class="btn out" style="margin-top:10px;height:44px;text-decoration:none" href="${esc(href)}" target="_blank" rel="noopener">${tr('Написать')}</a>` : ''}` : `<div class="dim" style="margin-top:12px">${tr('Контакт не указан')}</div>`}
+      ${canManage ? `<div class="section">${tr('Управление')}</div>
+        ${u.role === 'deputy' ? `<button class="btn out" style="--a:var(--tertiary);height:44px" data-act="setRole" data-id="${u.id}" data-v="member">${tr('Снять заместителя')}</button>`
+          : `<button class="btn out" style="--a:var(--tertiary);height:44px" data-act="setRole" data-id="${u.id}" data-v="deputy">${tr('Назначить заместителем')}</button>`}
+        <button class="btn out" style="--a:var(--secondary);height:44px;margin-top:8px" data-act="setRole" data-id="${u.id}" data-v="starosta">${tr('Передать роль старосты')}</button>
+        <button class="btn out" style="--a:var(--muted);height:44px;margin-top:8px" data-act="kick" data-id="${u.id}">${tr('Удалить из группы')}</button>` : ''}`);
+  }
+  if (m.type === 'restoreAsk') return `<div class="scrim dialog-wrap" data-act="close"><div class="dialog" data-stop>
+    <div style="font-size:20px;font-weight:800">${tr('Найдена копия в облаке')}</div>
+    <div class="muted" style="margin-top:8px">${tr('Сохранено: {0}. Загрузить ДЗ, правки и настройки на это устройство? Текущие данные будут заменены.', fmtWhen(m.updated))}</div>
+    <div style="display:flex;justify-content:flex-end;gap:18px;margin-top:16px"><button class="muted" data-act="restoreNo">${tr('Нет, оставить эти')}</button>
+    <button style="color:var(--primary);font-weight:800" data-act="restoreYes">${tr('Загрузить')}</button></div></div></div>`;
+  return null;
+}
+
+/** Обработка нажатий облачных кнопок; true — событие обработано. */
+function cloudClick(a, el, v) {
+  const m = S.modal, val = (id) => { const x = document.getElementById(id); return x ? x.value : ''; };
+  switch (a) {
+    case 'onbLogin': S.onbLogin = true; render(); return true;
+    case 'onbDoLogin': {
+      const url = DEFAULT_SERVER || val('obUrl').trim(), group = val('obGroup').trim(), name = val('obName').trim(), password = val('obPass');
+      if (!/^https?:\/\/\S+$/.test(url)) { toast(tr('Введите адрес, начинающийся с https://')); return true; }
+      if (!group) { toast(tr(ERRORS.group)); return true; }
+      C.url = url; saveCloud();
+      run('auth', async () => {
+        const r = await api('login', { group, name, password });
+        C.token = r.token; C.user = r.user; saveCloud();
+        const b = await api('backupLoad');
+        if (b.data) { await importData(JSON.parse(b.data)); C.syncAt = new Date().toISOString(); saveCloud(); }
+        if (!S.group) { S.group = group; LS.set('group', group); }
+        toast(b.data && S.schedule ? tr('Данные загружены из облака') : tr('В облаке нет файла расписания — загрузите его'));
+        pullGroup(true);
+      });
+      return true;
+    }
+    case 'openProfile': S.settings = true; S.settingsTab = 1; window.scrollTo(0, 0); render(); return true;
+    case 'authMode': C.authMode = v; render(); return true;
+    case 'avaEmoji': { const [, c] = avatarParts(C.avatar || (C.user && C.user.avatar)); C.avatar = v + '|' + c; render(); return true; }
+    case 'avaColor': { const [e] = avatarParts(C.avatar || (C.user && C.user.avatar)); C.avatar = e + '|' + v; render(); return true; }
+    case 'srvSave': {
+      const url = val('srvUrl').trim();
+      if (!/^https:\/\/\S+$/.test(url) && !/^http:\/\/(localhost|127\.0\.0\.1)/.test(url)) { toast(tr('Введите адрес, начинающийся с https://')); return true; }
+      C.url = url; saveCloud();
+      run('ping', async () => { await api('ping'); toast(tr('Сервер на связи ✓')); });
+      return true;
+    }
+    case 'doLogin': case 'doRegister': {
+      const name = val('auName').trim(), password = val('auPass');
+      if (!name) { toast(tr(ERRORS.name)); return true; }
+      if (password.length < 4) { toast(tr(ERRORS.password_short)); return true; }
+      const params = { group: S.group, name, password };
+      if (a === 'doRegister') Object.assign(params, { contact: val('auContact').trim(), avatar: C.avatar });
+      run('auth', async () => { const r = await api(a === 'doLogin' ? 'login' : 'register', params); await afterLogin(r); toast(tr('Добро пожаловать, {0}!', r.user.name)); });
+      return true;
+    }
+    case 'pfEdit': C.editing = true; C.avatar = C.user.avatar; render(); return true;
+    case 'pfCancel': C.editing = false; C.avatar = null; render(); return true;
+    case 'pfSave': {
+      const p = { name: val('pfName').trim(), contact: val('pfContact').trim(), avatar: C.avatar || C.user.avatar };
+      const pass = val('pfPass'); if (pass) { if (pass.length < 4) { toast(tr(ERRORS.password_short)); return true; } p.password = pass; }
+      run('profile', async () => { const r = await api('updateProfile', p); C.user = r.user; C.editing = false; C.avatar = null; saveCloud(); toast(tr('Профиль сохранён')); pullGroup(true); });
+      return true;
+    }
+    case 'cloudUp': cloudUpload(false); return true;
+    case 'cloudDown': if (confirm(tr('Заменить данные на этом устройстве копией из облака?'))) cloudDownload(); return true;
+    case 'autoSync': C.auto = !C.auto; saveCloud(); if (C.auto) cloudChanged(); render(); return true;
+    case 'logout': if (!confirm(tr('Выйти из профиля? Данные на устройстве сохранятся.'))) return true;
+      api('logout').catch(() => {}); C.token = null; C.user = null; C.data = null; LS.del('groupData'); saveCloud(); render(); return true;
+    case 'deleteAccount': if (!confirm(tr('Удалить профиль и облачную копию навсегда? Данные на устройстве сохранятся.'))) return true;
+      run('auth', async () => { await api('deleteAccount'); C.token = null; C.user = null; C.data = null; LS.del('groupData'); saveCloud(); toast(tr('Профиль удалён')); });
+      return true;
+    case 'backupFile': {
+      const blob = new Blob([JSON.stringify(exportData())], { type: 'application/json' });
+      const aEl = document.createElement('a'); aEl.href = URL.createObjectURL(blob); aEl.download = `kgmu-backup-${iso(todayEd())}.json`;
+      document.body.appendChild(aEl); aEl.click(); setTimeout(() => { URL.revokeObjectURL(aEl.href); aEl.remove(); }, 1000);
+      return true;
+    }
+    case 'restoreFile': document.getElementById('backupInput').click(); return true;
+    case 'restoreYes': S.modal = null; cloudDownload(); return true;
+    case 'restoreNo': S.modal = null; cloudUpload(true); render(); return true;
+    case 'gtab': C.gtab = v; if (v === 'news' && C.data) LS.set('newsSeen', C.data.news.reduce((x, n) => (n.created > x ? n.created : x), LS.get('newsSeen', ''))); render(); return true;
+    case 'gRefresh': pullGroup(); return true;
+    case 'newsNew': S.modal = { type: 'newsNew', kind: 'news' }; render(); return true;
+    case 'newsKind': m.kind = v; render(); return true;
+    case 'newsSend': {
+      const text = val('nwText').trim(); if (!text) { toast(tr(ERRORS.text)); return true; }
+      const p = { kind: m.kind, title: val('nwTitle').trim(), text };
+      run('news', async () => { await api('newsAdd', p); S.modal = null; toast(tr('Объявление опубликовано')); await pullGroup(true); });
+      return true;
+    }
+    case 'newsDel': if (confirm(tr('Удалить объявление?'))) run('del', async () => { await api('newsDelete', { id: el.dataset.id }); await pullGroup(true); }); return true;
+    case 'ghwNew': S.modal = { type: 'ghwNew', subject: null }; render(); return true;
+    case 'ghwSubj': m.subject = v; render(); return true;
+    case 'ghwSend': {
+      const text = val('ghwText').trim(), t = nextBySubject(m.subject); if (!text) { toast(tr(ERRORS.text)); return true; } if (!t) return true;
+      run('ghw', async () => { await shareHw(t, text); S.modal = null; toast(tr('ДЗ отправлено группе')); await pullGroup(true); });
+      return true;
+    }
+    case 'ghwTake': {
+      const x = C.data.homework.find((h) => h.id === el.dataset.id); if (!x) return true;
+      const e = isoToEd(x.date), l = S.lessons.find((y) => y.subject === x.subject && y.date === e && startOf(y) === x.start)
+        || S.lessons.find((y) => y.subject === x.subject && y.date === e) || nextBySubject(x.subject);
+      if (!l) { toast(tr('Этой пары нет в вашем расписании')); return true; }
+      addHomework(l, x.text); LS.set('importedHw', LS.get('importedHw', []).concat(x.id)); toast(tr('ДЗ добавлено на {0}', `${wdShort(l.date)}, ${dayMonth(l.date)}`)); render();
+      return true;
+    }
+    case 'ghwDel': if (confirm(tr('Удалить задание для всей группы?'))) run('del', async () => { await api('hwDelete', { id: el.dataset.id }); await pullGroup(true); }); return true;
+    case 'member': S.modal = { type: 'member', id: el.dataset.id }; render(); return true;
+    case 'setRole': {
+      if (v === 'starosta' && !confirm(tr('Передать роль старосты? Вы станете заместителем.'))) return true;
+      run('role', async () => { await api('setRole', { userId: el.dataset.id, role: v }); S.modal = null; await pullGroup(true); });
+      return true;
+    }
+    case 'kick': if (confirm(tr('Удалить участника из группы?'))) run('role', async () => { await api('removeMember', { userId: el.dataset.id }); S.modal = null; await pullGroup(true); }); return true;
+    case 'attNew': S.modal = { type: 'attNew', date: todayEd(), subject: null, status: 'absent' }; { const l = lessonsOn(todayEd()); if (l.length) S.modal.subject = l[0].subject; } render(); return true;
+    case 'attSubj': m.subject = v; render(); return true;
+    case 'attStatus': m.status = v; render(); return true;
+    case 'attSend': {
+      const p = { date: iso(m.date), subject: m.subject, status: m.status, note: val('attNote').trim() };
+      run('att', async () => { await api('attAdd', p); S.modal = null; toast(tr('Отмечено')); await pullGroup(true); });
+      return true;
+    }
+    case 'attSet': run('att', async () => { await api('attUpdate', { id: el.dataset.id, status: v }); await pullGroup(true); }); return true;
+    case 'attDel': if (confirm(tr('Удалить отметку?'))) run('att', async () => { await api('attDelete', { id: el.dataset.id }); await pullGroup(true); }); return true;
+    case 'attAll': C.attAll = v === '1'; render(); return true;
+  }
+  return false;
+}
+/** Отправить ДЗ в общий список группы. */
+function shareHw(l, text) { return api('hwAdd', { subject: l.subject, date: iso(l.date), start: startOf(l), text: text.trim() }); }
+document.getElementById('backupInput').addEventListener('change', async (ev) => {
+  const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!confirm(tr('Заменить данные на этом устройстве данными из файла?'))) return;
+    await importData(d); toast(tr('Данные восстановлены')); render(); cloudChanged();
+  } catch (e) { toast(e.message || tr('Не удалось прочитать файл')); }
+});
+
 /* ======================= Онбординг ======================= */
+/** «Уже есть профиль?» — вход на новом устройстве с загрузкой всех данных из облака. */
+function onboardingLogin() {
+  if (!S.onbLogin) return `<button class="btn out" style="--a:var(--tertiary);margin-top:14px;height:48px" data-act="onbLogin">☁ ${tr('Уже есть профиль? Войти')}</button>`;
+  return `<div class="card" style="--a:var(--tertiary);margin-top:14px"><div style="font-size:18px;font-weight:800;color:var(--tertiary)">${tr('Вход в профиль')}</div>
+    <div class="muted" style="font-size:13px;margin-top:4px">${tr('Расписание, ДЗ и настройки загрузятся из облака.')}</div>
+    ${DEFAULT_SERVER ? '' : `<div class="lbl">${tr('Адрес сервера')}</div><input class="field" id="obUrl" data-keep placeholder="https://script.google.com/macros/s/…/exec" value="${esc(C.url)}">`}
+    <div class="lbl">${tr('Номер группы')}</div><input class="field" id="obGroup" data-keep inputmode="numeric" value="${esc(S.group || '')}">
+    <div class="lbl">${tr('Имя и фамилия')}</div><input class="field" id="obName" data-keep autocomplete="username">
+    <div class="lbl">${tr('Пароль')}</div><input class="field" id="obPass" data-keep type="password" autocomplete="current-password">
+    <button class="btn grad" style="margin-top:14px" data-act="onbDoLogin" ${C.busy ? 'disabled' : ''}>${C.busy === 'auth' ? tr('Подождите…') : tr('Войти и загрузить данные')}</button></div>`;
+}
+
 function onboarding() {
   const logo = `<div class="glowtxt" style="font-size:40px;line-height:44px;font-weight:900;color:var(--primary)">${tr('КГМУ<br>РАСПИСАНИЕ')}</div>`;
   if (!S.schedule) return `<div style="min-height:85vh;display:flex;flex-direction:column;justify-content:center">${logo}<div style="height:24px"></div>
@@ -1273,7 +1732,7 @@ function onboarding() {
     <div style="font-size:22px;font-weight:800;margin-top:6px">${tr('Загрузите файл расписания')}</div>
     <div class="muted" style="font-size:14px;margin-top:6px">${tr('Файл .xlsx с сайта учебного отдела или из чата группы. Сайт сам разберёт пары, недели, потоки и дисциплины по выбору. Файл никуда не отправляется — всё работает прямо в браузере.')}</div>
     <button class="btn grad" style="margin-top:16px;height:54px" data-act="import" ${S.loading ? 'disabled' : ''}>${S.loading ? tr('Читаю файл…') : tr('Выбрать файл .xlsx')}</button>
-    ${S.error ? `<div style="color:var(--secondary);margin-top:10px;font-size:14px">${esc(S.error)}</div>` : ''}</div></div>`;
+    ${S.error ? `<div style="color:var(--secondary);margin-top:10px;font-size:14px">${esc(S.error)}</div>` : ''}</div>${onboardingLogin()}</div>`;
   if (!S.group || !S.schedule.groups.includes(S.group)) return `<div style="min-height:85vh;display:flex;flex-direction:column;justify-content:center">${logo}
     <div class="muted" style="margin-top:8px;font-size:14px">${esc(S.schedule.title)}</div><div style="height:28px"></div>
     <div class="glowtxt" style="--a:var(--secondary);font-size:20px;font-weight:800;color:var(--secondary)">${tr('Выберите свою группу')}</div><div style="height:16px"></div>
@@ -1296,6 +1755,7 @@ function render() {
   if (!ready) { app.innerHTML = onboarding(); nav.innerHTML = ''; layer.innerHTML = ''; shown = {}; return; }
   // Анимация появления — только при открытии окна, а прокрутка сохраняется между перерисовками
   // (иначе экран настроек и шторка «дёргаются» при каждом нажатии).
+  const kept = {}; document.querySelectorAll('[data-keep]').forEach((x) => { if (x.id) kept[x.id] = x.value; });
   const keep = { ov: layer.querySelector('.overlay')?.scrollTop || 0, sh: layer.querySelector('.sheet, .dialog')?.scrollTop || 0 };
   const sig = S.modal ? S.modal.type + '|' + (S.modal.key || '') + '|' + (S.modal.subject || '') : '';
   const enterOverlay = S.settings && !shown.settings, enterModal = sig && sig !== shown.modal;
@@ -1308,7 +1768,7 @@ function render() {
     app.innerHTML = scr;
     const pending = groupHw().filter((h) => !h.done && h.dueDate >= todayEd()).length;
     const tabs = [['today', 'Сегодня', 'home'], ['week', 'Неделя', 'date'], ['hw', 'ДЗ', 'edit'], ['group', 'Моя группа', 'person']];
-    nav.innerHTML = `<div class="pill">${tabs.map(([id, t, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}"><div class="ic">${icon(ic)}</div><span>${tr(t)}</span>${id === 'hw' && pending ? `<b class="badge">${pending > 9 ? '9+' : pending}</b>` : ''}</button>`).join('')}</div>`;
+    nav.innerHTML = `<div class="pill">${tabs.map(([id, t, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}"><div class="ic">${icon(ic)}</div><span>${tr(t)}</span>${id === 'hw' && pending ? `<b class="badge">${pending > 9 ? '9+' : pending}</b>` : ''}${id === 'group' && unseenNews() ? `<b class="badge" style="background:var(--secondary)">${Math.min(9, unseenNews())}</b>` : ''}</button>`).join('')}</div>`;
     layer.innerHTML = (S.tab === 'hw' ? `<button class="fab" data-act="addhw" aria-label="${tr('Добавить ДЗ')}">${icon('add', 'width:26px;height:26px')}</button>` : '') + modalHtml(now);
   }
   const ov = layer.querySelector('.overlay'), scrim = layer.querySelector('.scrim'), box = layer.querySelector('.sheet, .dialog');
@@ -1316,6 +1776,7 @@ function render() {
   if (scrim && enterModal) scrim.classList.add('enter');
   if (box && !enterModal) box.scrollTop = keep.sh;
   shown = { settings: S.settings, modal: S.modal ? sig : '' };
+  Object.keys(kept).forEach((id) => { const x = document.getElementById(id); if (x && x.hasAttribute('data-keep')) x.value = kept[id]; });
   // Ближайшая граница пары — тогда перерисуем экран.
   nextBoundary = Infinity;
   for (const l of S.lessons) { const s = startMs(l), e = endMs(l); if (s > now) nextBoundary = Math.min(nextBoundary, s); if (e > now) nextBoundary = Math.min(nextBoundary, e); if (s > now + 86400e3) break; }
@@ -1334,12 +1795,12 @@ function toast(msg) {
 }
 
 /* ======================= Данные: ДЗ и правки ======================= */
-function saveHw() { LS.set('hw', S.hw); scheduleNotifications(); }
+function saveHw() { LS.set('hw', S.hw); scheduleNotifications(); cloudChanged(); }
 function addHomework(target, text) {
   S.hw.push({ id: Date.now(), group: S.group, lessonKey: lessonKey(target), subject: target.subject, dueDate: target.date, dueStart: startOf(target), text: text.trim(), done: false, createdAt: Date.now() });
   saveHw();
 }
-function saveEdits() { LS.set('edits', S.edits); refreshLessons(); }
+function saveEdits() { LS.set('edits', S.edits); refreshLessons(); cloudChanged(); }
 function upsert(list, target, newLesson, id) {
   const ex = target.editId ? list.find((e) => e.id === target.editId) : null;
   if (ex) {
@@ -1447,8 +1908,9 @@ document.addEventListener('click', (ev) => {
   if (stop && el.classList.contains('scrim')) return; // клик внутри окна
   const a = el.dataset.act, v = el.dataset.v, m = S.modal;
   const keepText = () => { const t = document.getElementById('hwText'); if (t && m) m.text = t.value; };
+  if (cloudClick(a, el, v)) return;
   switch (a) {
-    case 'tab': S.tab = el.dataset.tab; S.modal = null; window.scrollTo(0, 0); break;
+    case 'tab': S.tab = el.dataset.tab; S.modal = null; window.scrollTo(0, 0); if (S.tab === 'group' && C.token && Date.now() - C.dataAt > 60000) pullGroup(true); break;
     case 'settings': S.settings = true; window.scrollTo(0, 0); break;
     case 'closeSettings': S.settings = false; break;
     case 'stab': S.settingsTab = +v; break;
@@ -1468,10 +1930,12 @@ document.addEventListener('click', (ev) => {
     case 'open': S.modal = { type: 'lesson', key: el.dataset.key }; break;
     case 'close': S.modal = null; break;
     case 'hwTarget': keepText(); m.toNext = v === '1'; break;
+    case 'hwShare': keepText(); m.share = !m.share; break;
     case 'saveHw': {
       const text = document.getElementById('hwText').value; if (!text.trim()) { toast(tr('Введите текст задания')); return; }
       const l = findLesson(m.key), next = nextOccurrence(l), target = m.toNext && next ? next : l;
-      addHomework(target, text); m.text = ''; toast(tr('ДЗ добавлено на {0}', `${wdShort(target.date)}, ${dayMonth(target.date)}`)); break;
+      addHomework(target, text); m.text = '';
+      if (m.share && C.token) shareHw(target, text).then(() => { toast(tr('ДЗ отправлено группе')); pullGroup(true); }).catch((e) => toast(e.message)); toast(tr('ДЗ добавлено на {0}', `${wdShort(target.date)}, ${dayMonth(target.date)}`)); break;
     }
     case 'hwToggle': S.hw = S.hw.map((h) => (h.id === +el.dataset.id ? Object.assign({}, h, { done: !h.done }) : h)); saveHw(); break;
     case 'hwDelete': S.hw = S.hw.filter((h) => h.id !== +el.dataset.id); saveHw(); break;
@@ -1506,6 +1970,7 @@ document.addEventListener('click', (ev) => {
     default: return;
   }
   if (a.startsWith('n')) { LS.set('notif', S.notif); scheduleNotifications(); }
+  if (['pickGroup', 'pickStream', 'mode', 'theme', 'elective', 'clearElectives', 'setLang', 'nBefore', 'nEvening', 'nHw', 'nLead'].includes(a)) cloudChanged();
   render();
 });
 document.addEventListener('change', (ev) => {
@@ -1514,6 +1979,7 @@ document.addEventListener('change', (ev) => {
   const toMin = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
   const toEd = (s) => { const [y, m, d] = s.split('-').map(Number); return ed(y, m, d); };
   if (k === 'nEveningAt' && el.value) { S.notif.eveningAt = toMin(el.value); LS.set('notif', S.notif); scheduleNotifications(); return; }
+  if (k === 'attDate' && el.value && S.modal) { S.modal.date = toEd(el.value); const l = lessonsOn(S.modal.date); S.modal.subject = l.length ? l[0].subject : null; render(); return; }
   if (!f) return;
   if (k === 'fDate' && el.value) f.date = toEd(el.value);
   if (k === 'fUntil' && el.value) f.until = toEd(el.value);
@@ -1575,6 +2041,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rend
   applyTheme();
   const saved = LS.get('file', null);
   if (saved) await loadFromBuffer(b64.dec(saved), false); else render();
+  if (C.token) pullGroup(true);
   setInterval(tick, 1000);
 })();
 </script>

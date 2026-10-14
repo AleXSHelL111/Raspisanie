@@ -79,6 +79,14 @@ import androidx.compose.material.icons.filled.Person
 import com.alexshell.raspisanie.ui.screens.HomeworkScreen
 import com.alexshell.raspisanie.ui.screens.SettingsOverlay
 import com.alexshell.raspisanie.ui.components.NeonCard
+import com.alexshell.raspisanie.ui.components.FormSpacer
+import com.alexshell.raspisanie.ui.components.GradientButton
+import com.alexshell.raspisanie.ui.components.NeonField
+import com.alexshell.raspisanie.ui.components.OutlineButton
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import com.alexshell.raspisanie.ui.theme.Palettes
 import com.alexshell.raspisanie.ui.theme.ThemeMode
 import android.content.res.Configuration
@@ -199,8 +207,10 @@ private fun App(vm: AppViewModel) {
 /** Первый запуск: расписание нужно загрузить самому. */
 @Composable
 private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
+    var login by rememberSaveable { mutableStateOf(false) }
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
     Column(
-        Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
+        Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
@@ -239,6 +249,41 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
                 tr("Можно также открыть файл из Telegram или проводника через «Открыть с помощью → КГМУ расписание»."),
                 color = Neon.Dim, fontSize = 12.sp,
             )
+        }
+        Spacer(Modifier.height(14.dp))
+        if (!login) {
+            OutlineButton("☁ " + tr("Уже есть профиль? Войти"), Neon.Violet) { login = true }
+        } else {
+            WelcomeLogin(vm)
+        }
+    }
+    }
+}
+
+/** Вход на новом устройстве: расписание, ДЗ и настройки загружаются из облака. */
+@Composable
+private fun WelcomeLogin(vm: AppViewModel) {
+    val c = vm.cloud
+    var url by rememberSaveable { mutableStateOf(c.url) }
+    var group by rememberSaveable { mutableStateOf(vm.group.orEmpty()) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var pass by rememberSaveable { mutableStateOf("") }
+    NeonCard(accent = Neon.Violet) {
+        Text(tr("Вход в профиль"), color = Neon.Violet, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(tr("Расписание, ДЗ и настройки загрузятся из облака."), color = Neon.Muted, fontSize = 13.sp)
+        FormSpacer()
+        if (com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.isEmpty()) {
+            NeonField(url, { url = it }, tr("Адрес сервера"), placeholder = "https://script.google.com/macros/s/…/exec")
+            FormSpacer()
+        }
+        NeonField(group, { group = it }, tr("Номер группы"), number = true)
+        FormSpacer()
+        NeonField(name, { name = it }, tr("Имя и фамилия"))
+        FormSpacer()
+        NeonField(pass, { pass = it }, tr("Пароль"), password = true)
+        Spacer(Modifier.height(14.dp))
+        GradientButton(tr("Войти и загрузить данные"), enabled = c.busy == null, loading = c.busy == "auth") {
+            c.loginAndRestore(com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.ifEmpty { url }, group, name, pass)
         }
     }
 }
@@ -313,6 +358,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
     var addDialog by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var settingsSection by rememberSaveable { mutableIntStateOf(0) }
     val snackbar = remember { SnackbarHostState() }
 
     // Android 13+: один раз спрашиваем разрешение на уведомления.
@@ -324,6 +370,9 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
             notifPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
     }
+
+    // Свежие объявления группы — для значка на вкладке.
+    LaunchedEffect(Unit) { vm.cloud.pullIfStale() }
 
     LaunchedEffect(vm.message) {
         vm.message?.let {
@@ -348,7 +397,11 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         bottomBar = {
             NeonBottomBar(
                 items = Tab.entries.map { t ->
-                    val pending = if (t == Tab.HOMEWORK) vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() } else 0
+                    val pending = when (t) {
+                        Tab.HOMEWORK -> vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() }
+                        Tab.GROUP -> vm.cloud.unseenNews()
+                        else -> 0
+                    }
                     NavItem(
                         title = tr(t.title),
                         icon = when (t) {
@@ -374,12 +427,12 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
             when (t) {
                 Tab.TODAY -> TodayScreen(
                     vm, now, padding, open,
-                    onOpenSettings = { showSettings = true },
+                    onOpenSettings = { settingsSection = 0; showSettings = true },
                     onOpenHomework = { tab = Tab.HOMEWORK.ordinal },
                 )
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
-                Tab.GROUP -> GroupScreen(vm, padding)
+                Tab.GROUP -> GroupScreen(vm, padding, onOpenProfile = { settingsSection = 1; showSettings = true })
             }
         }
     }
@@ -391,7 +444,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         exit = slideOutHorizontally { -it } + fadeOut(),
     ) {
         BackHandler { showSettings = false }
-        SettingsOverlay(vm, onImport, onBack = { showSettings = false })
+        SettingsOverlay(vm, onImport, onBack = { showSettings = false }, startSection = settingsSection)
     }
 
     openedLesson?.let {

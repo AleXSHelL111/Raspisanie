@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.alexshell.raspisanie.data.Backup
 import com.alexshell.raspisanie.data.EditStore
 import com.alexshell.raspisanie.data.Homework
 import com.alexshell.raspisanie.data.HomeworkStore
@@ -30,6 +31,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val hwStore = HomeworkStore(app)
     private val editStore = EditStore(app)
     private val importedFile = Repository.importedFile(app)
+
+    /** Профиль, облачная копия и «Моя группа». */
+    val cloud = CloudState(this)
 
     var schedule by mutableStateOf<Schedule?>(null)
         private set
@@ -72,6 +76,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         notif = n
         Notifier.saveSettings(getApplication(), n)
         Notifier.reschedule(getApplication())
+        cloud.changed()
     }
 
     /** Выбранные дисциплины по выбору (пусто — показывать все). */
@@ -104,6 +109,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         themeMode = m
         prefs.edit().putString("theme_mode", m.name).apply()
         com.alexshell.raspisanie.ui.theme.Neon.mode = m
+        cloud.changed()
     }
 
     fun setTheme(id: String) {
@@ -111,6 +117,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit().putString("theme", id).apply()
         com.alexshell.raspisanie.ui.theme.Neon.palette = com.alexshell.raspisanie.ui.theme.Palettes.byId(id)
         com.alexshell.raspisanie.widget.Widgets.updateAll(getApplication())
+        cloud.changed()
     }
 
     private fun reload() {
@@ -150,12 +157,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         chosenElectives = if (name in chosenElectives) chosenElectives - name else chosenElectives + name
         prefs.edit().putStringSet("electives", chosenElectives).apply()
         refreshLessons()
+        cloud.changed()
     }
 
     fun clearElectives() {
         chosenElectives = emptySet()
         prefs.edit().putStringSet("electives", emptySet()).apply()
         refreshLessons()
+        cloud.changed()
     }
 
     // ---------- Редактор занятий ----------
@@ -240,6 +249,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         edits = list
         editStore.save(list)
         refreshLessons()
+        cloud.changed()
     }
 
     /** Выбранный поток (null — не выбран). */
@@ -250,6 +260,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         stream = s
         prefs.edit().putInt("stream", s).apply()
         refreshLessons()
+        cloud.changed()
     }
 
     /** Нужно ли спросить поток: в расписании есть потоки, а выбранного среди них нет. */
@@ -260,6 +271,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         group = g
         prefs.edit().putString("group", g).apply()
         refreshLessons()
+        cloud.changed()
     }
 
     /** Импорт нового файла: сначала проверяем, что он разбирается, затем сохраняем. */
@@ -345,6 +357,59 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         homework = list
         hwStore.save(list)
         Notifier.reschedule(getApplication())
+        cloud.changed()
+    }
+
+    /** Перечитать всё после восстановления копии. [fallbackGroup] — если в копии не было группы. */
+    fun reloadAll(fallbackGroup: String?) {
+        val app = getApplication<Application>()
+        if (prefs.getString("group", null) == null && fallbackGroup != null) prefs.edit().putString("group", fallbackGroup).apply()
+        group = prefs.getString("group", null)
+        homework = hwStore.load()
+        edits = editStore.load()
+        notif = Notifier.settings(app)
+        chosenElectives = prefs.getStringSet("electives", emptySet())!!.toSet()
+        stream = prefs.getInt("stream", 0).takeIf { it > 0 }
+        themeId = prefs.getString("theme", "neon") ?: "neon"
+        com.alexshell.raspisanie.ui.theme.Neon.palette = com.alexshell.raspisanie.ui.theme.Palettes.byId(themeId)
+        themeMode = runCatching { com.alexshell.raspisanie.ui.theme.ThemeMode.valueOf(prefs.getString("theme_mode", null) ?: "DARK") }
+            .getOrDefault(com.alexshell.raspisanie.ui.theme.ThemeMode.DARK)
+        com.alexshell.raspisanie.ui.theme.Neon.mode = themeMode
+        needsFile = !importedFile.exists()
+        schedule = null
+        reload()
+        com.alexshell.raspisanie.widget.Widgets.updateAll(app)
+    }
+
+    /** Резервная копия в файл (тот же формат, что у сайта). */
+    suspend fun exportBackup(uri: Uri) = withContext(Dispatchers.IO) {
+        val app = getApplication<Application>()
+        val json = Backup.export(app).toString()
+        app.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) } ?: error(tr("Файл недоступен"))
+    }
+
+    fun saveBackupFile(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { exportBackup(uri) }
+                .onSuccess { message = tr("Копия сохранена") }
+                .onFailure { message = it.message }
+        }
+    }
+
+    fun restoreBackupFile(uri: Uri) {
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val text = app.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() } ?: error(tr("Файл недоступен"))
+                    Backup.import(app, org.json.JSONObject(text))
+                }
+            }.onSuccess {
+                reloadAll(null)
+                message = tr("Данные восстановлены")
+                cloud.changed()
+            }.onFailure { message = tr(it.message ?: "Не удалось прочитать файл") }
+        }
     }
 
     fun lessonByKey(key: String): Lesson? = lessons.firstOrNull { it.key == key }
