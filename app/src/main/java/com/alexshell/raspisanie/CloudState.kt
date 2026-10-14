@@ -24,7 +24,7 @@ class CloudState(private val vm: AppViewModel) {
     private val app: Application get() = vm.getApplication()
     private val p = vm.getApplication<Application>().getSharedPreferences("cloud", Context.MODE_PRIVATE)
 
-    var url by mutableStateOf(p.getString("server", null).orEmpty().ifEmpty { DEFAULT_SERVER })
+    var url by mutableStateOf(DEFAULT_SERVER.ifEmpty { p.getString("server", null).orEmpty() })
         private set
     var token by mutableStateOf(p.getString("token", null))
         private set
@@ -259,6 +259,6 @@ class CloudState(private val vm: AppViewModel) {
 
     companion object {
         /** Ссылка на веб-приложение вашей Google Таблицы (…/exec) — тогда вводить адрес в приложении не нужно. */
-        const val DEFAULT_SERVER = ""
+        const val DEFAULT_SERVER = "https://script.google.com/macros/s/AKfycbyWsg3JTabI9N5oTW5rgQ0kJ1leJCymXI9Vc-qXHbz9i1FOrlg0qOP2LLOBqa7h6LqQCw/exec"
     }
 }

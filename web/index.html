@@ -1271,9 +1271,9 @@ function modalHtml(now) {
 /* ======================= Облако: профиль, синхронизация, перенос ======================= */
 // Ссылка на веб-приложение Apps Script вашей Google Таблицы (…/exec).
 // Если вписать её сюда, пользователям не нужно вводить адрес сервера.
-const DEFAULT_SERVER = '';
+const DEFAULT_SERVER = 'https://script.google.com/macros/s/AKfycbyWsg3JTabI9N5oTW5rgQ0kJ1leJCymXI9Vc-qXHbz9i1FOrlg0qOP2LLOBqa7h6LqQCw/exec';
 const C = {
-  url: LS.get('server', '') || DEFAULT_SERVER,
+  url: DEFAULT_SERVER || LS.get('server', ''),
   token: LS.get('token', null), user: LS.get('user', null),
   auto: LS.get('autoSync', true), syncAt: LS.get('syncAt', null),
   busy: null, authMode: 'register', editing: false, avatar: null, showServer: false,
@@ -1380,7 +1380,7 @@ async function afterLogin(r) {
 
 /* ----- Экран профиля (Настройки → Профиль) ----- */
 function serverCard() {
-  if (DEFAULT_SERVER && !C.showServer) return `<button class="dim" style="font-size:12px;margin:14px 4px 0" data-act="showServer">${tr('Адрес сервера')}…</button>`;
+  if (DEFAULT_SERVER) return '';
   return `<div class="section" style="color:var(--tertiary)">${tr('Сервер')}</div><div class="card" style="--a:var(--tertiary)">
     <div class="muted" style="font-size:13px">${tr('Ссылка на веб-приложение Google Apps Script (заканчивается на /exec).')}</div>
     <input class="field" style="margin-top:8px" id="srvUrl" data-keep placeholder="https://script.google.com/macros/s/…/exec" value="${esc(C.url)}">
