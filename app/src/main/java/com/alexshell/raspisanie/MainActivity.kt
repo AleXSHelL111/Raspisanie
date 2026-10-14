@@ -270,8 +270,7 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
 private fun WelcomeLogin(vm: AppViewModel) {
     val c = vm.cloud
     var url by rememberSaveable { mutableStateOf(c.url) }
-    var group by rememberSaveable { mutableStateOf(vm.group.orEmpty()) }
-    var name by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
     var pass by rememberSaveable { mutableStateOf("") }
     NeonCard(accent = Neon.Violet) {
         Text(tr("Вход в профиль"), color = Neon.Violet, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -281,14 +280,12 @@ private fun WelcomeLogin(vm: AppViewModel) {
             NeonField(url, { url = it }, tr("Адрес сервера"), placeholder = "https://script.google.com/macros/s/…/exec")
             FormSpacer()
         }
-        NeonField(group, { group = it }, tr("Номер группы"), number = true)
-        FormSpacer()
-        NeonField(name, { name = it }, tr("Имя и фамилия"))
+        NeonField(username, { username = it }, tr("Юзернейм"), placeholder = "anna.ivanova", username = true)
         FormSpacer()
         NeonField(pass, { pass = it }, tr("Пароль"), password = true)
         Spacer(Modifier.height(14.dp))
         GradientButton(tr("Войти и загрузить данные"), enabled = c.busy == null, loading = c.busy == "auth") {
-            c.loginAndRestore(com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.ifEmpty { url }, group, name, pass)
+            c.loginAndRestore(com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.ifEmpty { url }, username, pass)
         }
     }
 }
@@ -376,9 +373,6 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         }
     }
 
-    // Свежие объявления группы — для значка на вкладке.
-    LaunchedEffect(Unit) { vm.cloud.pullIfStale() }
-
     LaunchedEffect(vm.message) {
         vm.message?.let {
             snackbar.showSnackbar(it)
@@ -404,7 +398,6 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 items = Tab.entries.map { t ->
                     val pending = when (t) {
                         Tab.HOMEWORK -> vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() }
-                        Tab.GROUP -> vm.cloud.unseenNews()
                         else -> 0
                     }
                     NavItem(
@@ -437,7 +430,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 )
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
-                Tab.GROUP -> GroupScreen(vm, padding, onOpenProfile = { settingsSection = 1; showSettings = true })
+                Tab.GROUP -> GroupScreen(vm, padding)
             }
         }
     }

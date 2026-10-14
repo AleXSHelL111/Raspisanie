@@ -58,7 +58,6 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
     val next = remember(lesson, vm.lessons) { vm.nextOccurrence(lesson) }
     var toNext by rememberSaveable { mutableStateOf(next != null) }
     var text by rememberSaveable { mutableStateOf("") }
-    var share by rememberSaveable { mutableStateOf(false) }
     val discipline = vm.schedule?.disciplineFor(lesson.subject)
     var confirmDelete by remember { mutableStateOf(false) }
 
@@ -159,14 +158,6 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                     label = { Text(tr("К этой паре")) },
                     colors = chipColors(),
                 )
-                if (vm.cloud.loggedIn) {
-                    FilterChip(
-                        selected = share,
-                        onClick = { share = !share },
-                        label = { Text("👥 " + tr("Поделиться с группой")) },
-                        colors = chipColors(Neon.Magenta),
-                    )
-                }
             }
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
@@ -187,7 +178,6 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 onClick = {
                     val target = if (toNext && next != null) next else lesson
                     vm.addHomework(target, text)
-                    if (share && vm.cloud.loggedIn) vm.cloud.shareHomework(target, text)
                     vm.message = tr("ДЗ добавлено на {0}", "${target.date.weekdayShort()}, ${target.date.dayMonth()}")
                     text = ""
                 },

@@ -113,6 +113,7 @@ fun NeonField(
     placeholder: String? = null,
     password: Boolean = false,
     number: Boolean = false,
+    username: Boolean = false,
     minLines: Int = 1,
 ) {
     OutlinedTextField(
@@ -124,10 +125,14 @@ fun NeonField(
         singleLine = minLines == 1,
         minLines = minLines,
         visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
+        prefix = if (username) ({ Text("@", color = Neon.Muted) }) else null,
         keyboardOptions = KeyboardOptions(
+            capitalization = if (username || password) androidx.compose.ui.text.input.KeyboardCapitalization.None
+            else androidx.compose.ui.text.input.KeyboardCapitalization.Sentences,
             keyboardType = when {
                 password -> KeyboardType.Password
                 number -> KeyboardType.Number
+                username -> KeyboardType.Email
                 else -> KeyboardType.Text
             },
         ),

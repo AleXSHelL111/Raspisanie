@@ -45,8 +45,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-val ROLE_TITLE = mapOf("starosta" to "Староста", "deputy" to "Заместитель", "member" to "Участник")
-
 /** «Сегодня, 19:41» из ISO-времени сервера. */
 fun fmtWhen(iso: String?): String {
     val t = runCatching { java.time.Instant.parse(iso) }.getOrNull() ?: return ""
@@ -84,7 +82,7 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
             item {
                 NeonCard {
                     Text(
-                        tr("ДЗ, правки расписания, настройки и сам файл расписания хранятся в облаке группы. Войдите с тем же именем на другом телефоне или на сайте — и всё перенесётся."),
+                        tr("ДЗ, правки расписания, настройки и сам файл расписания сохраняются в облаке. Войдите под тем же юзернеймом на другом телефоне или на сайте — и всё перенесётся."),
                         color = Neon.Muted, fontSize = 13.sp,
                     )
                     Spacer(Modifier.height(6.dp))
@@ -107,10 +105,10 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
                 }
             }
         }
-        item { SectionTitle(tr("Резервная копия"), color = Neon.Lime) }
+        item { SectionTitle(tr("Перенос через файл"), color = Neon.Lime) }
         item {
             NeonCard(accent = Neon.Lime) {
-                Text(tr("Файл со всеми ДЗ, правками и настройками. Его можно открыть и на сайте."), color = Neon.Muted, fontSize = 13.sp)
+                Text(tr("Файл со всеми ДЗ, правками и настройками. Его можно открыть и на сайте — даже без профиля."), color = Neon.Muted, fontSize = 13.sp)
                 FormSpacer()
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlineButton(tr("Сохранить файл"), Neon.Lime, Modifier.weight(1f)) { saveFile.launch("kgmu-backup-${LocalDate.now()}.json") }
@@ -128,8 +126,10 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
                 }
             }
         }
-        item { SectionTitle(tr("Сервер"), color = Neon.Violet) }
-        item { ServerCard(vm) }
+        if (com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.isEmpty()) {
+            item { SectionTitle(tr("Сервер"), color = Neon.Violet) }
+            item { ServerCard(vm) }
+        }
     }
 
     restoreUri?.let { u ->
@@ -140,7 +140,7 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
     when (confirm) {
         "download" -> ConfirmDialog(tr("Загрузить"), tr("Заменить данные на этом устройстве копией из облака?"), { confirm = null }) { c.download(); confirm = null }
         "logout" -> ConfirmDialog(tr("Выйти из профиля"), tr("Выйти из профиля? Данные на устройстве сохранятся."), { confirm = null }) { c.logout(); confirm = null }
-        "delete" -> ConfirmDialog(tr("Удалить профиль"), tr("Удалить профиль и облачную копию навсегда? Данные на устройстве сохранятся."), { confirm = null }) { c.deleteAccount(); confirm = null }
+        "delete" -> DeleteDialog(onDismiss = { confirm = null }) { pass -> c.deleteAccount(pass); confirm = null }
     }
     c.restoreAsk?.let { at ->
         AlertDialog(
@@ -167,24 +167,56 @@ fun ConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onConfirm:
 }
 
 @Composable
+private fun DeleteDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var pass by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Neon.SurfaceHi,
+        title = { Text(tr("Удалить профиль")) },
+        text = {
+            Column {
+                Text(tr("Чтобы удалить профиль и облачную копию навсегда, введите пароль. Данные на устройстве сохранятся."))
+                FormSpacer()
+                NeonField(pass, { pass = it }, tr("Пароль"), password = true)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(pass) }, enabled = pass.isNotEmpty()) {
+                Text(tr("Удалить"), color = Neon.Magenta, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Отмена"), color = Neon.Muted) } },
+    )
+}
+
+@Composable
 private fun AuthCard(vm: AppViewModel) {
     val c = vm.cloud
-    var register by rememberSaveable { mutableStateOf(false) }
-    var name by rememberSaveable { mutableStateOf("") }
+    var register by rememberSaveable { mutableStateOf(true) }
+    var fullName by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
     var pass by rememberSaveable { mutableStateOf("") }
-    var contact by rememberSaveable { mutableStateOf("") }
     var avatar by rememberSaveable { mutableStateOf(AVATAR_EMOJI.random() + "|" + AVATAR_COLORS[0]) }
     NeonCard(accent = Neon.Violet, glow = true) {
-        Text(if (register) tr("Регистрация") else tr("Вход"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
-        Text(tr("Профиль нужен для синхронизации и раздела «Моя группа». Группа: {0}", vm.group.orEmpty()), color = Neon.Muted, fontSize = 13.sp)
+        Text(tr("Профиль"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Neon.Violet)
+        Text(
+            tr("Создайте профиль, чтобы ваши ДЗ, правки и настройки сохранялись в облаке и переносились на другие устройства."),
+            color = Neon.Muted, fontSize = 13.sp,
+        )
         FormSpacer()
-        SegmentedTabs(listOf(tr("Вход") to true, tr("Регистрация") to true), if (register) 1 else 0, { register = it == 1 }, horizontalPadding = 0.dp)
-        NeonField(name, { name = it }, tr("Имя и фамилия"), placeholder = tr("Как вас видит группа"))
+        SegmentedTabs(listOf(tr("Регистрация") to true, tr("Вход") to true), if (register) 0 else 1, { register = it == 0 }, horizontalPadding = 0.dp)
+        if (register) {
+            NeonField(fullName, { fullName = it }, tr("Полное имя"), placeholder = tr("Имя и фамилия"))
+            FormSpacer()
+        }
+        NeonField(
+            username, { username = it.trim() }, tr("Юзернейм"),
+            placeholder = if (register) tr("придумайте, например anna.ivanova") else "anna.ivanova", username = true,
+        )
+        if (register) Text(tr("3–24 символа: латинские буквы, цифры, «_» и «.»"), color = Neon.Dim, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
         FormSpacer()
         NeonField(pass, { pass = it }, tr("Пароль"), placeholder = tr("Минимум 4 символа"), password = true)
         if (register) {
-            FormSpacer()
-            NeonField(contact, { contact = it }, tr("Контакт (необязательно)"), placeholder = tr("@telegram или телефон"))
             FormSpacer()
             Text(tr("Аватар"), color = Neon.Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
@@ -192,12 +224,7 @@ private fun AuthCard(vm: AppViewModel) {
         }
         Spacer(Modifier.height(14.dp))
         GradientButton(if (register) tr("Создать профиль") else tr("Войти"), enabled = c.busy == null, loading = c.busy == "auth") {
-            val g = vm.group.orEmpty()
-            if (register) c.register(g, name, pass, contact, avatar) else c.login(g, name, pass)
-        }
-        if (!register) {
-            Spacer(Modifier.height(8.dp))
-            Text(tr("Первый зарегистрированный в группе становится старостой."), color = Neon.Dim, fontSize = 12.sp)
+            if (register) c.register(fullName, username, pass, avatar) else c.login(username, pass)
         }
     }
 }
@@ -207,43 +234,44 @@ private fun ProfileCard(vm: AppViewModel) {
     val c = vm.cloud
     val u = c.user ?: return
     var editing by rememberSaveable { mutableStateOf(false) }
-    var name by rememberSaveable(editing) { mutableStateOf(u.name) }
-    var contact by rememberSaveable(editing) { mutableStateOf(u.contact) }
+    var fullName by rememberSaveable(editing) { mutableStateOf(u.fullName) }
+    var username by rememberSaveable(editing) { mutableStateOf(u.username) }
     var avatar by rememberSaveable(editing) { mutableStateOf(u.avatar) }
-    var pass by rememberSaveable(editing) { mutableStateOf("") }
+    var oldPass by rememberSaveable(editing) { mutableStateOf("") }
+    var newPass by rememberSaveable(editing) { mutableStateOf("") }
     NeonCard(accent = Neon.Violet, glow = true) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Avatar(u.avatar, 64.dp)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
-                Text(u.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Text(tr("Группа {0}", u.group) + " · " + tr(ROLE_TITLE[u.role] ?: "Участник"), color = Neon.Muted, fontSize = 13.sp)
-                if (u.contact.isNotBlank()) Text(u.contact, color = Neon.Cyan, fontSize = 13.sp)
+                Text(u.fullName, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("@" + u.username, color = Neon.Cyan, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(tr("Группа {0}", vm.group ?: u.group.ifEmpty { "—" }), color = Neon.Muted, fontSize = 13.sp)
             }
         }
         if (editing) {
             FormSpacer()
-            NeonField(name, { name = it }, tr("Имя и фамилия"))
+            NeonField(fullName, { fullName = it }, tr("Полное имя"))
             FormSpacer()
-            NeonField(contact, { contact = it }, tr("Контакт (необязательно)"), placeholder = tr("@telegram или телефон"))
+            NeonField(username, { username = it.trim() }, tr("Юзернейм"), username = true)
             FormSpacer()
             AvatarPicker(avatar) { avatar = it }
             FormSpacer()
-            NeonField(pass, { pass = it }, tr("Новый пароль (необязательно)"), password = true)
+            Text(tr("Сменить пароль (необязательно)"), color = Neon.Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            NeonField(oldPass, { oldPass = it }, tr("Текущий пароль"), password = true)
+            FormSpacer()
+            NeonField(newPass, { newPass = it }, tr("Новый пароль"), password = true)
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlineButton(tr("Отмена"), Neon.Muted, Modifier.weight(1f)) { editing = false }
                 OutlineButton(tr("Сохранить"), Neon.Cyan, Modifier.weight(1f), enabled = c.busy == null, loading = c.busy == "profile") {
-                    c.updateProfile(name, contact, avatar, pass) { editing = false }
+                    c.updateProfile(fullName, username, avatar, oldPass, newPass) { editing = false }
                 }
             }
         } else {
             Spacer(Modifier.height(12.dp))
             OutlineButton("✎ " + tr("Изменить профиль"), Neon.Violet) { editing = true }
-        }
-        if (u.group != vm.group) {
-            Spacer(Modifier.height(8.dp))
-            Text(tr("Профиль привязан к группе {0}, а в расписании выбрана {1}.", u.group, vm.group.orEmpty()), color = Neon.Amber, fontSize = 13.sp)
         }
     }
 }
@@ -254,7 +282,7 @@ fun ServerCard(vm: AppViewModel) {
     var url by rememberSaveable { mutableStateOf(c.url) }
     NeonCard(accent = Neon.Violet) {
         Text(
-            tr("Адрес веб-приложения Google Apps Script (заканчивается на /exec). Его даёт тот, кто настроил таблицу группы."),
+            tr("Ссылка на веб-приложение Google Apps Script (заканчивается на /exec)."),
             color = Neon.Muted, fontSize = 13.sp,
         )
         FormSpacer()

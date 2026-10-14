@@ -1,11 +1,11 @@
 {
- "@telegram или телефон": {
-  "ar": "‎@telegram أو الهاتف",
-  "de": "@Telegram oder Telefon",
-  "en": "@telegram or phone",
-  "es": "@telegram o teléfono",
-  "fr": "@telegram ou téléphone",
-  "zh": "@telegram 或电话"
+ "3–24 символа: латинские буквы, цифры, «_» и «.»": {
+  "ar": "من 3 إلى 24 حرفًا: أحرف لاتينية وأرقام و«_» و«.»",
+  "de": "3–24 Zeichen: lateinische Buchstaben, Ziffern, „_“ und „.“",
+  "en": "3–24 characters: Latin letters, digits, \"_\" and \".\"",
+  "es": "3–24 caracteres: letras latinas, cifras, «_» y «.»",
+  "fr": "3 à 24 caractères : lettres latines, chiffres, « _ » et « . »",
+  "zh": "3–24 个字符：拉丁字母、数字、“_”和“.”"
  },
  "{0} мин": {
   "ar": "{0} د",
@@ -62,14 +62,6 @@
   "es": "Guardado automático tras cambios",
   "fr": "Sauvegarde auto après modification",
   "zh": "更改后自动保存"
- },
- "Адрес веб-приложения Google Apps Script (заканчивается на /exec). Его даёт тот, кто настроил таблицу группы.": {
-  "ar": "عنوان تطبيق الويب Google Apps Script (ينتهي بـ ‎/exec). يعطيك إياه من أعدّ جدول المجموعة.",
-  "de": "Adresse der Google-Apps-Script-Web-App (endet auf /exec). Du bekommst sie von der Person, die die Gruppentabelle eingerichtet hat.",
-  "en": "The Google Apps Script web app address (ends with /exec). Get it from whoever set up the group spreadsheet.",
-  "es": "La dirección de la app web de Google Apps Script (termina en /exec). Te la da quien configuró la hoja del grupo.",
-  "fr": "L'adresse de l'application web Google Apps Script (se termine par /exec). Demandez-la à la personne qui a configuré le tableau du groupe.",
-  "zh": "Google Apps Script 网页应用地址（以 /exec 结尾），由设置小组表格的人提供。"
  },
  "Адрес сервера": {
   "ar": "عنوان الخادم",
@@ -175,22 +167,6 @@
   "fr": "Pas de cours ce jour-là",
   "zh": "这一天没有课"
  },
- "Важно": {
-  "ar": "مهم",
-  "de": "Wichtig",
-  "en": "Important",
-  "es": "Importante",
-  "fr": "Important",
-  "zh": "重要"
- },
- "Ваш профиль студента": {
-  "ar": "ملفك الطلابي",
-  "de": "Dein Studentenprofil",
-  "en": "Your student profile",
-  "es": "Tu perfil de estudiante",
-  "fr": "Votre profil étudiant",
-  "zh": "你的学生资料"
- },
  "Введите адрес, начинающийся с https://": {
   "ar": "أدخل عنوانًا يبدأ بـ ‎https://",
   "de": "Gib eine Adresse ein, die mit https:// beginnt",
@@ -199,21 +175,13 @@
   "fr": "Saisissez une adresse commençant par https://",
   "zh": "请输入以 https:// 开头的地址"
  },
- "Введите имя": {
-  "ar": "أدخل الاسم",
-  "de": "Name eingeben",
-  "en": "Enter a name",
-  "es": "Introduce un nombre",
-  "fr": "Saisissez un nom",
-  "zh": "请输入姓名"
- },
- "Введите текст": {
-  "ar": "أدخل النص",
-  "de": "Text eingeben",
-  "en": "Enter some text",
-  "es": "Escribe un texto",
-  "fr": "Saisissez un texte",
-  "zh": "请输入内容"
+ "Введите полное имя: имя и фамилию": {
+  "ar": "أدخل الاسم الكامل: الاسم واسم العائلة",
+  "de": "Gib deinen vollständigen Namen ein: Vor- und Nachname",
+  "en": "Enter your full name: first and last name",
+  "es": "Introduce tu nombre completo: nombre y apellido",
+  "fr": "Saisissez votre nom complet : prénom et nom",
+  "zh": "请输入完整姓名：名和姓"
  },
  "Введите текст задания": {
   "ar": "أدخل نص الواجب",
@@ -223,13 +191,13 @@
   "fr": "Saisissez le devoir",
   "zh": "请输入作业内容"
  },
- "Вернуть в пропуски": {
-  "ar": "إرجاع إلى الغيابات",
-  "de": "Zurück zu Fehlzeiten",
-  "en": "Back to absences",
-  "es": "Volver a faltas",
-  "fr": "Remettre en absence",
-  "zh": "改回缺勤"
+ "Введите юзернейм": {
+  "ar": "أدخل اسم المستخدم",
+  "de": "Benutzernamen eingeben",
+  "en": "Enter your username",
+  "es": "Introduce tu nombre de usuario",
+  "fr": "Saisissez votre nom d'utilisateur",
+  "zh": "请输入用户名"
  },
  "Вечерние напоминания": {
   "ar": "تذكيرات المساء",
@@ -271,14 +239,6 @@
   "fr": "Activer",
   "zh": "开启"
  },
- "Войдите в профиль, чтобы видеть объявления старосты, общие ДЗ, одногруппников и вести учёт пропусков.": {
-  "ar": "سجّل الدخول لترى إعلانات رئيس المجموعة والواجبات المشتركة والزملاء ولتتابع غياباتك.",
-  "de": "Melde dich an, um Ankündigungen, gemeinsame Aufgaben und Kommilitonen zu sehen und Fehlzeiten zu erfassen.",
-  "en": "Sign in to see the group leader's announcements, shared homework and groupmates, and to track absences.",
-  "es": "Inicia sesión para ver los anuncios del delegado, las tareas compartidas y a tus compañeros, y llevar el registro de faltas.",
-  "fr": "Connectez-vous pour voir les annonces du délégué, les devoirs partagés, vos camarades et suivre vos absences.",
-  "zh": "登录后可查看班长公告、共享作业、同组同学，并记录缺勤。"
- },
  "Войти": {
   "ar": "دخول",
   "de": "Anmelden",
@@ -294,14 +254,6 @@
   "es": "Entrar y cargar datos",
   "fr": "Se connecter et charger les données",
   "zh": "登录并加载数据"
- },
- "Войти или зарегистрироваться": {
-  "ar": "الدخول أو التسجيل",
-  "de": "Anmelden oder registrieren",
-  "en": "Sign in or sign up",
-  "es": "Entrar o registrarse",
-  "fr": "Se connecter ou s'inscrire",
-  "zh": "登录或注册"
  },
  "Восстановить": {
   "ar": "استعادة",
@@ -343,14 +295,6 @@
   "fr": "Toutes ({0})",
   "zh": "所有同类 ({0})"
  },
- "Вся группа": {
-  "ar": "كل المجموعة",
-  "de": "Ganze Gruppe",
-  "en": "Whole group",
-  "es": "Todo el grupo",
-  "fr": "Tout le groupe",
-  "zh": "全组"
- },
  "Вход": {
   "ar": "الدخول",
   "de": "Anmeldung",
@@ -374,14 +318,6 @@
   "es": "Ayer",
   "fr": "Hier",
   "zh": "昨天"
- },
- "Выберите предмет": {
-  "ar": "اختر المادة",
-  "de": "Fach wählen",
-  "en": "Choose a subject",
-  "es": "Elige una asignatura",
-  "fr": "Choisissez une matière",
-  "zh": "请选择科目"
  },
  "Выберите свой поток": {
   "ar": "اختر دفعتك",
@@ -479,14 +415,6 @@
   "fr": "OK",
   "zh": "完成"
  },
- "Группа": {
-  "ar": "المجموعة",
-  "de": "Gruppe",
-  "en": "Group",
-  "es": "Grupo",
-  "fr": "Groupe",
-  "zh": "小组"
- },
  "Группа {0}": {
   "ar": "المجموعة {0}",
   "de": "Gruppe {0}",
@@ -551,21 +479,13 @@
   "fr": "Devoirs pour demain : {0}",
   "zh": "明天的作业：{0}"
  },
- "ДЗ отправлено группе": {
-  "ar": "تم إرسال الواجب للمجموعة",
-  "de": "Aufgabe mit der Gruppe geteilt",
-  "en": "Homework shared with the group",
-  "es": "Tarea enviada al grupo",
-  "fr": "Devoir partagé avec le groupe",
-  "zh": "作业已分享给小组"
- },
- "ДЗ, правки расписания, настройки и сам файл расписания хранятся в облаке группы. Войдите с тем же именем на другом телефоне или на сайте — и всё перенесётся.": {
-  "ar": "تُحفظ الواجبات وتعديلات الجدول والإعدادات وملف الجدول نفسه في سحابة المجموعة. سجّل الدخول بالاسم نفسه على هاتف آخر أو على الموقع وسينتقل كل شيء.",
-  "de": "Aufgaben, Planänderungen, Einstellungen und die Stundenplandatei liegen in der Gruppen-Cloud. Melde dich mit demselben Namen auf einem anderen Handy oder auf der Website an – und alles wird übernommen.",
-  "en": "Homework, schedule edits, settings and the schedule file itself are stored in the group cloud. Sign in with the same name on another phone or on the website and everything moves over.",
-  "es": "Las tareas, los cambios, los ajustes y el propio archivo del horario se guardan en la nube del grupo. Entra con el mismo nombre en otro teléfono o en la web y todo se transferirá.",
-  "fr": "Devoirs, modifications, paramètres et le fichier d'emploi du temps sont stockés dans le cloud du groupe. Connectez-vous avec le même nom sur un autre téléphone ou sur le site et tout sera transféré.",
-  "zh": "作业、课表修改、设置以及课表文件都保存在小组云端。在另一部手机或网站上用同一名字登录，即可全部迁移。"
+ "ДЗ, правки расписания, настройки и сам файл расписания сохраняются в облаке. Войдите под тем же юзернеймом на другом телефоне или на сайте — и всё перенесётся.": {
+  "ar": "تُحفظ الواجبات وتعديلات الجدول والإعدادات وملف الجدول نفسه في السحابة. سجّل الدخول باسم المستخدم نفسه على هاتف آخر أو على الموقع وسينتقل كل شيء.",
+  "de": "Aufgaben, Planänderungen, Einstellungen und die Stundenplandatei werden in der Cloud gespeichert. Melde dich mit demselben Benutzernamen auf einem anderen Handy oder auf der Website an – und alles wird übernommen.",
+  "en": "Homework, schedule edits, settings and the schedule file itself are saved to the cloud. Sign in with the same username on another phone or on the website and everything moves over.",
+  "es": "Las tareas, los cambios, los ajustes y el propio archivo del horario se guardan en la nube. Entra con el mismo nombre de usuario en otro teléfono o en la web y todo se transferirá.",
+  "fr": "Devoirs, modifications, paramètres et le fichier d'emploi du temps sont sauvegardés dans le cloud. Connectez-vous avec le même nom d'utilisateur sur un autre téléphone ou sur le site et tout sera transféré.",
+  "zh": "作业、课表修改、设置以及课表文件都会保存到云端。在另一部手机或网站上用同一用户名登录，即可全部迁移。"
  },
  "ДЗ: {0}": {
   "ar": "الواجب: {0}",
@@ -647,14 +567,6 @@
   "fr": "Ajouter un devoir",
   "zh": "添加作业"
  },
- "Добавить в мои ДЗ": {
-  "ar": "إضافة إلى واجباتي",
-  "de": "Zu meinen Aufgaben",
-  "en": "Add to my homework",
-  "es": "Añadir a mis tareas",
-  "fr": "Ajouter à mes devoirs",
-  "zh": "添加到我的作业"
- },
  "Добавить домашнее задание": {
   "ar": "إضافة واجب منزلي",
   "de": "Hausaufgabe hinzufügen",
@@ -735,14 +647,6 @@
   "fr": "Demain : {0}, le premier à {1}",
   "zh": "明天：{0}，第一节 {1}"
  },
- "Заголовок": {
-  "ar": "العنوان",
-  "de": "Überschrift",
-  "en": "Title",
-  "es": "Título",
-  "fr": "Titre",
-  "zh": "标题"
- },
  "Загружаю…": {
   "ar": "جارٍ التحميل…",
   "de": "Lädt…",
@@ -783,14 +687,6 @@
   "fr": "Charger un nouveau .xlsx",
   "zh": "加载新的 .xlsx"
  },
- "Загрузка…": {
-  "ar": "جارٍ التحميل…",
-  "de": "Wird geladen…",
-  "en": "Loading…",
-  "es": "Cargando…",
-  "fr": "Chargement…",
-  "zh": "加载中…"
- },
  "Задания, которые видит вся группа": {
   "ar": "واجبات تراها المجموعة كلها",
   "de": "Aufgaben für die ganze Gruppe",
@@ -823,14 +719,6 @@
   "fr": "Remplacer les données de cet appareil par la copie du cloud ?",
   "zh": "用云端备份替换此设备上的数据？"
  },
- "Заместитель": {
-  "ar": "نائب",
-  "de": "Stellvertreter",
-  "en": "Deputy",
-  "es": "Subdelegado",
-  "fr": "Adjoint",
-  "zh": "副班长"
- },
  "Заметка": {
   "ar": "ملاحظة",
   "de": "Notiz",
@@ -854,22 +742,6 @@
   "es": "Clase eliminada",
   "fr": "Cours supprimé",
   "zh": "课程已删除"
- },
- "Запись не найдена": {
-  "ar": "السجل غير موجود",
-  "de": "Eintrag nicht gefunden",
-  "en": "Entry not found",
-  "es": "No se encontró el registro",
-  "fr": "Élément introuvable",
-  "zh": "未找到记录"
- },
- "Здесь появятся переносы пар и новости от старосты.": {
-  "ar": "ستظهر هنا تغييرات الحصص وأخبار رئيس المجموعة.",
-  "de": "Hier erscheinen Kursverlegungen und News vom Gruppensprecher.",
-  "en": "Class changes and news from the group leader will appear here.",
-  "es": "Aquí aparecerán los cambios de clases y noticias del delegado.",
-  "fr": "Les changements de cours et nouvelles du délégué apparaîtront ici.",
-  "zh": "调课通知和班长消息将显示在这里。"
  },
  "Золото": {
   "ar": "ذهبي",
@@ -935,14 +807,6 @@
   "fr": "Cours modifiés, ajoutés et supprimés : {0}",
   "zh": "已修改、添加和删除的课程：{0}"
  },
- "Имя и аватар": {
-  "ar": "الاسم والصورة",
-  "de": "Name und Avatar",
-  "en": "Name and avatar",
-  "es": "Nombre y avatar",
-  "fr": "Nom et avatar",
-  "zh": "姓名和头像"
- },
  "Имя и фамилия": {
   "ar": "الاسم الكامل",
   "de": "Vor- und Nachname",
@@ -950,14 +814,6 @@
   "es": "Nombre y apellido",
   "fr": "Prénom et nom",
   "zh": "姓名"
- },
- "История": {
-  "ar": "السجل",
-  "de": "Verlauf",
-  "en": "History",
-  "es": "Historial",
-  "fr": "Historique",
-  "zh": "记录"
  },
  "К сегодняшнему дню": {
   "ar": "العودة إلى اليوم",
@@ -1015,14 +871,6 @@
   "fr": "Système",
   "zh": "跟随系统"
  },
- "Как вас видит группа": {
-  "ar": "كيف تراك المجموعة",
-  "de": "So sieht dich die Gruppe",
-  "en": "How the group sees you",
-  "es": "Cómo te ve el grupo",
-  "fr": "Comment le groupe vous voit",
-  "zh": "小组看到的名字"
- },
  "Кафедра / база": {
   "ar": "القسم / المقر",
   "de": "Lehrstuhl / Standort",
@@ -1046,30 +894,6 @@
   "es": "El final debe ser posterior al inicio",
   "fr": "La fin doit être après le début",
   "zh": "结束时间必须晚于开始时间"
- },
- "Контакт": {
-  "ar": "جهة الاتصال",
-  "de": "Kontakt",
-  "en": "Contact",
-  "es": "Contacto",
-  "fr": "Contact",
-  "zh": "联系方式"
- },
- "Контакт (необязательно)": {
-  "ar": "جهة الاتصال (اختياري)",
-  "de": "Kontakt (optional)",
-  "en": "Contact (optional)",
-  "es": "Contacto (opcional)",
-  "fr": "Contact (facultatif)",
-  "zh": "联系方式（可选）"
- },
- "Контакт не указан": {
-  "ar": "لم تُحدَّد جهة اتصال",
-  "de": "Kein Kontakt angegeben",
-  "en": "No contact given",
-  "es": "Sin contacto",
-  "fr": "Aucun contact indiqué",
-  "zh": "未填写联系方式"
  },
  "Копия сохранена": {
   "ar": "تم حفظ النسخة",
@@ -1127,14 +951,6 @@
   "fr": "Vous pouvez supprimer ce cours seulement ou tous les cours « {0} » ({1}) : {2} au total.",
   "zh": "可以只删除这节课，或删除所有「{0}」（{1}）课程，共 {2} 节。"
  },
- "Мои": {
-  "ar": "الخاصة بي",
-  "de": "Meine",
-  "en": "Mine",
-  "es": "Mías",
-  "fr": "Les miennes",
-  "zh": "我的"
- },
  "Мои правки расписания": {
   "ar": "تعديلاتي على الجدول",
   "de": "Meine Planänderungen",
@@ -1191,14 +1007,6 @@
   "fr": "Nom de la matière",
   "zh": "科目名称"
  },
- "Назначить заместителем": {
-  "ar": "تعيين نائبًا",
-  "de": "Zum Stellvertreter machen",
-  "en": "Make deputy",
-  "es": "Nombrar subdelegado",
-  "fr": "Nommer adjoint",
-  "zh": "设为副班长"
- },
  "Найдена копия в облаке": {
   "ar": "تم العثور على نسخة في السحابة",
   "de": "Cloud-Kopie gefunden",
@@ -1206,14 +1014,6 @@
   "es": "Se encontró una copia en la nube",
   "fr": "Copie trouvée dans le cloud",
   "zh": "发现云端备份"
- },
- "Написать": {
-  "ar": "مراسلة",
-  "de": "Schreiben",
-  "en": "Message",
-  "es": "Escribir",
-  "fr": "Écrire",
-  "zh": "联系"
  },
  "Напоминание за несколько минут до начала пары": {
   "ar": "تذكير قبل بدء الحصة ببضع دقائق",
@@ -1239,14 +1039,6 @@
   "fr": "Les rappels peuvent être en retard",
   "zh": "提醒可能会延迟"
  },
- "Например: Перенос фармакологии": {
-  "ar": "مثال: تأجيل علم الأدوية",
-  "de": "Z. B.: Pharmakologie verlegt",
-  "en": "E.g.: Pharmacology rescheduled",
-  "es": "Ej.: Cambio de farmacología",
-  "fr": "Ex. : Report de pharmacologie",
-  "zh": "例如：药理学调课"
- },
  "Например: выучить тему 5, решить задачи 1–10": {
   "ar": "مثال: ذاكر الموضوع 5، حل المسائل 1–10",
   "de": "Z. B.: Thema 5 lernen, Aufgaben 1–10 lösen",
@@ -1254,14 +1046,6 @@
   "es": "Ej.: estudiar el tema 5, resolver los problemas 1–10",
   "fr": "Ex. : apprendre le thème 5, résoudre les exercices 1–10",
   "zh": "例如：复习第 5 章，完成第 1–10 题"
- },
- "Например: справка, отработка у преподавателя": {
-  "ar": "مثال: تقرير طبي، تعويض عند المدرّس",
-  "de": "Z. B.: Attest, Nachholen beim Dozenten",
-  "en": "E.g.: doctor's note, make-up with the teacher",
-  "es": "Ej.: justificante, recuperación con el profesor",
-  "fr": "Ex. : certificat, rattrapage avec l'enseignant",
-  "zh": "例如：病假条、找老师补课"
  },
  "Настройки": {
   "ar": "الإعدادات",
@@ -1319,21 +1103,21 @@
   "fr": "Impossible de lire le fichier : {0}",
   "zh": "无法读取文件：{0}"
  },
- "Неверная дата": {
-  "ar": "تاريخ غير صالح",
-  "de": "Ungültiges Datum",
-  "en": "Invalid date",
-  "es": "Fecha no válida",
-  "fr": "Date invalide",
-  "zh": "日期无效"
+ "Неверный пароль": {
+  "ar": "كلمة مرور غير صحيحة",
+  "de": "Falsches Passwort",
+  "en": "Wrong password",
+  "es": "Contraseña incorrecta",
+  "fr": "Mot de passe incorrect",
+  "zh": "密码错误"
  },
- "Неверное имя или пароль": {
-  "ar": "اسم أو كلمة مرور غير صحيحة",
-  "de": "Falscher Name oder falsches Passwort",
-  "en": "Wrong name or password",
-  "es": "Nombre o contraseña incorrectos",
-  "fr": "Nom ou mot de passe incorrect",
-  "zh": "姓名或密码错误"
+ "Неверный юзернейм или пароль": {
+  "ar": "اسم مستخدم أو كلمة مرور غير صحيحة",
+  "de": "Falscher Benutzername oder falsches Passwort",
+  "en": "Wrong username or password",
+  "es": "Usuario o contraseña incorrectos",
+  "fr": "Nom d'utilisateur ou mot de passe incorrect",
+  "zh": "用户名或密码错误"
  },
  "Невыполненное ДЗ на завтра": {
   "ar": "واجبات الغد غير المنجزة",
@@ -1358,14 +1142,6 @@
   "es": "Semana",
   "fr": "Semaine",
   "zh": "本周"
- },
- "Недостаточно прав": {
-  "ar": "صلاحيات غير كافية",
-  "de": "Keine Berechtigung",
-  "en": "Not allowed",
-  "es": "Sin permisos suficientes",
-  "fr": "Droits insuffisants",
-  "zh": "权限不足"
  },
  "Неон": {
   "ar": "نيون",
@@ -1399,29 +1175,13 @@
   "fr": "Nouveau cours",
   "zh": "新课程"
  },
- "Новое объявление": {
-  "ar": "إعلان جديد",
-  "de": "Neue Ankündigung",
-  "en": "New announcement",
-  "es": "Nuevo anuncio",
-  "fr": "Nouvelle annonce",
-  "zh": "新公告"
- },
- "Новость": {
-  "ar": "خبر",
-  "de": "News",
-  "en": "News",
-  "es": "Noticia",
-  "fr": "Info",
-  "zh": "消息"
- },
- "Новый пароль (необязательно)": {
-  "ar": "كلمة مرور جديدة (اختياري)",
-  "de": "Neues Passwort (optional)",
-  "en": "New password (optional)",
-  "es": "Nueva contraseña (opcional)",
-  "fr": "Nouveau mot de passe (facultatif)",
-  "zh": "新密码（可选）"
+ "Новый пароль": {
+  "ar": "كلمة المرور الجديدة",
+  "de": "Neues Passwort",
+  "en": "New password",
+  "es": "Nueva contraseña",
+  "fr": "Nouveau mot de passe",
+  "zh": "新密码"
  },
  "Номер группы": {
   "ar": "رقم المجموعة",
@@ -1430,14 +1190,6 @@
   "es": "Número de grupo",
   "fr": "Numéro de groupe",
   "zh": "小组编号"
- },
- "Обновить": {
-  "ar": "تحديث",
-  "de": "Aktualisieren",
-  "en": "Refresh",
-  "es": "Actualizar",
-  "fr": "Actualiser",
-  "zh": "刷新"
  },
  "Общие": {
   "ar": "عام",
@@ -1455,30 +1207,6 @@
   "fr": "Devoirs partagés",
   "zh": "共享作业"
  },
- "Общих ДЗ пока нет": {
-  "ar": "لا توجد واجبات مشتركة بعد",
-  "de": "Noch keine gemeinsamen Aufgaben",
-  "en": "No shared homework yet",
-  "es": "Aún no hay tareas compartidas",
-  "fr": "Pas encore de devoirs partagés",
-  "zh": "暂无共享作业"
- },
- "Объявление опубликовано": {
-  "ar": "تم نشر الإعلان",
-  "de": "Ankündigung veröffentlicht",
-  "en": "Announcement posted",
-  "es": "Anuncio publicado",
-  "fr": "Annonce publiée",
-  "zh": "公告已发布"
- },
- "Объявлений пока нет": {
-  "ar": "لا توجد إعلانات بعد",
-  "de": "Noch keine Ankündigungen",
-  "en": "No announcements yet",
-  "es": "Aún no hay anuncios",
-  "fr": "Pas encore d'annonces",
-  "zh": "暂无公告"
- },
  "Объявления": {
   "ar": "الإعلانات",
   "de": "Ankündigungen",
@@ -1494,22 +1222,6 @@
   "es": "Compañeros",
   "fr": "Camarades",
   "zh": "同组同学"
- },
- "Опубликовать": {
-  "ar": "نشر",
-  "de": "Veröffentlichen",
-  "en": "Post",
-  "es": "Publicar",
-  "fr": "Publier",
-  "zh": "发布"
- },
- "Осталось отработать: {0}": {
-  "ar": "متبقٍّ للتعويض: {0}",
-  "de": "Noch nachzuholen: {0}",
-  "en": "Left to make up: {0}",
-  "es": "Por recuperar: {0}",
-  "fr": "Reste à rattraper : {0}",
-  "zh": "待补课：{0}"
  },
  "Откройте приложение и загрузите файл": {
   "ar": "افتح التطبيق وحمّل الملف",
@@ -1535,14 +1247,6 @@
   "fr": "Annuler",
   "zh": "取消"
  },
- "Отметить пропуск": {
-  "ar": "تسجيل غياب",
-  "de": "Fehlzeit eintragen",
-  "en": "Log an absence",
-  "es": "Registrar falta",
-  "fr": "Noter une absence",
-  "zh": "记录缺勤"
- },
  "Отметки о пропусках и отработках": {
   "ar": "الغيابات والتعويض",
   "de": "Fehlzeiten und Nachholtermine",
@@ -1558,46 +1262,6 @@
   "es": "Marca las tuyas y el resto desaparecerá del horario. Ahora se muestran todas.",
   "fr": "Cochez les vôtres, les autres disparaîtront. Toutes sont affichées pour l'instant.",
   "zh": "勾选你的课程，其余将从课表中隐藏。当前显示全部。"
- },
- "Отмечайте пропуски, чтобы не забыть их отработать.": {
-  "ar": "سجّل غياباتك كي لا تنسى تعويضها.",
-  "de": "Trage Fehlzeiten ein, damit du das Nachholen nicht vergisst.",
-  "en": "Log absences so you don't forget to make them up.",
-  "es": "Registra las faltas para no olvidar recuperarlas.",
-  "fr": "Notez vos absences pour ne pas oublier de les rattraper.",
-  "zh": "记录缺勤，别忘了补课。"
- },
- "Отмечено": {
-  "ar": "تم التسجيل",
-  "de": "Eingetragen",
-  "en": "Saved",
-  "es": "Registrado",
-  "fr": "Noté",
-  "zh": "已记录"
- },
- "Отправить группе": {
-  "ar": "إرسال للمجموعة",
-  "de": "An die Gruppe senden",
-  "en": "Send to group",
-  "es": "Enviar al grupo",
-  "fr": "Envoyer au groupe",
-  "zh": "发送给小组"
- },
- "Отправляю…": {
-  "ar": "جارٍ الإرسال…",
-  "de": "Wird gesendet…",
-  "en": "Sending…",
-  "es": "Enviando…",
-  "fr": "Envoi…",
-  "zh": "正在发送…"
- },
- "Отработано": {
-  "ar": "تم التعويض",
-  "de": "Nachgeholt",
-  "en": "Made up",
-  "es": "Recuperado",
-  "fr": "Rattrapé",
-  "zh": "已补课"
  },
  "Ошибка импорта: {0}": {
   "ar": "خطأ في الاستيراد: {0}",
@@ -1671,14 +1335,6 @@
   "fr": "Cours de demain (le soir)",
   "zh": "明天的课程（晚间）"
  },
- "Первый зарегистрированный в группе становится старостой.": {
-  "ar": "أول من يسجّل في المجموعة يصبح رئيسها.",
-  "de": "Wer sich zuerst in der Gruppe registriert, wird Gruppensprecher.",
-  "en": "The first person to sign up in a group becomes its leader.",
-  "es": "La primera persona registrada en el grupo será el delegado.",
-  "fr": "La première personne inscrite dans le groupe en devient le délégué.",
-  "zh": "第一个注册的人将成为班长。"
- },
  "Перед началом пары": {
   "ar": "قبل بدء الحصة",
   "de": "Vor Kursbeginn",
@@ -1695,45 +1351,13 @@
   "fr": "Avant le cours",
   "zh": "课前"
  },
- "Передать роль старосты": {
-  "ar": "نقل دور رئيس المجموعة",
-  "de": "Gruppensprecher-Rolle übergeben",
-  "en": "Hand over leadership",
-  "es": "Ceder el rol de delegado",
-  "fr": "Transmettre le rôle de délégué",
-  "zh": "移交班长身份"
- },
- "Передать роль старосты? Вы станете заместителем.": {
-  "ar": "نقل دور رئيس المجموعة؟ ستصبح نائبًا.",
-  "de": "Rolle übergeben? Du wirst Stellvertreter.",
-  "en": "Hand over the leader role? You will become deputy.",
-  "es": "¿Ceder el rol de delegado? Pasarás a ser subdelegado.",
-  "fr": "Transmettre le rôle de délégué ? Vous deviendrez adjoint.",
-  "zh": "移交班长身份？你将成为副班长。"
- },
- "Перенос ДЗ и настроек на другое устройство": {
-  "ar": "نقل الواجبات والإعدادات إلى جهاز آخر",
-  "de": "Aufgaben und Einstellungen auf ein anderes Gerät übertragen",
-  "en": "Move homework and settings to another device",
-  "es": "Pasar tareas y ajustes a otro dispositivo",
-  "fr": "Transférer devoirs et paramètres sur un autre appareil",
-  "zh": "将作业和设置迁移到其他设备"
- },
- "Перенос ДЗ и настроек на другой телефон": {
-  "ar": "نقل الواجبات والإعدادات إلى هاتف آخر",
-  "de": "Aufgaben und Einstellungen auf ein anderes Handy übertragen",
-  "en": "Move homework and settings to another phone",
-  "es": "Pasar tareas y ajustes a otro teléfono",
-  "fr": "Transférer devoirs et paramètres sur un autre téléphone",
-  "zh": "将作业和设置迁移到其他手机"
- },
- "Перенос пары": {
-  "ar": "تغيير موعد الحصة",
-  "de": "Kurs verlegt",
-  "en": "Class moved",
-  "es": "Cambio de clase",
-  "fr": "Cours déplacé",
-  "zh": "调课"
+ "Перенос через файл": {
+  "ar": "النقل عبر ملف",
+  "de": "Übertragung per Datei",
+  "en": "Transfer via file",
+  "es": "Transferir con archivo",
+  "fr": "Transfert par fichier",
+  "zh": "通过文件迁移"
  },
  "Переносы пар и новости от старосты": {
   "ar": "تغييرات الحصص وأخبار رئيس المجموعة",
@@ -1751,14 +1375,6 @@
   "fr": "Option",
   "zh": "选修"
  },
- "Повторить": {
-  "ar": "إعادة المحاولة",
-  "de": "Erneut versuchen",
-  "en": "Retry",
-  "es": "Reintentar",
-  "fr": "Réessayer",
-  "zh": "重试"
- },
  "Повторять каждую неделю": {
   "ar": "تكرار كل أسبوع",
   "de": "Jede Woche wiederholen",
@@ -1766,30 +1382,6 @@
   "es": "Repetir cada semana",
   "fr": "Répéter chaque semaine",
   "zh": "每周重复"
- },
- "Поделитесь заданием — его увидит вся группа и сможет добавить себе.": {
-  "ar": "شارك واجبًا — ستراه المجموعة كلها ويمكنها إضافته.",
-  "de": "Teile eine Aufgabe – die ganze Gruppe sieht sie und kann sie übernehmen.",
-  "en": "Share an assignment: the whole group will see it and can add it to their own list.",
-  "es": "Comparte una tarea: todo el grupo la verá y podrá añadirla.",
-  "fr": "Partagez un devoir : tout le groupe le verra et pourra l'ajouter.",
-  "zh": "分享作业，全组都能看到并添加到自己的作业中。"
- },
- "Поделиться ДЗ с группой": {
-  "ar": "مشاركة واجب مع المجموعة",
-  "de": "Aufgabe mit der Gruppe teilen",
-  "en": "Share homework with group",
-  "es": "Compartir tarea con el grupo",
-  "fr": "Partager un devoir avec le groupe",
-  "zh": "与小组分享作业"
- },
- "Поделиться с группой": {
-  "ar": "مشاركة مع المجموعة",
-  "de": "Mit der Gruppe teilen",
-  "en": "Share with group",
-  "es": "Compartir con el grupo",
-  "fr": "Partager avec le groupe",
-  "zh": "分享给小组"
  },
  "Подождите…": {
   "ar": "انتظر…",
@@ -1822,6 +1414,14 @@
   "es": "Mostrar todas",
   "fr": "Tout afficher",
   "zh": "显示全部"
+ },
+ "Полное имя": {
+  "ar": "الاسم الكامل",
+  "de": "Vollständiger Name",
+  "en": "Full name",
+  "es": "Nombre completo",
+  "fr": "Nom complet",
+  "zh": "完整姓名"
  },
  "Посещаемость": {
   "ar": "الحضور",
@@ -1927,30 +1527,6 @@
   "fr": "Vérification…",
   "zh": "正在检查…"
  },
- "Пропуск": {
-  "ar": "غياب",
-  "de": "Fehlzeit",
-  "en": "Absence",
-  "es": "Falta",
-  "fr": "Absence",
-  "zh": "缺勤"
- },
- "Пропуски": {
-  "ar": "الغيابات",
-  "de": "Fehlzeiten",
-  "en": "Absences",
-  "es": "Faltas",
-  "fr": "Absences",
-  "zh": "缺勤"
- },
- "Пропусков нет 🎉": {
-  "ar": "لا غيابات 🎉",
-  "de": "Keine Fehlzeiten 🎉",
-  "en": "No absences 🎉",
-  "es": "Sin faltas 🎉",
-  "fr": "Aucune absence 🎉",
-  "zh": "没有缺勤 🎉"
- },
  "Профиль": {
   "ar": "الملف الشخصي",
   "de": "Profil",
@@ -1958,30 +1534,6 @@
   "es": "Perfil",
   "fr": "Profil",
   "zh": "个人资料"
- },
- "Профиль нужен для синхронизации и раздела «Моя группа». Группа: {0}": {
-  "ar": "الملف الشخصي مطلوب للمزامنة ولقسم «مجموعتي». المجموعة: {0}",
-  "de": "Das Profil wird für die Synchronisierung und „Meine Gruppe“ gebraucht. Gruppe: {0}",
-  "en": "A profile is needed for sync and the \"My group\" section. Group: {0}",
-  "es": "El perfil es necesario para sincronizar y para «Mi grupo». Grupo: {0}",
-  "fr": "Le profil sert à la synchronisation et à la section « Mon groupe ». Groupe : {0}",
-  "zh": "同步和“我的小组”需要个人资料。小组：{0}"
- },
- "Профиль пока недоступен": {
-  "ar": "الملف الشخصي غير متاح بعد",
-  "de": "Profil noch nicht verfügbar",
-  "en": "Profile isn't available yet",
-  "es": "El perfil aún no está disponible",
-  "fr": "Le profil n'est pas encore disponible",
-  "zh": "个人资料暂不可用"
- },
- "Профиль привязан к группе {0}, а в расписании выбрана {1}.": {
-  "ar": "الملف الشخصي مرتبط بالمجموعة {0}، لكن المحددة في الجدول هي {1}.",
-  "de": "Das Profil gehört zu Gruppe {0}, im Plan ist aber {1} gewählt.",
-  "en": "Your profile belongs to group {0}, but group {1} is selected in the schedule.",
-  "es": "El perfil pertenece al grupo {0}, pero en el horario está elegido el {1}.",
-  "fr": "Le profil est lié au groupe {0}, mais le groupe {1} est sélectionné.",
-  "zh": "个人资料属于 {0} 组，但课表中选择的是 {1} 组。"
  },
  "Профиль сохранён": {
   "ar": "تم حفظ الملف الشخصي",
@@ -1998,22 +1550,6 @@
   "es": "Perfil eliminado",
   "fr": "Profil supprimé",
   "zh": "资料已删除"
- },
- "Профиль 🔒": {
-  "ar": "الملف الشخصي 🔒",
-  "de": "Profil 🔒",
-  "en": "Profile 🔒",
-  "es": "Perfil 🔒",
-  "fr": "Profil 🔒",
-  "zh": "个人资料 🔒"
- },
- "Прошедшие": {
-  "ar": "السابقة",
-  "de": "Vergangene",
-  "en": "Past",
-  "es": "Pasadas",
-  "fr": "Passés",
-  "zh": "已过去"
  },
  "РАСПИСАНИЕ": {
   "ar": "الجدول",
@@ -2038,14 +1574,6 @@
   "es": "En desarrollo: aquí aparecerán funciones para todo el grupo.",
   "fr": "Section en cours de développement : des fonctions pour tout le groupe apparaîtront ici.",
   "zh": "开发中——这里将推出面向全组的功能。"
- },
- "Раздел появится в следующих обновлениях.": {
-  "ar": "سيظهر هذا القسم في التحديثات القادمة.",
-  "de": "Dieser Bereich kommt in einem der nächsten Updates.",
-  "en": "This section will arrive in a future update.",
-  "es": "Esta sección llegará en próximas actualizaciones.",
-  "fr": "Cette section arrivera dans une prochaine mise à jour.",
-  "zh": "该功能将在后续更新中推出。"
  },
  "Разрешить": {
   "ar": "سماح",
@@ -2078,14 +1606,6 @@
   "es": "Registro",
   "fr": "Inscription",
   "zh": "注册"
- },
- "Резервная копия": {
-  "ar": "نسخة احتياطية",
-  "de": "Backup",
-  "en": "Backup",
-  "es": "Copia de seguridad",
-  "fr": "Sauvegarde",
-  "zh": "备份"
  },
  "Ручные правки сброшены": {
   "ar": "تمت إعادة ضبط التعديلات اليدوية",
@@ -2255,13 +1775,13 @@
   "fr": "Copie trop volumineuse",
   "zh": "备份过大"
  },
- "Сначала выберите группу": {
-  "ar": "اختر المجموعة أولًا",
-  "de": "Wähle zuerst eine Gruppe",
-  "en": "Choose a group first",
-  "es": "Elige primero un grupo",
-  "fr": "Choisissez d'abord un groupe",
-  "zh": "请先选择小组"
+ "Сменить пароль (необязательно)": {
+  "ar": "تغيير كلمة المرور (اختياري)",
+  "de": "Passwort ändern (optional)",
+  "en": "Change password (optional)",
+  "es": "Cambiar contraseña (opcional)",
+  "fr": "Changer le mot de passe (facultatif)",
+  "zh": "修改密码（可选）"
  },
  "Сначала укажите адрес сервера": {
   "ar": "أدخل عنوان الخادم أولًا",
@@ -2271,13 +1791,13 @@
   "fr": "Indiquez d'abord l'adresse du serveur",
   "zh": "请先填写服务器地址"
  },
- "Снять заместителя": {
-  "ar": "إلغاء النائب",
-  "de": "Stellvertreter entfernen",
-  "en": "Remove deputy",
-  "es": "Quitar subdelegado",
-  "fr": "Retirer l'adjoint",
-  "zh": "取消副班长"
+ "Создайте профиль, чтобы ваши ДЗ, правки и настройки сохранялись в облаке и переносились на другие устройства.": {
+  "ar": "أنشئ ملفًا شخصيًا لتُحفظ واجباتك وتعديلاتك وإعداداتك في السحابة وتنتقل إلى أجهزتك الأخرى.",
+  "de": "Erstelle ein Profil, damit Aufgaben, Änderungen und Einstellungen in der Cloud gespeichert und auf andere Geräte übertragen werden.",
+  "en": "Create a profile so your homework, edits and settings are saved to the cloud and move to your other devices.",
+  "es": "Crea un perfil para que tus tareas, cambios y ajustes se guarden en la nube y pasen a tus otros dispositivos.",
+  "fr": "Créez un profil pour sauvegarder vos devoirs, modifications et paramètres dans le cloud et les retrouver sur vos autres appareils.",
+  "zh": "创建个人资料，作业、修改和设置会保存到云端，并同步到你的其他设备。"
  },
  "Создать профиль": {
   "ar": "إنشاء ملف شخصي",
@@ -2286,14 +1806,6 @@
   "es": "Crear perfil",
   "fr": "Créer le profil",
   "zh": "创建资料"
- },
- "Сохранение и восстановление данных": {
-  "ar": "حفظ البيانات واستعادتها",
-  "de": "Daten sichern und wiederherstellen",
-  "en": "Save and restore your data",
-  "es": "Guardar y restaurar datos",
-  "fr": "Sauvegarde et restauration des données",
-  "zh": "数据备份与恢复"
  },
  "Сохранено в облако": {
   "ar": "تم الحفظ في السحابة",
@@ -2359,21 +1871,13 @@
   "fr": "Liste du groupe et contacts du délégué",
   "zh": "小组名单和班长联系方式"
  },
- "Староста": {
-  "ar": "رئيس المجموعة",
-  "de": "Gruppensprecher",
-  "en": "Group leader",
-  "es": "Delegado",
-  "fr": "Délégué",
-  "zh": "班长"
- },
- "Статус": {
-  "ar": "الحالة",
-  "de": "Status",
-  "en": "Status",
-  "es": "Estado",
-  "fr": "Statut",
-  "zh": "状态"
+ "Ссылка на веб-приложение Google Apps Script (заканчивается на /exec).": {
+  "ar": "رابط تطبيق الويب Google Apps Script (ينتهي بـ ‎/exec).",
+  "de": "Link zur Google-Apps-Script-Web-App (endet auf /exec).",
+  "en": "Link to the Google Apps Script web app (ends with /exec).",
+  "es": "Enlace a la app web de Google Apps Script (termina en /exec).",
+  "fr": "Lien vers l'application web Google Apps Script (se termine par /exec).",
+  "zh": "Google Apps Script 网页应用链接（以 /exec 结尾）。"
  },
  "Так будет выглядеть напоминание перед парой": {
   "ar": "هكذا سيبدو التذكير قبل الحصة",
@@ -2383,13 +1887,13 @@
   "fr": "Voici à quoi ressemble un rappel de cours",
   "zh": "课前提醒将是这个样子"
  },
- "Текст": {
-  "ar": "النص",
-  "de": "Text",
-  "en": "Text",
-  "es": "Texto",
-  "fr": "Texte",
-  "zh": "内容"
+ "Текущий пароль": {
+  "ar": "كلمة المرور الحالية",
+  "de": "Aktuelles Passwort",
+  "en": "Current password",
+  "es": "Contraseña actual",
+  "fr": "Mot de passe actuel",
+  "zh": "当前密码"
  },
  "Тема оформления": {
   "ar": "المظهر",
@@ -2430,14 +1934,6 @@
   "es": "Oscuro",
   "fr": "Sombre",
   "zh": "深色"
- },
- "Уважительная": {
-  "ar": "بعذر",
-  "de": "Entschuldigt",
-  "en": "Excused",
-  "es": "Justificada",
-  "fr": "Justifiée",
-  "zh": "有正当理由"
  },
  "Уведомления": {
   "ar": "الإشعارات",
@@ -2487,14 +1983,6 @@
   "fr": "Supprimer",
   "zh": "删除"
  },
- "Удалить задание для всей группы?": {
-  "ar": "حذف الواجب للمجموعة كلها؟",
-  "de": "Aufgabe für die ganze Gruppe löschen?",
-  "en": "Delete this assignment for the whole group?",
-  "es": "¿Eliminar la tarea para todo el grupo?",
-  "fr": "Supprimer ce devoir pour tout le groupe ?",
-  "zh": "为全组删除此作业？"
- },
  "Удалить занятие?": {
   "ar": "حذف الحصة؟",
   "de": "Kurs löschen?",
@@ -2503,30 +1991,6 @@
   "fr": "Supprimer le cours ?",
   "zh": "删除课程？"
  },
- "Удалить из группы": {
-  "ar": "إزالة من المجموعة",
-  "de": "Aus der Gruppe entfernen",
-  "en": "Remove from group",
-  "es": "Quitar del grupo",
-  "fr": "Retirer du groupe",
-  "zh": "移出小组"
- },
- "Удалить объявление?": {
-  "ar": "حذف الإعلان؟",
-  "de": "Ankündigung löschen?",
-  "en": "Delete announcement?",
-  "es": "¿Eliminar el anuncio?",
-  "fr": "Supprimer l'annonce ?",
-  "zh": "删除公告？"
- },
- "Удалить отметку?": {
-  "ar": "حذف هذا السجل؟",
-  "de": "Eintrag löschen?",
-  "en": "Delete this entry?",
-  "es": "¿Eliminar el registro?",
-  "fr": "Supprimer cette entrée ?",
-  "zh": "删除此记录？"
- },
  "Удалить профиль": {
   "ar": "حذف الملف الشخصي",
   "de": "Profil löschen",
@@ -2534,14 +1998,6 @@
   "es": "Eliminar perfil",
   "fr": "Supprimer le profil",
   "zh": "删除资料"
- },
- "Удалить профиль и облачную копию навсегда? Данные на устройстве сохранятся.": {
-  "ar": "حذف الملف الشخصي والنسخة السحابية نهائيًا؟ ستبقى البيانات على الجهاز.",
-  "de": "Profil und Cloud-Kopie endgültig löschen? Die Daten auf dem Gerät bleiben erhalten.",
-  "en": "Delete your profile and cloud copy forever? Data on this device will be kept.",
-  "es": "¿Eliminar el perfil y la copia en la nube para siempre? Los datos del dispositivo se conservarán.",
-  "fr": "Supprimer définitivement le profil et la copie cloud ? Les données de l'appareil seront conservées.",
-  "zh": "永久删除资料和云端备份？设备上的数据会保留。"
  },
  "Удалить расписание": {
   "ar": "حذف الجدول",
@@ -2559,22 +2015,6 @@
   "fr": "Supprimer l'emploi du temps ? Les devoirs et paramètres seront conservés.",
   "zh": "删除课表？作业和设置将保留。"
  },
- "Удалить участника из группы?": {
-  "ar": "إزالة هذا العضو من المجموعة؟",
-  "de": "Mitglied aus der Gruppe entfernen?",
-  "en": "Remove this member from the group?",
-  "es": "¿Quitar a este miembro del grupo?",
-  "fr": "Retirer ce membre du groupe ?",
-  "zh": "将该成员移出小组？"
- },
- "Уже в моих ДЗ": {
-  "ar": "موجود في واجباتي",
-  "de": "Schon in meinen Aufgaben",
-  "en": "Already in my homework",
-  "es": "Ya está en mis tareas",
-  "fr": "Déjà dans mes devoirs",
-  "zh": "已在我的作业中"
- },
  "Уже есть профиль? Войти": {
   "ar": "لديك ملف شخصي؟ ادخل",
   "de": "Schon ein Profil? Anmelden",
@@ -2582,30 +2022,6 @@
   "es": "¿Ya tienes perfil? Entrar",
   "fr": "Déjà un profil ? Se connecter",
   "zh": "已有资料？登录"
- },
- "Управление": {
-  "ar": "الإدارة",
-  "de": "Verwaltung",
-  "en": "Manage",
-  "es": "Gestión",
-  "fr": "Gestion",
-  "zh": "管理"
- },
- "Участник": {
-  "ar": "عضو",
-  "de": "Mitglied",
-  "en": "Member",
-  "es": "Miembro",
-  "fr": "Membre",
-  "zh": "成员"
- },
- "Участники · {0}": {
-  "ar": "الأعضاء · {0}",
-  "de": "Mitglieder · {0}",
-  "en": "Members · {0}",
-  "es": "Miembros · {0}",
-  "fr": "Membres · {0}",
-  "zh": "成员 · {0}"
  },
  "Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, недели и дисциплины по выбору.": {
   "ar": "ملف ‎.xlsx من موقع القسم الأكاديمي أو من دردشة المجموعة. سيتعرف التطبيق بنفسه على الحصص والأسابيع والمواد الاختيارية.",
@@ -2647,21 +2063,21 @@
   "fr": "Fichier d'emploi du temps",
   "zh": "课表文件"
  },
- "Файл со всеми ДЗ, правками и настройками. Его можно открыть и в Android-приложении.": {
-  "ar": "ملف بكل الواجبات والتعديلات والإعدادات. يمكن فتحه أيضًا في تطبيق أندرويد.",
-  "de": "Eine Datei mit allen Aufgaben, Änderungen und Einstellungen. Sie lässt sich auch in der Android-App öffnen.",
-  "en": "A file with all your homework, edits and settings. It can also be opened in the Android app.",
-  "es": "Un archivo con todas tus tareas, cambios y ajustes. También se abre en la app de Android.",
-  "fr": "Un fichier avec tous vos devoirs, modifications et paramètres. Il s'ouvre aussi dans l'appli Android.",
-  "zh": "包含所有作业、修改和设置的文件，也可在安卓应用中打开。"
+ "Файл со всеми ДЗ, правками и настройками. Его можно открыть и в Android-приложении — даже без профиля.": {
+  "ar": "ملف بكل الواجبات والتعديلات والإعدادات. يمكن فتحه في تطبيق أندرويد أيضًا، حتى دون ملف شخصي.",
+  "de": "Eine Datei mit allen Aufgaben, Änderungen und Einstellungen. Sie lässt sich auch in der Android-App öffnen – sogar ohne Profil.",
+  "en": "A file with all your homework, edits and settings. It can also be opened in the Android app, even without a profile.",
+  "es": "Un archivo con todas tus tareas, cambios y ajustes. También se abre en la app de Android, incluso sin perfil.",
+  "fr": "Un fichier avec tous vos devoirs, modifications et paramètres. Il s'ouvre aussi dans l'appli Android, même sans profil.",
+  "zh": "包含所有作业、修改和设置的文件，无需个人资料也可在安卓应用中打开。"
  },
- "Файл со всеми ДЗ, правками и настройками. Его можно открыть и на сайте.": {
-  "ar": "ملف بكل الواجبات والتعديلات والإعدادات. يمكن فتحه أيضًا على الموقع.",
-  "de": "Eine Datei mit allen Aufgaben, Änderungen und Einstellungen. Sie lässt sich auch auf der Website öffnen.",
-  "en": "A file with all your homework, edits and settings. It can also be opened on the website.",
-  "es": "Un archivo con todas tus tareas, cambios y ajustes. También se abre en la web.",
-  "fr": "Un fichier avec tous vos devoirs, modifications et paramètres. Il s'ouvre aussi sur le site.",
-  "zh": "包含所有作业、修改和设置的文件，也可在网站上打开。"
+ "Файл со всеми ДЗ, правками и настройками. Его можно открыть и на сайте — даже без профиля.": {
+  "ar": "ملف بكل الواجبات والتعديلات والإعدادات. يمكن فتحه على الموقع أيضًا، حتى دون ملف شخصي.",
+  "de": "Eine Datei mit allen Aufgaben, Änderungen und Einstellungen. Sie lässt sich auch auf der Website öffnen – sogar ohne Profil.",
+  "en": "A file with all your homework, edits and settings. It can also be opened on the website, even without a profile.",
+  "es": "Un archivo con todas tus tareas, cambios y ajustes. También se abre en la web, incluso sin perfil.",
+  "fr": "Un fichier avec tous vos devoirs, modifications et paramètres. Il s'ouvre aussi sur le site, même sans profil.",
+  "zh": "包含所有作业、修改和设置的文件，无需个人资料也可在网站上打开。"
  },
  "Через {0} мин: {1}": {
   "ar": "بعد {0} د: {1}",
@@ -2695,21 +2111,13 @@
   "fr": "Qu'y a-t-il à faire ?",
   "zh": "布置了什么？"
  },
- "Что здесь будет": {
-  "ar": "ما سيكون هنا",
-  "de": "Was hier kommt",
-  "en": "What's coming here",
-  "es": "Lo que habrá aquí",
-  "fr": "Ce qui arrivera ici",
-  "zh": "这里将会有"
- },
- "Это имя в группе уже занято": {
-  "ar": "هذا الاسم مستخدم بالفعل في المجموعة",
-  "de": "Dieser Name ist in der Gruppe schon vergeben",
-  "en": "This name is already taken in the group",
-  "es": "Ese nombre ya está en uso en el grupo",
-  "fr": "Ce nom est déjà pris dans le groupe",
-  "zh": "该名字在小组中已被使用"
+ "Чтобы удалить профиль и облачную копию навсегда, введите пароль. Данные на устройстве сохранятся.": {
+  "ar": "لحذف الملف الشخصي والنسخة السحابية نهائيًا، أدخل كلمة المرور. ستبقى البيانات على الجهاز.",
+  "de": "Gib dein Passwort ein, um Profil und Cloud-Kopie endgültig zu löschen. Die Daten auf dem Gerät bleiben erhalten.",
+  "en": "To delete your profile and cloud copy forever, enter your password. Data on this device will be kept.",
+  "es": "Para eliminar el perfil y la copia en la nube para siempre, introduce la contraseña. Los datos del dispositivo se conservarán.",
+  "fr": "Pour supprimer définitivement le profil et la copie cloud, saisissez votre mot de passe. Les données de l'appareil seront conservées.",
+  "zh": "输入密码以永久删除资料和云端备份。设备上的数据会保留。"
  },
  "Это не файл копии КГМУ расписания": {
   "ar": "هذا ليس ملف نسخة احتياطية لجدول KGMU",
@@ -2719,13 +2127,29 @@
   "fr": "Ce n'est pas un fichier de sauvegarde KGMU",
   "zh": "这不是 KGMU 课表的备份文件"
  },
- "Этой пары нет в вашем расписании": {
-  "ar": "هذه الحصة ليست في جدولك",
-  "de": "Dieser Kurs ist nicht in deinem Plan",
-  "en": "This class isn't in your schedule",
-  "es": "Esta clase no está en tu horario",
-  "fr": "Ce cours n'est pas dans votre emploi du temps",
-  "zh": "你的课表中没有这节课"
+ "Этот юзернейм уже занят": {
+  "ar": "اسم المستخدم هذا مستخدم بالفعل",
+  "de": "Dieser Benutzername ist schon vergeben",
+  "en": "This username is already taken",
+  "es": "Ese nombre de usuario ya está en uso",
+  "fr": "Ce nom d'utilisateur est déjà pris",
+  "zh": "该用户名已被占用"
+ },
+ "Юзернейм": {
+  "ar": "اسم المستخدم",
+  "de": "Benutzername",
+  "en": "Username",
+  "es": "Nombre de usuario",
+  "fr": "Nom d'utilisateur",
+  "zh": "用户名"
+ },
+ "Юзернейм: 3–24 символа — латинские буквы, цифры, «_» и «.»": {
+  "ar": "اسم المستخدم: من 3 إلى 24 حرفًا — أحرف لاتينية وأرقام و«_» و«.»",
+  "de": "Benutzername: 3–24 Zeichen – lateinische Buchstaben, Ziffern, „_“ und „.“",
+  "en": "Username: 3–24 characters, Latin letters, digits, \"_\" and \".\"",
+  "es": "Usuario: 3–24 caracteres, letras latinas, cifras, «_» y «.»",
+  "fr": "Nom d'utilisateur : 3 à 24 caractères, lettres latines, chiffres, « _ » et « . »",
+  "zh": "用户名：3–24 个字符，可用拉丁字母、数字、“_”和“.”"
  },
  "Язык": {
   "ar": "اللغة",
@@ -2734,14 +2158,6 @@
   "es": "Idioma",
   "fr": "Langue",
   "zh": "语言"
- },
- "вы": {
-  "ar": "أنت",
-  "de": "du",
-  "en": "you",
-  "es": "tú",
-  "fr": "vous",
-  "zh": "你"
  },
  "группа {0}": {
   "ar": "المجموعة {0}",
@@ -2926,6 +2342,14 @@
   "es": "grupo",
   "fr": "flux",
   "zh": "大班"
+ },
+ "придумайте, например anna.ivanova": {
+  "ar": "اختر اسمًا، مثل anna.ivanova",
+  "de": "ausdenken, z. B. anna.ivanova",
+  "en": "make one up, e.g. anna.ivanova",
+  "es": "invéntalo, p. ej. anna.ivanova",
+  "fr": "inventez-en un, ex. anna.ivanova",
+  "zh": "自己设定，例如 anna.ivanova"
  },
  "скоро": {
   "ar": "قريبًا",

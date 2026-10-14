@@ -6,26 +6,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.alexshell.raspisanie.data.AttRecord
 import com.alexshell.raspisanie.data.Backup
 import com.alexshell.raspisanie.data.CloudApi
 import com.alexshell.raspisanie.data.CloudError
 import com.alexshell.raspisanie.data.CloudUser
-import com.alexshell.raspisanie.data.GroupData
-import com.alexshell.raspisanie.data.GroupHw
-import com.alexshell.raspisanie.data.Lesson
 import com.alexshell.raspisanie.ui.tr
-import com.alexshell.raspisanie.ui.dayMonth
-import com.alexshell.raspisanie.ui.weekdayShort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.time.LocalDate
 
-/** Профиль, облачная копия и раздел «Моя группа» (сервер — Google-таблица с Apps Script). */
+/** Профиль, облачная копия и перенос данных (сервер — Google Таблица с Apps Script). */
 class CloudState(private val vm: AppViewModel) {
 
     private val app: Application get() = vm.getApplication()
@@ -37,44 +30,18 @@ class CloudState(private val vm: AppViewModel) {
         private set
     var user by mutableStateOf(p.getString("user", null)?.let { runCatching { CloudUser.from(JSONObject(it)) }.getOrNull() })
         private set
-    var data by mutableStateOf(p.getString("groupData", null)?.let { runCatching { GroupData.from(JSONObject(it)) }.getOrNull() })
-        private set
-    private var dataAt = p.getLong("dataAt", 0)
     var auto by mutableStateOf(p.getBoolean("auto", true))
         private set
     var syncAt by mutableStateOf(p.getString("syncAt", null))
-        private set
-    var newsSeen by mutableStateOf(p.getString("newsSeen", "").orEmpty())
-        private set
-    var importedHw by mutableStateOf(p.getStringSet("importedHw", emptySet()).orEmpty().toSet())
         private set
 
     /** Что сейчас выполняется (для индикаторов на кнопках). */
     var busy by mutableStateOf<String?>(null)
         private set
-    var pulling by mutableStateOf(false)
-        private set
-    var error by mutableStateOf<String?>(null)
-        private set
     /** Дата облачной копии, которую предлагаем загрузить после входа. */
     var restoreAsk by mutableStateOf<String?>(null)
 
     val loggedIn: Boolean get() = token != null && user != null
-    val isLead: Boolean get() = user?.isLead == true
-
-    fun unseenNews(): Int {
-        val d = data ?: return 0
-        val me = user?.id ?: return 0
-        return d.news.count { it.authorId != me && it.created > newsSeen }
-    }
-
-    fun markNewsSeen() {
-        val last = data?.news?.maxOfOrNull { it.created } ?: return
-        if (last > newsSeen) {
-            newsSeen = last
-            p.edit().putString("newsSeen", last).apply()
-        }
-    }
 
     private fun save() {
         p.edit()
@@ -87,24 +54,20 @@ class CloudState(private val vm: AppViewModel) {
     }
 
     private fun clearSession() {
-        token = null; user = null; data = null
-        p.edit().remove("groupData").apply()
+        token = null
+        user = null
         save()
     }
 
     fun errorText(code: String): String {
         val key = when (code) {
             "auth" -> "Сессия истекла — войдите снова"
-            "bad_login" -> "Неверное имя или пароль"
-            "name_taken" -> "Это имя в группе уже занято"
+            "bad_login" -> "Неверный юзернейм или пароль"
+            "username_taken" -> "Этот юзернейм уже занят"
+            "bad_username" -> "Юзернейм: 3–24 символа — латинские буквы, цифры, «_» и «.»"
+            "bad_fullname" -> "Введите полное имя: имя и фамилию"
             "password_short" -> "Пароль — минимум 4 символа"
-            "forbidden" -> "Недостаточно прав"
-            "not_found" -> "Запись не найдена"
-            "name" -> "Введите имя"
-            "text" -> "Введите текст"
-            "subject" -> "Выберите предмет"
-            "date" -> "Неверная дата"
-            "group" -> "Сначала выберите группу"
+            "bad_password" -> "Неверный пароль"
             "too_big" -> "Слишком большая копия"
             "network" -> "Нет связи с сервером"
             "no_server" -> "Сначала укажите адрес сервера"
@@ -128,18 +91,24 @@ class CloudState(private val vm: AppViewModel) {
     private fun run(label: String, block: suspend () -> Unit) {
         vm.viewModelScope.launch {
             busy = label
-            error = null
             try {
                 block()
             } catch (e: CloudError) {
-                error = errorText(e.code); vm.message = error
+                vm.message = errorText(e.code)
             } catch (e: Exception) {
-                error = e.message ?: e.toString(); vm.message = error
+                vm.message = tr(e.message ?: e.toString())
             } finally {
                 busy = null
             }
         }
     }
+
+    // ---------- Проверки полей (те же правила, что на сервере) ----------
+
+    private fun normUsername(s: String) = s.trim().removePrefix("@").lowercase()
+    private fun normName(s: String) = s.trim().replace(Regex("""\s+"""), " ")
+    private fun validUsername(u: String) = Regex("""^[a-z0-9_.]{3,24}$""").matches(u)
+    private fun validName(n: String) = n.split(' ').count { it.isNotBlank() } >= 2
 
     // ---------- Сервер и вход ----------
 
@@ -151,66 +120,82 @@ class CloudState(private val vm: AppViewModel) {
         run("ping") { api("ping"); vm.message = tr("Сервер на связи ✓") }
     }
 
-    fun login(group: String, name: String, password: String) = auth("login", JSONObject().put("group", group).put("name", name.trim()).put("password", password))
-
-    fun register(group: String, name: String, password: String, contact: String, avatar: String) = auth(
-        "register",
-        JSONObject().put("group", group).put("name", name.trim()).put("password", password)
-            .put("contact", contact.trim()).put("avatar", avatar),
-    )
-
-    private fun auth(action: String, params: JSONObject) {
-        if (params.optString("name").isBlank()) { vm.message = errorText("name"); return }
-        if (params.optString("password").length < 4) { vm.message = errorText("password_short"); return }
+    fun register(fullName: String, username: String, password: String, avatar: String) {
+        val name = normName(fullName)
+        val uname = normUsername(username)
+        when {
+            !validName(name) -> { vm.message = errorText("bad_fullname"); return }
+            !validUsername(uname) -> { vm.message = errorText("bad_username"); return }
+            password.length < 4 -> { vm.message = errorText("password_short"); return }
+        }
         run("auth") {
-            val r = api(action, params)
-            token = r.getString("token")
-            user = CloudUser.from(r.getJSONObject("user"))
-            data = null
-            save()
-            vm.message = tr("Добро пожаловать, {0}!", user!!.name)
-            val info = runCatching { api("backupInfo") }.getOrNull()
-            val updated = info?.optString("updated")?.takeIf { it.isNotEmpty() && it != "null" }
-            if (updated != null) restoreAsk = updated else upload(silent = true)
-            pullGroup(quiet = true)
+            val r = api(
+                "register",
+                JSONObject().put("username", uname).put("fullName", name).put("password", password)
+                    .put("group", vm.group.orEmpty()).put("avatar", avatar),
+            )
+            signedIn(r)
+            upload(silent = true)
         }
     }
 
+    fun login(username: String, password: String) {
+        val uname = normUsername(username)
+        if (uname.isEmpty()) { vm.message = tr("Введите юзернейм"); return }
+        run("auth") {
+            val r = api("login", JSONObject().put("username", uname).put("password", password))
+            signedIn(r)
+            val info = runCatching { api("backupInfo") }.getOrNull()
+            val updated = info?.optString("updated")?.takeIf { it.isNotEmpty() && it != "null" }
+            if (updated != null) restoreAsk = updated else upload(silent = true)
+        }
+    }
+
+    private fun signedIn(r: JSONObject) {
+        token = r.getString("token")
+        user = CloudUser.from(r.getJSONObject("user"))
+        save()
+        vm.message = tr("Добро пожаловать, {0}!", user!!.fullName.substringBefore(' '))
+    }
+
     /** Вход на новом устройстве с экрана приветствия: всё, включая файл расписания, — из облака. */
-    fun loginAndRestore(serverUrl: String, group: String, name: String, password: String) {
+    fun loginAndRestore(serverUrl: String, username: String, password: String) {
         val u = serverUrl.trim()
         if (!u.startsWith("https://")) { vm.message = tr("Введите адрес, начинающийся с https://"); return }
-        if (group.isBlank()) { vm.message = errorText("group"); return }
+        val uname = normUsername(username)
+        if (uname.isEmpty()) { vm.message = tr("Введите юзернейм"); return }
         url = u
         save()
         run("auth") {
-            val r = api("login", JSONObject().put("group", group.trim()).put("name", name.trim()).put("password", password))
-            token = r.getString("token")
-            user = CloudUser.from(r.getJSONObject("user"))
-            save()
+            signedIn(api("login", JSONObject().put("username", uname).put("password", password)))
             val b = api("backupLoad")
             val raw = b.optString("data").takeIf { it.isNotEmpty() && it != "null" }
             if (raw != null) {
                 withContext(Dispatchers.IO) { Backup.import(app, JSONObject(raw)) }
-                syncAt = java.time.Instant.now().toString(); save()
+                syncAt = java.time.Instant.now().toString()
+                save()
             }
-            vm.reloadAll(group.trim())
+            vm.reloadAll(user?.group?.takeIf { it.isNotBlank() })
             vm.message = if (raw != null) tr("Данные загружены из облака") else tr("В облаке нет файла расписания — загрузите его")
-            pullGroup(quiet = true)
         }
     }
 
-    fun updateProfile(name: String, contact: String, avatar: String, password: String, onDone: () -> Unit) {
-        if (password.isNotEmpty() && password.length < 4) { vm.message = errorText("password_short"); return }
+    fun updateProfile(fullName: String, username: String, avatar: String, oldPassword: String, newPassword: String, onDone: () -> Unit) {
+        val name = normName(fullName)
+        val uname = normUsername(username)
+        when {
+            !validName(name) -> { vm.message = errorText("bad_fullname"); return }
+            !validUsername(uname) -> { vm.message = errorText("bad_username"); return }
+            newPassword.isNotEmpty() && newPassword.length < 4 -> { vm.message = errorText("password_short"); return }
+        }
         run("profile") {
-            val params = JSONObject().put("name", name.trim()).put("contact", contact.trim()).put("avatar", avatar)
-            if (password.isNotEmpty()) params.put("password", password)
+            val params = JSONObject().put("fullName", name).put("username", uname).put("avatar", avatar).put("group", vm.group.orEmpty())
+            if (newPassword.isNotEmpty()) params.put("password", newPassword).put("oldPassword", oldPassword)
             val r = api("updateProfile", params)
             user = CloudUser.from(r.getJSONObject("user"))
             save()
             vm.message = tr("Профиль сохранён")
             onDone()
-            pullGroup(quiet = true)
         }
     }
 
@@ -220,8 +205,8 @@ class CloudState(private val vm: AppViewModel) {
         clearSession()
     }
 
-    fun deleteAccount() = run("auth") {
-        api("deleteAccount")
+    fun deleteAccount(password: String) = run("auth") {
+        api("deleteAccount", JSONObject().put("password", password))
         clearSession()
         vm.message = tr("Профиль удалён")
     }
@@ -248,7 +233,7 @@ class CloudState(private val vm: AppViewModel) {
 
     private suspend fun upload(silent: Boolean) {
         val json = withContext(Dispatchers.IO) { Backup.export(app).toString() }
-        api("backupSave", JSONObject().put("data", json))
+        api("backupSave", JSONObject().put("data", json).put("group", vm.group.orEmpty()))
         syncAt = java.time.Instant.now().toString()
         save()
         if (!silent) vm.message = tr("Сохранено в облако")
@@ -272,93 +257,8 @@ class CloudState(private val vm: AppViewModel) {
         if (load) download() else run("upload") { upload(silent = true) }
     }
 
-    // ---------- Группа ----------
-
-    fun pullIfStale() {
-        if (loggedIn && System.currentTimeMillis() - dataAt > 60_000) pullGroup(quiet = true)
-    }
-
-    fun pullGroup(quiet: Boolean = false) {
-        if (!loggedIn || pulling) return
-        vm.viewModelScope.launch {
-            pulling = true
-            try {
-                val r = api("group")
-                data = GroupData.from(r)
-                user = data!!.user
-                dataAt = System.currentTimeMillis()
-                p.edit().putString("groupData", r.toString()).putLong("dataAt", dataAt).apply()
-                save()
-                error = null
-            } catch (e: CloudError) {
-                error = errorText(e.code)
-                if (!quiet) vm.message = error
-            } catch (e: Exception) {
-                error = e.message
-            } finally {
-                pulling = false
-            }
-        }
-    }
-
-    private fun act(label: String, action: String, params: JSONObject, ok: String? = null, then: () -> Unit = {}) = run(label) {
-        api(action, params)
-        ok?.let { vm.message = tr(it) }
-        then()
-        pullGroup(quiet = true)
-    }
-
-    fun addNews(kind: String, title: String, text: String, onDone: () -> Unit) {
-        if (text.isBlank()) { vm.message = errorText("text"); return }
-        act("news", "newsAdd", JSONObject().put("kind", kind).put("title", title.trim()).put("text", text.trim()), "Объявление опубликовано", onDone)
-    }
-
-    fun deleteNews(id: String) = act("del", "newsDelete", JSONObject().put("id", id))
-
-    fun shareHomework(l: Lesson, text: String, onDone: () -> Unit = {}) {
-        if (text.isBlank()) { vm.message = errorText("text"); return }
-        act(
-            "ghw", "hwAdd",
-            JSONObject().put("subject", l.subject).put("date", l.date.toString()).put("start", l.start).put("text", text.trim()),
-            "ДЗ отправлено группе", onDone,
-        )
-    }
-
-    fun deleteGroupHw(id: String) = act("del", "hwDelete", JSONObject().put("id", id))
-
-    /** Добавить общее ДЗ себе — к той же паре в своём расписании. */
-    fun takeHomework(h: GroupHw) {
-        val l = vm.lessons.firstOrNull { it.subject == h.subject && it.date == h.date && it.start == h.start }
-            ?: vm.lessons.firstOrNull { it.subject == h.subject && it.date == h.date }
-            ?: vm.nextBySubject(h.subject)
-        if (l == null) { vm.message = tr("Этой пары нет в вашем расписании"); return }
-        vm.addHomework(l, h.text)
-        importedHw = importedHw + h.id
-        p.edit().putStringSet("importedHw", importedHw).apply()
-        vm.message = tr("ДЗ добавлено на {0}", "${l.date.weekdayShort()}, ${l.date.dayMonth()}")
-    }
-
-    fun setRole(userId: String, role: String, onDone: () -> Unit) =
-        act("role", "setRole", JSONObject().put("userId", userId).put("role", role), then = onDone)
-
-    fun removeMember(userId: String, onDone: () -> Unit) =
-        act("role", "removeMember", JSONObject().put("userId", userId), then = onDone)
-
-    fun addAttendance(date: LocalDate, subject: String, status: String, note: String, onDone: () -> Unit) {
-        if (subject.isBlank()) { vm.message = errorText("subject"); return }
-        act(
-            "att", "attAdd",
-            JSONObject().put("date", date.toString()).put("subject", subject).put("status", status).put("note", note.trim()),
-            "Отмечено", onDone,
-        )
-    }
-
-    fun setAttendance(r: AttRecord, status: String) = act("att", "attUpdate", JSONObject().put("id", r.id).put("status", status))
-
-    fun deleteAttendance(r: AttRecord) = act("att", "attDelete", JSONObject().put("id", r.id))
-
     companion object {
-        /** Можно вписать адрес своего сервера (…/exec) — тогда вводить его в приложении не нужно. */
+        /** Ссылка на веб-приложение вашей Google Таблицы (…/exec) — тогда вводить адрес в приложении не нужно. */
         const val DEFAULT_SERVER = ""
     }
 }

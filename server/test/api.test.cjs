@@ -4,68 +4,51 @@ const { makeEnv } = require('./emulator.cjs');
 const env = makeEnv(), c = env.call;
 let r;
 
-assert.deepStrictEqual(env.get().app, 'kgmu');
-r = c({ action: 'register', group: '313', name: 'Анна Иванова', password: '12' }); assert.equal(r.error, 'password_short');
-const a = c({ action: 'register', group: '313', name: 'Анна Иванова', password: 'secret', avatar: '🦊|#00E5FF', contact: '+79990001122' });
-assert.ok(a.ok && a.token); assert.equal(a.user.role, 'starosta'); assert.equal(a.user.contact, '+79990001122');
-r = c({ action: 'register', group: '313', name: 'анна  иванова', password: 'xxxx' }); assert.equal(r.error, 'name_taken');
-const b = c({ action: 'register', group: '313', name: 'Борис', password: '=1+1', contact: '@boris' });
-assert.equal(b.user.role, 'member');
-const z = c({ action: 'register', group: '401', name: 'Зоя', password: 'pass' });
-assert.equal(z.user.role, 'starosta');
+assert.equal(env.get().app, 'kgmu');
 
-r = c({ action: 'login', group: '313', name: 'борис', password: 'nope' }); assert.equal(r.error, 'bad_login');
-r = c({ action: 'login', group: '313', name: 'борис', password: '=1+1' }); assert.ok(r.ok); const b2 = r.token;
+// Регистрация: обязательны полное имя (имя + фамилия) и юзернейм
+r = c({ action: 'register', username: 'anna', fullName: 'Анна', password: 'secret' }); assert.equal(r.error, 'bad_fullname');
+r = c({ action: 'register', username: 'аня', fullName: 'Анна Иванова', password: 'secret' }); assert.equal(r.error, 'bad_username');
+r = c({ action: 'register', username: 'an', fullName: 'Анна Иванова', password: 'secret' }); assert.equal(r.error, 'bad_username');
+r = c({ action: 'register', username: 'anna', fullName: 'Анна Иванова', password: '12' }); assert.equal(r.error, 'password_short');
+const a = c({ action: 'register', username: '@Anna.Ivanova', fullName: '  Анна   Иванова ', password: 'secret', group: '313', avatar: '🦊|#00E5FF' });
+assert.ok(a.ok, JSON.stringify(a)); assert.equal(a.user.username, 'anna.ivanova'); assert.equal(a.user.fullName, 'Анна Иванова'); assert.equal(a.user.group, '313');
+r = c({ action: 'checkUsername', username: 'ANNA.IVANOVA' }); assert.equal(r.free, false);
+r = c({ action: 'checkUsername', username: 'boris' }); assert.equal(r.free, true);
+r = c({ action: 'register', username: 'anna.ivanova', fullName: 'Другая Анна', password: 'xxxx' }); assert.equal(r.error, 'username_taken');
+const b = c({ action: 'register', username: 'boris_p', fullName: 'Борис Петров', password: '=1+1' });
+
+// Вход по юзернейму (регистр и @ не важны)
+r = c({ action: 'login', username: 'anna.ivanova', password: 'nope' }); assert.equal(r.error, 'bad_login');
+r = c({ action: 'login', username: '@ANNA.IVANOVA', password: 'secret' }); assert.ok(r.ok); const a2 = r.token;
+r = c({ action: 'login', username: 'boris_p', password: '=1+1' }); assert.ok(r.ok); // пароль-«формула» хранится как текст
 r = c({ action: 'me', token: 'bad' }); assert.equal(r.error, 'auth');
-r = c({ action: 'me', token: b2 }); assert.equal(r.user.name, 'Борис');
+r = c({ action: 'me', token: a2 }); assert.equal(r.user.fullName, 'Анна Иванова');
 
 // Профиль
-r = c({ action: 'updateProfile', token: b.token, name: 'Анна Иванова' }); assert.equal(r.error, 'name_taken');
-r = c({ action: 'updateProfile', token: b.token, name: 'Борис П.', avatar: '🐼|#FF2E97' }); assert.equal(r.user.name, 'Борис П.');
+r = c({ action: 'updateProfile', token: b.token, username: 'anna.ivanova' }); assert.equal(r.error, 'username_taken');
+r = c({ action: 'updateProfile', token: b.token, username: 'boris', fullName: 'Борис Петров-Водкин' }); assert.equal(r.user.username, 'boris');
+r = c({ action: 'updateProfile', token: b.token, password: 'newpass', oldPassword: 'wrong' }); assert.equal(r.error, 'bad_password');
+r = c({ action: 'updateProfile', token: b.token, password: 'newpass', oldPassword: '=1+1' }); assert.ok(r.ok);
+r = c({ action: 'login', username: 'boris', password: 'newpass' }); assert.ok(r.ok);
 
-// Облачная копия, включая длинные данные (несколько частей)
+// Облачная копия: длинные данные — несколько строк, перезапись не плодит строки
 const big = JSON.stringify({ hw: [], file: 'x'.repeat(130000) + 'END' });
-r = c({ action: 'backupLoad', token: b.token }); assert.equal(r.data, null);
-r = c({ action: 'backupSave', token: b.token, data: big }); assert.ok(r.ok, JSON.stringify(r));
+r = c({ action: 'backupLoad', token: a.token }); assert.equal(r.data, null);
+r = c({ action: 'backupInfo', token: a.token }); assert.equal(r.updated, null);
+r = c({ action: 'backupSave', token: a.token, data: big, group: '314' }); assert.ok(r.ok, JSON.stringify(r));
 assert.equal(env.sheets.Backups.data.length - 1, 4);
-r = c({ action: 'backupSave', token: b.token, data: big }); // перезапись не плодит строки
-assert.equal(env.sheets.Backups.data.length - 1, 4);
-r = c({ action: 'backupLoad', token: b2 }); assert.equal(r.data, big);
-
-// ДЗ группы
-r = c({ action: 'hwAdd', token: b.token, subject: 'Фармакология', date: '2026-10-20', start: 480, text: '-тема 5' }); assert.ok(r.ok);
-const hwId = r.id;
-r = c({ action: 'hwAdd', token: b.token, subject: 'X', date: '20.10', text: 't' }); assert.equal(r.error, 'date');
-r = c({ action: 'group', token: z.token }); assert.equal(r.homework.length, 0); // другая группа не видит
-r = c({ action: 'group', token: a.token });
-assert.equal(r.homework[0].text, '-тема 5'); assert.equal(r.homework[0].author, 'Борис П.'); assert.equal(r.homework[0].start, 480);
-assert.equal(r.members.length, 2); assert.equal(r.members[0].role, 'starosta');
-
-// Объявления: только староста/зам
-r = c({ action: 'newsAdd', token: b.token, text: 'hi' }); assert.equal(r.error, 'forbidden');
-r = c({ action: 'newsAdd', token: a.token, kind: 'move', title: 'Перенос', text: 'Пара в 10:00' }); assert.ok(r.ok);
-r = c({ action: 'setRole', token: b.token, userId: a.user.id, role: 'member' }); assert.equal(r.error, 'forbidden');
-r = c({ action: 'setRole', token: a.token, userId: b.user.id, role: 'deputy' }); assert.ok(r.ok);
-r = c({ action: 'newsAdd', token: b.token, text: 'от зама' }); assert.ok(r.ok);
-r = c({ action: 'hwDelete', token: a.token, id: hwId }); assert.ok(r.ok); // староста может удалить чужое
-
-// Посещаемость
-r = c({ action: 'attAdd', token: b.token, date: '2026-10-13', subject: 'Гигиена', status: 'absent' }); const attId = r.id;
-r = c({ action: 'attAdd', token: a.token, date: '2026-10-12', subject: 'Гигиена', status: 'excused' });
-r = c({ action: 'attUpdate', token: b.token, id: attId, status: 'done' }); assert.ok(r.ok);
-r = c({ action: 'setRole', token: a.token, userId: b.user.id, role: 'member' });
-r = c({ action: 'group', token: b.token }); assert.equal(r.attendance.length, 1); assert.equal(r.attendance[0].status, 'done');
-r = c({ action: 'group', token: a.token }); assert.equal(r.attendance.length, 2); // староста видит всех
-assert.equal(r.news.length, 2);
-
-// Передача роли старосты
-r = c({ action: 'setRole', token: a.token, userId: b.user.id, role: 'starosta' }); assert.ok(r.ok);
-r = c({ action: 'group', token: a.token }); assert.equal(r.user.role, 'deputy');
+r = c({ action: 'backupSave', token: a.token, data: big }); assert.equal(env.sheets.Backups.data.length - 1, 4);
+r = c({ action: 'backupLoad', token: a2 }); assert.equal(r.data, big); // другое устройство того же профиля
+r = c({ action: 'backupInfo', token: a2 }); assert.ok(r.updated);
+r = c({ action: 'me', token: a2 }); assert.equal(r.user.group, '314');
+r = c({ action: 'backupLoad', token: b.token }); assert.equal(r.data, null); // чужую копию не видно
 
 // Выход и удаление
-r = c({ action: 'logout', token: b2 }); r = c({ action: 'me', token: b2 }); assert.equal(r.error, 'auth');
-r = c({ action: 'deleteAccount', token: b.token }); assert.ok(r.ok);
-r = c({ action: 'group', token: a.token }); assert.equal(r.user.role, 'starosta'); assert.equal(r.members.length, 1); assert.equal(r.attendance.length, 1);
+r = c({ action: 'logout', token: a2 }); r = c({ action: 'me', token: a2 }); assert.equal(r.error, 'auth');
+r = c({ action: 'deleteAccount', token: a.token, password: 'wrong' }); assert.equal(r.error, 'bad_password');
+r = c({ action: 'deleteAccount', token: a.token, password: 'secret' }); assert.ok(r.ok);
 assert.equal(env.sheets.Backups.data.length - 1, 0);
+r = c({ action: 'login', username: 'anna.ivanova', password: 'secret' }); assert.equal(r.error, 'bad_login');
 r = c({ action: 'nope' }); assert.equal(r.error, 'unknown_action');
 console.log('server tests: OK');
