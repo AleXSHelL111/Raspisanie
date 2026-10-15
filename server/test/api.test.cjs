@@ -90,6 +90,16 @@ r = c({ action: 'groupRename', token: a.token, name: '313 лечфак' }); asse
 r = c({ action: 'groupDelete', token: g1.token }); assert.ok(r.ok);
 r = c({ action: 'sync', token: g1.token }); assert.equal(r.group, null);
 
+// ---------- Проверка для уведомлений ----------
+r = c({ action: 'poll', token: g1.token }); assert.equal(r.group, null);
+r = c({ action: 'memberAdd', token: a.token, username: 'vera' }); assert.ok(r.ok);
+r = c({ action: 'poll', token: v.token, since: '' }); assert.equal(r.group.name, '313 лечфак'); assert.ok(r.added); assert.equal(r.news.length, 0);
+const t0 = new Date(Date.now() - 1).toISOString();
+c({ action: 'newsAdd', token: a.token, text: 'Новость для всех' });
+c({ action: 'newsAdd', token: v.token, text: 'Своё не уведомляет' });
+r = c({ action: 'poll', token: v.token, since: t0 }); assert.equal(r.news.length, 1); assert.equal(r.news[0].author, 'Анна Иванова');
+r = c({ action: 'poll', token: v.token, since: r.news[0].created }); assert.equal(r.news.length, 0);
+
 // ---------- Личные пропуски ----------
 r = c({ action: 'absSave', token: b.token, date: '14.10', subject: 'Гигиена' }); assert.equal(r.error, 'bad_date');
 r = c({ action: 'absSave', token: b.token, date: '2026-10-14', subject: '' }); assert.equal(r.error, 'bad_subject');

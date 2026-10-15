@@ -119,6 +119,7 @@ fun NotificationsCard(vm: AppViewModel) {
         // --- Вечером ---
         ToggleRow(tr("Пары на завтра (вечером)"), n.evening) { vm.updateNotif(n.copy(evening = it)) }
         ToggleRow(tr("Невыполненное ДЗ на завтра"), n.homework) { vm.updateNotif(n.copy(homework = it)) }
+        ToggleRow(tr("Объявления и добавление в группу"), n.group) { vm.updateNotif(n.copy(group = it)) }
         if (n.evening || n.homework) {
             OutlinedButton(
                 onClick = { pickEvening = true },

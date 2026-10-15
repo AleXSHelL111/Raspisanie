@@ -75,6 +75,7 @@ class CloudState(private val vm: AppViewModel) {
     }
 
     private fun clearGroup() {
+        com.alexshell.raspisanie.notify.GroupWatch.reset(app)
         groupRaw = JSONObject()
         groupState = GroupState.EMPTY
         groupLoaded = false
@@ -191,6 +192,7 @@ class CloudState(private val vm: AppViewModel) {
         user = CloudUser.from(r.getJSONObject("user"))
         clearGroup()
         save()
+        com.alexshell.raspisanie.notify.GroupWatch.schedule(app)
         pullGroup(quiet = true)
         vm.message = tr("Добро пожаловать, {0}!", user!!.fullName.substringBefore(' '))
     }
@@ -303,6 +305,8 @@ class CloudState(private val vm: AppViewModel) {
         groupError = null
         r.optJSONObject("user")?.let { user = CloudUser.from(it); save() }
         p.edit().putString("groupData", groupRaw.toString()).apply()
+        // Что видно в приложении — не присылаем уведомлением.
+        com.alexshell.raspisanie.notify.GroupWatch.markSeen(app, groupState.group?.id.orEmpty(), groupState.news.maxOfOrNull { it.created })
     }
 
     fun pullGroup(quiet: Boolean = false) {

@@ -118,6 +118,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         com.alexshell.raspisanie.ui.I18n.init(this)
         Notifier.createChannels(this)
+        com.alexshell.raspisanie.notify.GroupWatch.schedule(this)
         // Тема — до первой отрисовки, чтобы не было «мигания» цветов.
         val prefs = Repository.prefs(this)
         Neon.palette = Palettes.byId(prefs.getString("theme", null))

@@ -167,6 +167,14 @@
   "fr": "Pas de cours ce jour-là",
   "zh": "这一天没有课"
  },
+ "Вас добавили в группу": {
+  "ar": "تمت إضافتك إلى مجموعة",
+  "de": "Du wurdest zu einer Gruppe hinzugefügt",
+  "en": "You've been added to a group",
+  "es": "Te han añadido a un grupo",
+  "fr": "Vous avez été ajouté à un groupe",
+  "zh": "你已被加入小组"
+ },
  "Введите адрес, начинающийся с https://": {
   "ar": "أدخل عنوانًا يبدأ بـ ‎https://",
   "de": "Gib eine Adresse ein, die mit https:// beginnt",
@@ -1423,6 +1431,14 @@
   "fr": "Nouveau cours",
   "zh": "新课程"
  },
+ "Новые объявления и добавление в группу": {
+  "ar": "إعلانات جديدة والإضافة إلى مجموعة",
+  "de": "Neue Ankündigungen und Hinzufügen zu einer Gruppe",
+  "en": "New announcements and being added to a group",
+  "es": "Nuevos anuncios y ser añadido a un grupo",
+  "fr": "Nouvelles annonces et ajout à un groupe",
+  "zh": "新公告和被加入小组"
+ },
  "Новый пароль": {
   "ar": "كلمة المرور الجديدة",
   "de": "Neues Passwort",
@@ -1486,6 +1502,22 @@
   "es": "Anuncios",
   "fr": "Annonces",
   "zh": "公告"
+ },
+ "Объявления группы": {
+  "ar": "إعلانات المجموعة",
+  "de": "Gruppen-Ankündigungen",
+  "en": "Group announcements",
+  "es": "Anuncios del grupo",
+  "fr": "Annonces du groupe",
+  "zh": "小组公告"
+ },
+ "Объявления и добавление в группу": {
+  "ar": "الإعلانات والإضافة إلى المجموعة",
+  "de": "Ankündigungen und Gruppeneinladungen",
+  "en": "Announcements and group invites",
+  "es": "Anuncios e incorporación al grupo",
+  "fr": "Annonces et ajout au groupe",
+  "zh": "公告和加入小组"
  },
  "Объявления хранятся 3 недели, потом удаляются": {
   "ar": "تُحفظ الإعلانات 3 أسابيع ثم تُحذف",

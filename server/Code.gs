@@ -16,7 +16,7 @@
  * Запуск от имени: «Я», Доступ: «Все» → Развернуть → скопировать ссылку …/exec.
  */
 
-const VERSION = 3;
+const VERSION = 4;
 const NEWS_DAYS = 21; // сколько дней хранятся объявления
 const CHUNK = 40000;
 const SHEETS = {
@@ -460,6 +460,26 @@ const ACTIONS = {
     if (n.authorId !== u.id && !canManage_(g, u)) fail('forbidden');
     deleteRows_('News', [n]);
     return groupView_(u);
+  },
+
+  /**
+   * Лёгкая проверка для уведомлений (фоновая, раз в 15 минут): моя группа и
+   * объявления других участников новее since.
+   */
+  poll: function (req) {
+    const u = auth_(req), m = membership_(u);
+    if (!m) return { group: null, news: [] };
+    const g = rows_('Groups').filter(function (x) { return x.id === m.groupId; })[0];
+    if (!g) return { group: null, news: [] };
+    const since = String(req.since || '');
+    const names = {};
+    rows_('Users').forEach(function (r) { names[r.id] = r.fullName; });
+    const news = rows_('News').filter(function (n) {
+      return n.groupId === g.id && n.authorId !== u.id && n.created > since;
+    }).map(function (n) {
+      return { id: n.id, text: n.text, created: n.created, author: names[n.authorId] || '' };
+    }).sort(function (a, b) { return a.created < b.created ? -1 : 1; });
+    return { group: { id: g.id, name: g.name }, added: m.added, news: news };
   },
 
   /* ----- Личные пропуски и отработки (видит только сам пользователь) ----- */

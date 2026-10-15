@@ -44,6 +44,8 @@ object Notifier {
         val evening: Boolean = true,
         val eveningAt: Int = 20 * 60,
         val homework: Boolean = true,
+        /** Новые объявления и добавление в группу. */
+        val group: Boolean = true,
     )
 
     private sealed class Event(val at: LocalDateTime) {
@@ -55,6 +57,7 @@ object Notifier {
     const val CH_LESSON = "lessons"
     const val CH_DIGEST = "digest"
     const val CH_HOMEWORK = "homework"
+    const val CH_GROUP = "group"
     private const val ACTION_FIRE = "com.alexshell.raspisanie.FIRE"
     private const val KEY_LAST = "notif_last_fired"
 
@@ -70,6 +73,7 @@ object Notifier {
             evening = p.getBoolean("notif_evening", true),
             eveningAt = p.getInt("notif_evening_at", 20 * 60),
             homework = p.getBoolean("notif_hw", true),
+            group = p.getBoolean("notif_group", true),
         )
     }
 
@@ -80,6 +84,7 @@ object Notifier {
             .putBoolean("notif_evening", s.evening)
             .putInt("notif_evening_at", s.eveningAt)
             .putBoolean("notif_hw", s.homework)
+            .putBoolean("notif_group", s.group)
             .apply()
     }
 
@@ -191,6 +196,22 @@ object Notifier {
         nm.createNotificationChannel(
             NotificationChannel(CH_HOMEWORK, tr("Домашние задания"), NotificationManager.IMPORTANCE_DEFAULT)
                 .apply { description = tr("Напоминание о невыполненном ДЗ") }
+        )
+        nm.createNotificationChannel(
+            NotificationChannel(CH_GROUP, tr("Объявления группы"), NotificationManager.IMPORTANCE_HIGH)
+                .apply { description = tr("Новые объявления и добавление в группу") }
+        )
+    }
+
+    /** Уведомление группы: объявление или «вас добавили в группу». */
+    fun showGroup(context: Context, id: Int, title: String, text: String) {
+        post(
+            context, id,
+            base(context, CH_GROUP)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                .setPriority(NotificationCompat.PRIORITY_HIGH),
         )
     }
 
