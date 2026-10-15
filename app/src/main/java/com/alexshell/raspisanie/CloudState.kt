@@ -392,6 +392,6 @@ class CloudState(private val vm: AppViewModel) {
 
     companion object {
         /** Ссылка на веб-приложение вашей Google Таблицы (…/exec) — тогда вводить адрес в приложении не нужно. */
-        const val DEFAULT_SERVER = "https://script.google.com/macros/s/AKfycbyWsg3JTabI9N5oTW5rgQ0kJ1leJCymXI9Vc-qXHbz9i1FOrlg0qOP2LLOBqa7h6LqQCw/exec"
+        const val DEFAULT_SERVER = "https://script.google.com/macros/s/AKfycbwnRxjo9g6W1shjOAQX9FAPcG81kS18Y0xEwoKCKrj6KFQ59noCPPY5CwahH1x45vroXQ/exec"
     }
 }
