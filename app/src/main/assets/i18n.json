@@ -175,6 +175,14 @@
   "fr": "Saisissez une adresse commençant par https://",
   "zh": "请输入以 https:// 开头的地址"
  },
+ "Введите название группы": {
+  "ar": "أدخل اسم المجموعة",
+  "de": "Gruppennamen eingeben",
+  "en": "Enter a group name",
+  "es": "Introduce el nombre del grupo",
+  "fr": "Saisissez le nom du groupe",
+  "zh": "请输入小组名称"
+ },
  "Введите полное имя: имя и фамилию": {
   "ar": "أدخل الاسم الكامل: الاسم واسم العائلة",
   "de": "Gib deinen vollständigen Namen ein: Vor- und Nachname",
@@ -182,6 +190,14 @@
   "es": "Introduce tu nombre completo: nombre y apellido",
   "fr": "Saisissez votre nom complet : prénom et nom",
   "zh": "请输入完整姓名：名和姓"
+ },
+ "Введите текст": {
+  "ar": "أدخل النص",
+  "de": "Text eingeben",
+  "en": "Enter some text",
+  "es": "Escribe un texto",
+  "fr": "Saisissez un texte",
+  "zh": "请输入内容"
  },
  "Введите текст задания": {
   "ar": "أدخل نص الواجب",
@@ -239,6 +255,14 @@
   "fr": "Activer",
   "zh": "开启"
  },
+ "Войдите в профиль, чтобы создать группу или вступить в неё, читать объявления и вести учёт своих пропусков.": {
+  "ar": "سجّل الدخول لإنشاء مجموعة أو الانضمام إليها وقراءة الإعلانات ومتابعة غياباتك.",
+  "de": "Melde dich an, um eine Gruppe zu erstellen oder ihr beizutreten, Ankündigungen zu lesen und Fehlzeiten zu erfassen.",
+  "en": "Sign in to create or join a group, read announcements and keep track of your absences.",
+  "es": "Inicia sesión para crear o unirte a un grupo, leer anuncios y llevar el control de tus faltas.",
+  "fr": "Connectez-vous pour créer ou rejoindre un groupe, lire les annonces et suivre vos absences.",
+  "zh": "登录后可创建或加入小组、阅读公告并记录自己的缺勤。"
+ },
  "Войти": {
   "ar": "دخول",
   "de": "Anmelden",
@@ -254,6 +278,14 @@
   "es": "Entrar y cargar datos",
   "fr": "Se connecter et charger les données",
   "zh": "登录并加载数据"
+ },
+ "Войти или зарегистрироваться": {
+  "ar": "الدخول أو التسجيل",
+  "de": "Anmelden oder registrieren",
+  "en": "Sign in or sign up",
+  "es": "Entrar o registrarse",
+  "fr": "Se connecter ou s'inscrire",
+  "zh": "登录或注册"
  },
  "Восстановить": {
   "ar": "استعادة",
@@ -319,6 +351,38 @@
   "fr": "Hier",
   "zh": "昨天"
  },
+ "Вы вышли из группы": {
+  "ar": "غادرت المجموعة",
+  "de": "Du hast die Gruppe verlassen",
+  "en": "You left the group",
+  "es": "Has salido del grupo",
+  "fr": "Vous avez quitté le groupe",
+  "zh": "你已退出小组"
+ },
+ "Вы пока не в группе": {
+  "ar": "لست في مجموعة بعد",
+  "de": "Du bist noch in keiner Gruppe",
+  "en": "You're not in a group yet",
+  "es": "Aún no estás en un grupo",
+  "fr": "Vous n'êtes dans aucun groupe",
+  "zh": "你还没有加入小组"
+ },
+ "Вы пока не состоите в группе": {
+  "ar": "لست عضوًا في مجموعة بعد",
+  "de": "Du bist noch in keiner Gruppe",
+  "en": "You're not in a group yet",
+  "es": "Aún no estás en un grupo",
+  "fr": "Vous n'êtes dans aucun groupe",
+  "zh": "你还没有加入小组"
+ },
+ "Вы уже состоите в группе": {
+  "ar": "أنت بالفعل عضو في مجموعة",
+  "de": "Du bist bereits in einer Gruppe",
+  "en": "You're already in a group",
+  "es": "Ya estás en un grupo",
+  "fr": "Vous êtes déjà dans un groupe",
+  "zh": "你已经在小组中"
+ },
  "Выберите свой поток": {
   "ar": "اختر دفعتك",
   "de": "Wähle deinen Zug",
@@ -350,6 +414,22 @@
   "es": "Elegir archivo .xlsx",
   "fr": "Choisir un fichier .xlsx",
   "zh": "选择 .xlsx 文件"
+ },
+ "Выйти из группы": {
+  "ar": "مغادرة المجموعة",
+  "de": "Gruppe verlassen",
+  "en": "Leave group",
+  "es": "Salir del grupo",
+  "fr": "Quitter le groupe",
+  "zh": "退出小组"
+ },
+ "Выйти из группы?": {
+  "ar": "مغادرة المجموعة؟",
+  "de": "Gruppe verlassen?",
+  "en": "Leave the group?",
+  "es": "¿Salir del grupo?",
+  "fr": "Quitter le groupe ?",
+  "zh": "退出小组？"
  },
  "Выйти из профиля": {
   "ar": "تسجيل الخروج",
@@ -407,6 +487,14 @@
   "fr": "Lieu (bâtiment, salle)",
   "zh": "地点（楼、教室）"
  },
+ "Где: кафедра, аудитория": {
+  "ar": "أين: القسم، القاعة",
+  "de": "Wo: Lehrstuhl, Raum",
+  "en": "Where: department, room",
+  "es": "Dónde: departamento, aula",
+  "fr": "Où : département, salle",
+  "zh": "地点：教研室、教室"
+ },
  "Готово": {
   "ar": "تم",
   "de": "Fertig",
@@ -430,6 +518,30 @@
   "es": "Grupo {0}. Del grupo de curso dependen los días de clases magistrales y de educación física.",
   "fr": "Groupe {0}. Le flux détermine les jours de cours magistraux et de sport.",
   "zh": "{0} 组。大班决定讲座和体育课的日期。"
+ },
+ "Группа и одногруппники": {
+  "ar": "المجموعة والزملاء",
+  "de": "Gruppe und Kommilitonen",
+  "en": "Group and groupmates",
+  "es": "Grupo y compañeros",
+  "fr": "Groupe et camarades",
+  "zh": "小组与同学"
+ },
+ "Группа создана": {
+  "ar": "تم إنشاء المجموعة",
+  "de": "Gruppe erstellt",
+  "en": "Group created",
+  "es": "Grupo creado",
+  "fr": "Groupe créé",
+  "zh": "小组已创建"
+ },
+ "Группа удалена": {
+  "ar": "تم حذف المجموعة",
+  "de": "Gruppe gelöscht",
+  "en": "Group deleted",
+  "es": "Grupo eliminado",
+  "fr": "Groupe supprimé",
+  "zh": "小组已删除"
  },
  "Группу можно сменить позже в настройках": {
   "ar": "يمكنك تغيير المجموعة لاحقًا من الإعدادات",
@@ -583,6 +695,22 @@
   "fr": "Ajouter un cours le {0}",
   "zh": "在 {0} 添加课程"
  },
+ "Добавить одногруппника": {
+  "ar": "إضافة زميل",
+  "de": "Kommilitonen hinzufügen",
+  "en": "Add a groupmate",
+  "es": "Añadir compañero",
+  "fr": "Ajouter un camarade",
+  "zh": "添加同学"
+ },
+ "Добавить пропуск": {
+  "ar": "إضافة غياب",
+  "de": "Fehlzeit hinzufügen",
+  "en": "Add absence",
+  "es": "Añadir falta",
+  "fr": "Ajouter une absence",
+  "zh": "添加缺勤"
+ },
  "Добро пожаловать, {0}!": {
   "ar": "أهلًا بك يا {0}!",
   "de": "Willkommen, {0}!",
@@ -622,6 +750,14 @@
   "es": "Aún no se ha guardado",
   "fr": "Pas encore sauvegardé",
   "zh": "尚未保存"
+ },
+ "Журнал": {
+  "ar": "السجل",
+  "de": "Klassenbuch",
+  "en": "Register keeper",
+  "es": "Registro",
+  "fr": "Registre",
+  "zh": "考勤员"
  },
  "ЗАВТРА": {
   "ar": "غدًا",
@@ -687,13 +823,13 @@
   "fr": "Charger un nouveau .xlsx",
   "zh": "加载新的 .xlsx"
  },
- "Задания, которые видит вся группа": {
-  "ar": "واجبات تراها المجموعة كلها",
-  "de": "Aufgaben für die ganze Gruppe",
-  "en": "Assignments visible to the whole group",
-  "es": "Tareas visibles para todo el grupo",
-  "fr": "Devoirs visibles par tout le groupe",
-  "zh": "全组可见的作业"
+ "Загрузка…": {
+  "ar": "جارٍ التحميل…",
+  "de": "Wird geladen…",
+  "en": "Loading…",
+  "es": "Cargando…",
+  "fr": "Chargement…",
+  "zh": "加载中…"
  },
  "Закат": {
   "ar": "الغروب",
@@ -742,6 +878,14 @@
   "es": "Clase eliminada",
   "fr": "Cours supprimé",
   "zh": "课程已删除"
+ },
+ "Запись не найдена": {
+  "ar": "السجل غير موجود",
+  "de": "Eintrag nicht gefunden",
+  "en": "Entry not found",
+  "es": "No se encontró el registro",
+  "fr": "Élément introuvable",
+  "zh": "未找到记录"
  },
  "Золото": {
   "ar": "ذهبي",
@@ -887,6 +1031,14 @@
   "fr": "Cyber rouge",
   "zh": "赛博红"
  },
+ "Когда пропустили": {
+  "ar": "متى غبت",
+  "de": "Wann verpasst",
+  "en": "When missed",
+  "es": "Cuándo faltaste",
+  "fr": "Date de l'absence",
+  "zh": "缺勤日期"
+ },
  "Конец пары должен быть позже начала": {
   "ar": "يجب أن يكون الانتهاء بعد البداية",
   "de": "Ende muss nach dem Beginn liegen",
@@ -902,6 +1054,14 @@
   "es": "Copia guardada",
   "fr": "Copie enregistrée",
   "zh": "备份已保存"
+ },
+ "Культорг": {
+  "ar": "منسق الأنشطة",
+  "de": "Kulturbeauftragter",
+  "en": "Events organizer",
+  "es": "Organizador cultural",
+  "fr": "Responsable culturel",
+  "zh": "文艺委员"
  },
  "Лекция": {
   "ar": "محاضرة",
@@ -999,6 +1159,14 @@
   "fr": "Retour",
   "zh": "返回"
  },
+ "Название группы": {
+  "ar": "اسم المجموعة",
+  "de": "Gruppenname",
+  "en": "Group name",
+  "es": "Nombre del grupo",
+  "fr": "Nom du groupe",
+  "zh": "小组名称"
+ },
  "Название предмета": {
   "ar": "اسم المادة",
   "de": "Fachname",
@@ -1007,6 +1175,14 @@
   "fr": "Nom de la matière",
   "zh": "科目名称"
  },
+ "Назначить старостой": {
+  "ar": "تعيين رئيسًا للمجموعة",
+  "de": "Zum Gruppensprecher machen",
+  "en": "Make group leader",
+  "es": "Nombrar delegado",
+  "fr": "Nommer délégué",
+  "zh": "设为班长"
+ },
  "Найдена копия в облаке": {
   "ar": "تم العثور على نسخة في السحابة",
   "de": "Cloud-Kopie gefunden",
@@ -1014,6 +1190,22 @@
   "es": "Se encontró una copia en la nube",
   "fr": "Copie trouvée dans le cloud",
   "zh": "发现云端备份"
+ },
+ "Написать объявление для группы…": {
+  "ar": "اكتب إعلانًا للمجموعة…",
+  "de": "Ankündigung für die Gruppe schreiben…",
+  "en": "Write an announcement for the group…",
+  "es": "Escribe un anuncio para el grupo…",
+  "fr": "Écrire une annonce pour le groupe…",
+  "zh": "给小组写公告…"
+ },
+ "Напишите первое — его увидят все одногруппники.": {
+  "ar": "اكتب الأول — سيراه كل زملائك.",
+  "de": "Schreib die erste – alle Kommilitonen sehen sie.",
+  "en": "Write the first one: all your groupmates will see it.",
+  "es": "Escribe el primero: lo verán todos tus compañeros.",
+  "fr": "Écrivez la première : tous vos camarades la verront.",
+  "zh": "发布第一条吧，全组同学都能看到。"
  },
  "Напоминание за несколько минут до начала пары": {
   "ar": "تذكير قبل بدء الحصة ببضع دقائق",
@@ -1038,6 +1230,30 @@
   "es": "Los recordatorios pueden retrasarse",
   "fr": "Les rappels peuvent être en retard",
   "zh": "提醒可能会延迟"
+ },
+ "Например: 313 группа, лечфак": {
+  "ar": "مثال: المجموعة 313، الطب العام",
+  "de": "Z. B.: Gruppe 313, Medizin",
+  "en": "E.g.: Group 313, General Medicine",
+  "es": "Ej.: grupo 313, Medicina",
+  "fr": "Ex. : groupe 313, médecine",
+  "zh": "例如：313 组，临床医学"
+ },
+ "Например: Профорг, Журнал": {
+  "ar": "مثال: ممثل النقابة، السجل",
+  "de": "Z. B.: Gewerkschaft, Klassenbuch",
+  "en": "E.g.: Union rep, Register keeper",
+  "es": "Ej.: representante sindical, registro",
+  "fr": "Ex. : délégué syndical, registre",
+  "zh": "例如：工会委员、考勤员"
+ },
+ "Например: болел, есть справка": {
+  "ar": "مثال: كنت مريضًا، لدي تقرير طبي",
+  "de": "Z. B.: krank, Attest vorhanden",
+  "en": "E.g.: was ill, have a doctor's note",
+  "es": "Ej.: estaba enfermo, tengo justificante",
+  "fr": "Ex. : malade, certificat médical",
+  "zh": "例如：生病，有病假条"
  },
  "Например: выучить тему 5, решить задачи 1–10": {
   "ar": "مثال: ذاكر الموضوع 5، حل المسائل 1–10",
@@ -1079,6 +1295,14 @@
   "fr": "Ça commence : {0}",
   "zh": "开始上课：{0}"
  },
+ "Не отработано": {
+  "ar": "لم يُعوَّض",
+  "de": "Nicht nachgeholt",
+  "en": "Not made up",
+  "es": "Sin recuperar",
+  "fr": "Non rattrapé",
+  "zh": "未补课"
+ },
  "Не удалось прочитать расписание: {0}": {
   "ar": "تعذرت قراءة الجدول: {0}",
   "de": "Stundenplan konnte nicht gelesen werden: {0}",
@@ -1102,6 +1326,22 @@
   "es": "No se pudo leer el archivo: {0}",
   "fr": "Impossible de lire le fichier : {0}",
   "zh": "无法读取文件：{0}"
+ },
+ "Неверная дата": {
+  "ar": "تاريخ غير صالح",
+  "de": "Ungültiges Datum",
+  "en": "Invalid date",
+  "es": "Fecha no válida",
+  "fr": "Date invalide",
+  "zh": "日期无效"
+ },
+ "Неверное время": {
+  "ar": "وقت غير صالح",
+  "de": "Ungültige Uhrzeit",
+  "en": "Invalid time",
+  "es": "Hora no válida",
+  "fr": "Heure invalide",
+  "zh": "时间无效"
  },
  "Неверный пароль": {
   "ar": "كلمة مرور غير صحيحة",
@@ -1142,6 +1382,14 @@
   "es": "Semana",
   "fr": "Semaine",
   "zh": "本周"
+ },
+ "Недостаточно прав": {
+  "ar": "صلاحيات غير كافية",
+  "de": "Keine Berechtigung",
+  "en": "Not allowed",
+  "es": "Sin permisos suficientes",
+  "fr": "Droits insuffisants",
+  "zh": "权限不足"
  },
  "Неон": {
   "ar": "نيون",
@@ -1191,6 +1439,14 @@
   "fr": "Numéro de groupe",
   "zh": "小组编号"
  },
+ "Обновить": {
+  "ar": "تحديث",
+  "de": "Aktualisieren",
+  "en": "Refresh",
+  "es": "Actualizar",
+  "fr": "Actualiser",
+  "zh": "刷新"
+ },
  "Общие": {
   "ar": "عام",
   "de": "Allgemein",
@@ -1199,13 +1455,29 @@
   "fr": "Général",
   "zh": "通用"
  },
- "Общие ДЗ": {
-  "ar": "واجبات مشتركة",
-  "de": "Gemeinsame Aufgaben",
-  "en": "Shared homework",
-  "es": "Tareas compartidas",
-  "fr": "Devoirs partagés",
-  "zh": "共享作业"
+ "Объявление": {
+  "ar": "إعلان",
+  "de": "Ankündigung",
+  "en": "Announcement",
+  "es": "Anuncio",
+  "fr": "Annonce",
+  "zh": "公告"
+ },
+ "Объявление опубликовано": {
+  "ar": "تم نشر الإعلان",
+  "de": "Ankündigung veröffentlicht",
+  "en": "Announcement posted",
+  "es": "Anuncio publicado",
+  "fr": "Annonce publiée",
+  "zh": "公告已发布"
+ },
+ "Объявлений пока нет": {
+  "ar": "لا توجد إعلانات بعد",
+  "de": "Noch keine Ankündigungen",
+  "en": "No announcements yet",
+  "es": "Aún no hay anuncios",
+  "fr": "Pas encore d'annonces",
+  "zh": "暂无公告"
  },
  "Объявления": {
   "ar": "الإعلانات",
@@ -1215,13 +1487,53 @@
   "fr": "Annonces",
   "zh": "公告"
  },
- "Одногруппники": {
-  "ar": "زملاء المجموعة",
-  "de": "Kommilitonen",
-  "en": "Groupmates",
-  "es": "Compañeros",
-  "fr": "Camarades",
-  "zh": "同组同学"
+ "Объявления хранятся 3 недели, потом удаляются": {
+  "ar": "تُحفظ الإعلانات 3 أسابيع ثم تُحذف",
+  "de": "Ankündigungen werden 3 Wochen gespeichert und dann gelöscht",
+  "en": "Announcements are kept for 3 weeks, then deleted",
+  "es": "Los anuncios se guardan 3 semanas y luego se eliminan",
+  "fr": "Les annonces sont conservées 3 semaines, puis supprimées",
+  "zh": "公告保留 3 周后自动删除"
+ },
+ "Одногруппник добавлен": {
+  "ar": "تمت إضافة الزميل",
+  "de": "Kommilitone hinzugefügt",
+  "en": "Groupmate added",
+  "es": "Compañero añadido",
+  "fr": "Camarade ajouté",
+  "zh": "已添加同学"
+ },
+ "Он уже в вашей группе": {
+  "ar": "موجود بالفعل في مجموعتك",
+  "de": "Bereits in deiner Gruppe",
+  "en": "Already in your group",
+  "es": "Ya está en tu grupo",
+  "fr": "Déjà dans votre groupe",
+  "zh": "已在你的小组中"
+ },
+ "Опубликовать": {
+  "ar": "نشر",
+  "de": "Veröffentlichen",
+  "en": "Post",
+  "es": "Publicar",
+  "fr": "Publier",
+  "zh": "发布"
+ },
+ "Осталось": {
+  "ar": "متبقٍّ",
+  "de": "Offen",
+  "en": "Left",
+  "es": "Pendientes",
+  "fr": "Restant",
+  "zh": "剩余"
+ },
+ "Ответственный за ДЗ": {
+  "ar": "مسؤول الواجبات",
+  "de": "Verantwortlich für Aufgaben",
+  "en": "Homework monitor",
+  "es": "Responsable de tareas",
+  "fr": "Responsable des devoirs",
+  "zh": "作业负责人"
  },
  "Откройте приложение и загрузите файл": {
   "ar": "افتح التطبيق وحمّل الملف",
@@ -1247,14 +1559,6 @@
   "fr": "Annuler",
   "zh": "取消"
  },
- "Отметки о пропусках и отработках": {
-  "ar": "الغيابات والتعويض",
-  "de": "Fehlzeiten und Nachholtermine",
-  "en": "Absences and make-up classes",
-  "es": "Faltas y recuperaciones",
-  "fr": "Absences et rattrapages",
-  "zh": "缺勤与补课记录"
- },
  "Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.": {
   "ar": "حدد موادك وستختفي البقية من الجدول. تُعرض كلها الآن.",
   "de": "Markiere deine – die übrigen verschwinden aus dem Plan. Derzeit werden alle angezeigt.",
@@ -1262,6 +1566,54 @@
   "es": "Marca las tuyas y el resto desaparecerá del horario. Ahora se muestran todas.",
   "fr": "Cochez les vôtres, les autres disparaîtront. Toutes sont affichées pour l'instant.",
   "zh": "勾选你的课程，其余将从课表中隐藏。当前显示全部。"
+ },
+ "Отмечайте пропуски и время отработки, чтобы ничего не забыть.": {
+  "ar": "سجّل غياباتك ومواعيد التعويض كي لا تنسى شيئًا.",
+  "de": "Trage Fehlzeiten und Nachholtermine ein, damit du nichts vergisst.",
+  "en": "Log absences and make-up times so you don't forget anything.",
+  "es": "Registra las faltas y las recuperaciones para no olvidar nada.",
+  "fr": "Notez vos absences et les rattrapages pour ne rien oublier.",
+  "zh": "记录缺勤和补课时间，避免遗忘。"
+ },
+ "Отмечено как отработано": {
+  "ar": "تم التعليم كمُعوَّض",
+  "de": "Als nachgeholt markiert",
+  "en": "Marked as made up",
+  "es": "Marcado como recuperado",
+  "fr": "Marqué comme rattrapé",
+  "zh": "已标记为已补课"
+ },
+ "Отправляю…": {
+  "ar": "جارٍ الإرسال…",
+  "de": "Wird gesendet…",
+  "en": "Sending…",
+  "es": "Enviando…",
+  "fr": "Envoi…",
+  "zh": "正在发送…"
+ },
+ "Отработано": {
+  "ar": "تم التعويض",
+  "de": "Nachgeholt",
+  "en": "Made up",
+  "es": "Recuperado",
+  "fr": "Rattrapé",
+  "zh": "已补课"
+ },
+ "Отработка": {
+  "ar": "التعويض",
+  "de": "Nachholen",
+  "en": "Make-up",
+  "es": "Recuperación",
+  "fr": "Rattrapage",
+  "zh": "补课"
+ },
+ "Отработка не назначена": {
+  "ar": "لم يُحدَّد موعد التعويض",
+  "de": "Kein Nachholtermin",
+  "en": "No make-up scheduled",
+  "es": "Recuperación sin fijar",
+  "fr": "Aucun rattrapage prévu",
+  "zh": "尚未安排补课"
  },
  "Ошибка импорта: {0}": {
   "ar": "خطأ في الاستيراد: {0}",
@@ -1351,6 +1703,14 @@
   "fr": "Avant le cours",
   "zh": "课前"
  },
+ "Переименовать": {
+  "ar": "إعادة التسمية",
+  "de": "Umbenennen",
+  "en": "Rename",
+  "es": "Renombrar",
+  "fr": "Renommer",
+  "zh": "重命名"
+ },
  "Перенос через файл": {
   "ar": "النقل عبر ملف",
   "de": "Übertragung per Datei",
@@ -1359,14 +1719,6 @@
   "fr": "Transfert par fichier",
   "zh": "通过文件迁移"
  },
- "Переносы пар и новости от старосты": {
-  "ar": "تغييرات الحصص وأخبار رئيس المجموعة",
-  "de": "Kursverlegungen und News vom Gruppensprecher",
-  "en": "Class changes and news from the group leader",
-  "es": "Cambios de clases y noticias del delegado",
-  "fr": "Changements de cours et nouvelles du délégué",
-  "zh": "调课通知和班长消息"
- },
  "По выбору": {
   "ar": "اختيارية",
   "de": "Wahlfach",
@@ -1374,6 +1726,14 @@
   "es": "Optativa",
   "fr": "Option",
   "zh": "选修"
+ },
+ "Повторить": {
+  "ar": "إعادة المحاولة",
+  "de": "Erneut versuchen",
+  "en": "Retry",
+  "es": "Reintentar",
+  "fr": "Réessayer",
+  "zh": "重试"
  },
  "Повторять каждую неделю": {
   "ar": "تكرار كل أسبوع",
@@ -1423,13 +1783,21 @@
   "fr": "Nom complet",
   "zh": "完整姓名"
  },
- "Посещаемость": {
-  "ar": "الحضور",
-  "de": "Anwesenheit",
-  "en": "Attendance",
-  "es": "Asistencia",
-  "fr": "Présence",
-  "zh": "出勤"
+ "Пользователь с таким юзернеймом не найден": {
+  "ar": "لا يوجد مستخدم بهذا الاسم",
+  "de": "Kein Benutzer mit diesem Namen gefunden",
+  "en": "No user with this username",
+  "es": "No existe un usuario con ese nombre",
+  "fr": "Aucun utilisateur avec ce nom",
+  "zh": "未找到该用户名"
+ },
+ "Попросите создателя или старосту добавить вас по юзернейму {0} — или создайте группу сами.": {
+  "ar": "اطلب من منشئ المجموعة أو رئيسها إضافتك باسم المستخدم {0} — أو أنشئ مجموعة بنفسك.",
+  "de": "Bitte den Gruppenersteller oder Gruppensprecher, dich über deinen Benutzernamen {0} hinzuzufügen – oder erstelle selbst eine Gruppe.",
+  "en": "Ask the group creator or leader to add you by your username {0}, or create a group yourself.",
+  "es": "Pide al creador o al delegado que te añada con tu usuario {0}, o crea tú un grupo.",
+  "fr": "Demandez au créateur ou au délégué de vous ajouter avec votre nom d'utilisateur {0}, ou créez un groupe.",
+  "zh": "请小组创建者或班长通过用户名 {0} 添加你，或者自己创建小组。"
  },
  "Последнее сохранение: {0}": {
   "ar": "آخر حفظ: {0}",
@@ -1527,6 +1895,54 @@
   "fr": "Vérification…",
   "zh": "正在检查…"
  },
+ "Пропуск": {
+  "ar": "غياب",
+  "de": "Fehlzeit",
+  "en": "Absence",
+  "es": "Falta",
+  "fr": "Absence",
+  "zh": "缺勤"
+ },
+ "Пропуск добавлен": {
+  "ar": "تمت إضافة الغياب",
+  "de": "Fehlzeit hinzugefügt",
+  "en": "Absence added",
+  "es": "Falta añadida",
+  "fr": "Absence ajoutée",
+  "zh": "已添加缺勤"
+ },
+ "Пропуски": {
+  "ar": "الغيابات",
+  "de": "Fehlzeiten",
+  "en": "Absences",
+  "es": "Faltas",
+  "fr": "Absences",
+  "zh": "缺勤"
+ },
+ "Пропуски видите только вы": {
+  "ar": "أنت وحدك ترى غياباتك",
+  "de": "Nur du siehst deine Fehlzeiten",
+  "en": "Only you can see your absences",
+  "es": "Solo tú ves tus faltas",
+  "fr": "Vous seul voyez vos absences",
+  "zh": "只有你能看到自己的缺勤"
+ },
+ "Пропусков нет 🎉": {
+  "ar": "لا غيابات 🎉",
+  "de": "Keine Fehlzeiten 🎉",
+  "en": "No absences 🎉",
+  "es": "Sin faltas 🎉",
+  "fr": "Aucune absence 🎉",
+  "zh": "没有缺勤 🎉"
+ },
+ "Пропущено": {
+  "ar": "غياب",
+  "de": "Verpasst",
+  "en": "Missed",
+  "es": "Faltas",
+  "fr": "Manqués",
+  "zh": "缺勤"
+ },
  "Профиль": {
   "ar": "الملف الشخصي",
   "de": "Profil",
@@ -1551,6 +1967,14 @@
   "fr": "Profil supprimé",
   "zh": "资料已删除"
  },
+ "Профорг": {
+  "ar": "ممثل النقابة",
+  "de": "Gewerkschaftsvertreter",
+  "en": "Union rep",
+  "es": "Representante sindical",
+  "fr": "Délégué syndical",
+  "zh": "工会委员"
+ },
  "РАСПИСАНИЕ": {
   "ar": "الجدول",
   "de": "STUNDENPLAN",
@@ -1566,14 +1990,6 @@
   "es": "Actividad en segundo plano permitida",
   "fr": "Activité en arrière-plan autorisée",
   "zh": "已允许后台运行"
- },
- "Раздел в разработке — здесь появятся функции для всей группы.": {
-  "ar": "القسم قيد التطوير — ستظهر هنا ميزات للمجموعة كلها.",
-  "de": "In Arbeit – hier erscheinen Funktionen für die ganze Gruppe.",
-  "en": "Under construction: features for the whole group will appear here.",
-  "es": "En desarrollo: aquí aparecerán funciones para todo el grupo.",
-  "fr": "Section en cours de développement : des fonctions pour tout le groupe apparaîtront ici.",
-  "zh": "开发中——这里将推出面向全组的功能。"
  },
  "Разрешить": {
   "ar": "سماح",
@@ -1606,6 +2022,30 @@
   "es": "Registro",
   "fr": "Inscription",
   "zh": "注册"
+ },
+ "Роль": {
+  "ar": "الدور",
+  "de": "Rolle",
+  "en": "Role",
+  "es": "Rol",
+  "fr": "Rôle",
+  "zh": "职务"
+ },
+ "Роль в группе": {
+  "ar": "الدور في المجموعة",
+  "de": "Rolle in der Gruppe",
+  "en": "Role in group",
+  "es": "Rol en el grupo",
+  "fr": "Rôle dans le groupe",
+  "zh": "组内职务"
+ },
+ "Роль сохранена": {
+  "ar": "تم حفظ الدور",
+  "de": "Rolle gespeichert",
+  "en": "Role saved",
+  "es": "Rol guardado",
+  "fr": "Rôle enregistré",
+  "zh": "职务已保存"
  },
  "Ручные правки сброшены": {
   "ar": "تمت إعادة ضبط التعديلات اليدوية",
@@ -1646,6 +2086,14 @@
   "es": "Restablecer todos los cambios",
   "fr": "Réinitialiser les modifications",
   "zh": "重置所有修改"
+ },
+ "Сбросить дату и время": {
+  "ar": "مسح التاريخ والوقت",
+  "de": "Datum und Uhrzeit löschen",
+  "en": "Clear date and time",
+  "es": "Borrar fecha y hora",
+  "fr": "Effacer la date et l'heure",
+  "zh": "清除日期和时间"
  },
  "Светлая": {
   "ar": "فاتح",
@@ -1791,6 +2239,14 @@
   "fr": "Indiquez d'abord l'adresse du serveur",
   "zh": "请先填写服务器地址"
  },
+ "Снять со старосты": {
+  "ar": "إلغاء دور رئيس المجموعة",
+  "de": "Als Gruppensprecher entfernen",
+  "en": "Remove as group leader",
+  "es": "Quitar como delegado",
+  "fr": "Retirer le rôle de délégué",
+  "zh": "取消班长"
+ },
  "Создайте профиль, чтобы ваши ДЗ, правки и настройки сохранялись в облаке и переносились на другие устройства.": {
   "ar": "أنشئ ملفًا شخصيًا لتُحفظ واجباتك وتعديلاتك وإعداداتك في السحابة وتنتقل إلى أجهزتك الأخرى.",
   "de": "Erstelle ein Profil, damit Aufgaben, Änderungen und Einstellungen in der Cloud gespeichert und auf andere Geräte übertragen werden.",
@@ -1799,6 +2255,30 @@
   "fr": "Créez un profil pour sauvegarder vos devoirs, modifications et paramètres dans le cloud et les retrouver sur vos autres appareils.",
   "zh": "创建个人资料，作业、修改和设置会保存到云端，并同步到你的其他设备。"
  },
+ "Создатель": {
+  "ar": "المنشئ",
+  "de": "Ersteller",
+  "en": "Creator",
+  "es": "Creador",
+  "fr": "Créateur",
+  "zh": "创建者"
+ },
+ "Создатель не может выйти — можно только удалить группу": {
+  "ar": "لا يمكن للمنشئ المغادرة — يمكنه حذف المجموعة فقط",
+  "de": "Der Ersteller kann nicht austreten – nur die Gruppe löschen",
+  "en": "The creator can't leave; they can only delete the group",
+  "es": "El creador no puede salir, solo eliminar el grupo",
+  "fr": "Le créateur ne peut pas quitter, seulement supprimer le groupe",
+  "zh": "创建者不能退出，只能删除小组"
+ },
+ "Создать группу": {
+  "ar": "إنشاء مجموعة",
+  "de": "Gruppe erstellen",
+  "en": "Create group",
+  "es": "Crear grupo",
+  "fr": "Créer le groupe",
+  "zh": "创建小组"
+ },
  "Создать профиль": {
   "ar": "إنشاء ملف شخصي",
   "de": "Profil erstellen",
@@ -1806,6 +2286,14 @@
   "es": "Crear perfil",
   "fr": "Créer le profil",
   "zh": "创建资料"
+ },
+ "Сохранено": {
+  "ar": "تم الحفظ",
+  "de": "Gespeichert",
+  "en": "Saved",
+  "es": "Guardado",
+  "fr": "Enregistré",
+  "zh": "已保存"
  },
  "Сохранено в облако": {
   "ar": "تم الحفظ في السحابة",
@@ -1863,14 +2351,6 @@
   "fr": "Sauvegarde…",
   "zh": "正在保存…"
  },
- "Список группы и контакты старосты": {
-  "ar": "قائمة المجموعة وجهات اتصال رئيسها",
-  "de": "Gruppenliste und Kontakt zum Gruppensprecher",
-  "en": "Group list and group leader contacts",
-  "es": "Lista del grupo y contactos del delegado",
-  "fr": "Liste du groupe et contacts du délégué",
-  "zh": "小组名单和班长联系方式"
- },
  "Ссылка на веб-приложение Google Apps Script (заканчивается на /exec).": {
   "ar": "رابط تطبيق الويب Google Apps Script (ينتهي بـ ‎/exec).",
   "de": "Link zur Google-Apps-Script-Web-App (endet auf /exec).",
@@ -1878,6 +2358,30 @@
   "es": "Enlace a la app web de Google Apps Script (termina en /exec).",
   "fr": "Lien vers l'application web Google Apps Script (se termine par /exec).",
   "zh": "Google Apps Script 网页应用链接（以 /exec 结尾）。"
+ },
+ "Староста": {
+  "ar": "رئيس المجموعة",
+  "de": "Gruppensprecher",
+  "en": "Group leader",
+  "es": "Delegado",
+  "fr": "Délégué",
+  "zh": "班长"
+ },
+ "Староста назначен": {
+  "ar": "تم تعيين رئيس المجموعة",
+  "de": "Gruppensprecher ernannt",
+  "en": "Group leader appointed",
+  "es": "Delegado nombrado",
+  "fr": "Délégué nommé",
+  "zh": "已设为班长"
+ },
+ "Староста снят": {
+  "ar": "تم إلغاء رئيس المجموعة",
+  "de": "Gruppensprecher entfernt",
+  "en": "Group leader removed",
+  "es": "Delegado retirado",
+  "fr": "Délégué retiré",
+  "zh": "已取消班长"
  },
  "Так будет выглядеть напоминание перед парой": {
   "ar": "هكذا سيبدو التذكير قبل الحصة",
@@ -1951,6 +2455,22 @@
   "fr": "Notifications désactivées",
   "zh": "通知已关闭"
  },
+ "Уведомления ещё не разрешены": {
+  "ar": "الإشعارات غير مسموحة بعد",
+  "de": "Benachrichtigungen noch nicht erlaubt",
+  "en": "Notifications not allowed yet",
+  "es": "Notificaciones aún no permitidas",
+  "fr": "Notifications pas encore autorisées",
+  "zh": "尚未允许通知"
+ },
+ "Уведомления запрещены в браузере": {
+  "ar": "الإشعارات محظورة في المتصفح",
+  "de": "Benachrichtigungen im Browser blockiert",
+  "en": "Notifications are blocked in the browser",
+  "es": "Notificaciones bloqueadas en el navegador",
+  "fr": "Notifications bloquées dans le navigateur",
+  "zh": "浏览器已禁止通知"
+ },
  "Уведомления работают ✨": {
   "ar": "الإشعارات تعمل ✨",
   "de": "Benachrichtigungen funktionieren ✨",
@@ -1983,6 +2503,22 @@
   "fr": "Supprimer",
   "zh": "删除"
  },
+ "Удалить группу": {
+  "ar": "حذف المجموعة",
+  "de": "Gruppe löschen",
+  "en": "Delete group",
+  "es": "Eliminar grupo",
+  "fr": "Supprimer le groupe",
+  "zh": "删除小组"
+ },
+ "Удалить группу для всех участников? Объявления тоже удалятся.": {
+  "ar": "حذف المجموعة لكل الأعضاء؟ ستُحذف الإعلانات أيضًا.",
+  "de": "Gruppe für alle löschen? Die Ankündigungen werden ebenfalls gelöscht.",
+  "en": "Delete the group for all members? Announcements will be deleted too.",
+  "es": "¿Eliminar el grupo para todos? Los anuncios también se eliminarán.",
+  "fr": "Supprimer le groupe pour tous ? Les annonces seront aussi supprimées.",
+  "zh": "为所有成员删除小组？公告也会被删除。"
+ },
  "Удалить занятие?": {
   "ar": "حذف الحصة؟",
   "de": "Kurs löschen?",
@@ -1990,6 +2526,30 @@
   "es": "¿Eliminar clase?",
   "fr": "Supprimer le cours ?",
   "zh": "删除课程？"
+ },
+ "Удалить из группы": {
+  "ar": "إزالة من المجموعة",
+  "de": "Aus der Gruppe entfernen",
+  "en": "Remove from group",
+  "es": "Quitar del grupo",
+  "fr": "Retirer du groupe",
+  "zh": "移出小组"
+ },
+ "Удалить объявление?": {
+  "ar": "حذف الإعلان؟",
+  "de": "Ankündigung löschen?",
+  "en": "Delete announcement?",
+  "es": "¿Eliminar el anuncio?",
+  "fr": "Supprimer l'annonce ?",
+  "zh": "删除公告？"
+ },
+ "Удалить пропуск?": {
+  "ar": "حذف هذا الغياب؟",
+  "de": "Fehlzeit löschen?",
+  "en": "Delete this absence?",
+  "es": "¿Eliminar la falta?",
+  "fr": "Supprimer cette absence ?",
+  "zh": "删除此缺勤？"
  },
  "Удалить профиль": {
   "ar": "حذف الملف الشخصي",
@@ -2015,6 +2575,14 @@
   "fr": "Supprimer l'emploi du temps ? Les devoirs et paramètres seront conservés.",
   "zh": "删除课表？作业和设置将保留。"
  },
+ "Удалить участника из группы?": {
+  "ar": "إزالة هذا العضو من المجموعة؟",
+  "de": "Mitglied aus der Gruppe entfernen?",
+  "en": "Remove this member from the group?",
+  "es": "¿Quitar a este miembro del grupo?",
+  "fr": "Retirer ce membre du groupe ?",
+  "zh": "将该成员移出小组？"
+ },
  "Уже есть профиль? Войти": {
   "ar": "لديك ملف شخصي؟ ادخل",
   "de": "Schon ein Profil? Anmelden",
@@ -2022,6 +2590,38 @@
   "es": "¿Ya tienes perfil? Entrar",
   "fr": "Déjà un profil ? Se connecter",
   "zh": "已有资料？登录"
+ },
+ "Уже отработано": {
+  "ar": "تم التعويض بالفعل",
+  "de": "Bereits nachgeholt",
+  "en": "Already made up",
+  "es": "Ya recuperado",
+  "fr": "Déjà rattrapé",
+  "zh": "已补课"
+ },
+ "Укажите предмет": {
+  "ar": "حدّد المادة",
+  "de": "Fach angeben",
+  "en": "Enter a subject",
+  "es": "Indica la asignatura",
+  "fr": "Indiquez la matière",
+  "zh": "请填写科目"
+ },
+ "Участники": {
+  "ar": "الأعضاء",
+  "de": "Mitglieder",
+  "en": "Members",
+  "es": "Miembros",
+  "fr": "Membres",
+  "zh": "成员"
+ },
+ "Участники · {0}": {
+  "ar": "الأعضاء · {0}",
+  "de": "Mitglieder · {0}",
+  "en": "Members · {0}",
+  "es": "Miembros · {0}",
+  "fr": "Membres · {0}",
+  "zh": "成员 · {0}"
  },
  "Файл .xlsx с сайта учебного отдела или из чата группы. Приложение само разберёт пары, недели и дисциплины по выбору.": {
   "ar": "ملف ‎.xlsx من موقع القسم الأكاديمي أو من دردشة المجموعة. سيتعرف التطبيق بنفسه على الحصص والأسابيع والمواد الاختيارية.",
@@ -2079,6 +2679,14 @@
   "fr": "Un fichier avec tous vos devoirs, modifications et paramètres. Il s'ouvre aussi sur le site, même sans profil.",
   "zh": "包含所有作业、修改和设置的文件，无需个人资料也可在网站上打开。"
  },
+ "Физорг": {
+  "ar": "منسق الرياضة",
+  "de": "Sportbeauftragter",
+  "en": "Sports organizer",
+  "es": "Organizador deportivo",
+  "fr": "Responsable sport",
+  "zh": "体育委员"
+ },
  "Через {0} мин: {1}": {
   "ar": "بعد {0} د: {1}",
   "de": "In {0} Min.: {1}",
@@ -2095,14 +2703,6 @@
   "fr": "Lecture du fichier…",
   "zh": "正在读取文件…"
  },
- "Что будет": {
-  "ar": "ما سيأتي",
-  "de": "Was kommt",
-  "en": "Coming soon",
-  "es": "Próximamente",
-  "fr": "À venir",
-  "zh": "即将推出"
- },
  "Что задали?": {
   "ar": "ما المطلوب؟",
   "de": "Was ist aufgegeben?",
@@ -2110,6 +2710,14 @@
   "es": "¿Qué han mandado?",
   "fr": "Qu'y a-t-il à faire ?",
   "zh": "布置了什么？"
+ },
+ "Что пропустили": {
+  "ar": "ما الذي فاتك",
+  "de": "Was verpasst",
+  "en": "What was missed",
+  "es": "Qué faltaste",
+  "fr": "Cours manqué",
+  "zh": "缺了什么课"
  },
  "Чтобы удалить профиль и облачную копию навсегда, введите пароль. Данные на устройстве сохранятся.": {
   "ar": "لحذف الملف الشخصي والنسخة السحابية نهائيًا، أدخل كلمة المرور. ستبقى البيانات على الجهاز.",
@@ -2127,6 +2735,14 @@
   "fr": "Ce n'est pas un fichier de sauvegarde KGMU",
   "zh": "这不是 KGMU 课表的备份文件"
  },
+ "Этот пользователь уже состоит в другой группе": {
+  "ar": "هذا المستخدم عضو في مجموعة أخرى",
+  "de": "Dieser Benutzer ist bereits in einer anderen Gruppe",
+  "en": "This user is already in another group",
+  "es": "Este usuario ya está en otro grupo",
+  "fr": "Cet utilisateur est déjà dans un autre groupe",
+  "zh": "该用户已在其他小组中"
+ },
  "Этот юзернейм уже занят": {
   "ar": "اسم المستخدم هذا مستخدم بالفعل",
   "de": "Dieser Benutzername ist schon vergeben",
@@ -2143,6 +2759,14 @@
   "fr": "Nom d'utilisateur",
   "zh": "用户名"
  },
+ "Юзернейм указан в профиле одногруппника.": {
+  "ar": "اسم المستخدم موجود في ملف الزميل الشخصي.",
+  "de": "Den Benutzernamen findest du im Profil des Kommilitonen.",
+  "en": "The username is shown in your groupmate's profile.",
+  "es": "El usuario aparece en el perfil de tu compañero.",
+  "fr": "Le nom d'utilisateur figure dans le profil du camarade.",
+  "zh": "用户名显示在同学的个人资料中。"
+ },
  "Юзернейм: 3–24 символа — латинские буквы, цифры, «_» и «.»": {
   "ar": "اسم المستخدم: من 3 إلى 24 حرفًا — أحرف لاتينية وأرقام و«_» و«.»",
   "de": "Benutzername: 3–24 Zeichen – lateinische Buchstaben, Ziffern, „_“ und „.“",
@@ -2158,6 +2782,22 @@
   "es": "Idioma",
   "fr": "Langue",
   "zh": "语言"
+ },
+ "вы": {
+  "ar": "أنت",
+  "de": "du",
+  "en": "you",
+  "es": "tú",
+  "fr": "vous",
+  "zh": "你"
+ },
+ "группа": {
+  "ar": "مجموعة",
+  "de": "Gruppe",
+  "en": "group",
+  "es": "grupo",
+  "fr": "groupe",
+  "zh": "组"
  },
  "группа {0}": {
   "ar": "المجموعة {0}",
@@ -2351,13 +2991,13 @@
   "fr": "inventez-en un, ex. anna.ivanova",
   "zh": "自己设定，例如 anna.ivanova"
  },
- "скоро": {
-  "ar": "قريبًا",
-  "de": "bald",
-  "en": "soon",
-  "es": "pronto",
-  "fr": "bientôt",
-  "zh": "即将"
+ "удалится через {0} дн.": {
+  "ar": "يُحذف بعد {0} ي",
+  "de": "wird in {0} T. gelöscht",
+  "en": "deleted in {0} d",
+  "es": "se elimina en {0} d",
+  "fr": "supprimée dans {0} j",
+  "zh": "{0} 天后删除"
  },
  "часть {0} из {1} · до перерыва {2}": {
   "ar": "الجزء {0} من {1} · استراحة بعد {2}",
@@ -2398,5 +3038,13 @@
   "es": "en {0} d {1} h",
   "fr": "dans {0} j {1} h",
   "zh": "还有 {0} 天 {1} 小时"
+ },
+ "юзернейм": {
+  "ar": "اسم المستخدم",
+  "de": "Benutzername",
+  "en": "username",
+  "es": "usuario",
+  "fr": "nom d'utilisateur",
+  "zh": "用户名"
  }
 }

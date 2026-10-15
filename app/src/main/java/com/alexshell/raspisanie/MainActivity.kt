@@ -373,6 +373,9 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         }
     }
 
+    // Свежие объявления группы — для значка на вкладке.
+    LaunchedEffect(Unit) { vm.cloud.pullGroup(quiet = true) }
+
     LaunchedEffect(vm.message) {
         vm.message?.let {
             snackbar.showSnackbar(it)
@@ -398,6 +401,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 items = Tab.entries.map { t ->
                     val pending = when (t) {
                         Tab.HOMEWORK -> vm.groupHomework().count { !it.done && it.dueDate >= now.toLocalDate() }
+                        Tab.GROUP -> vm.cloud.unseenNews()
                         else -> 0
                     }
                     NavItem(
@@ -430,7 +434,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                 )
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
-                Tab.GROUP -> GroupScreen(vm, padding)
+                Tab.GROUP -> GroupScreen(vm, padding, onOpenProfile = { settingsSection = 1; showSettings = true })
             }
         }
     }

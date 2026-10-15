@@ -70,3 +70,65 @@ data class CloudUser(
         )
     }
 }
+
+/** Группа: создатель и староста — по id участников. */
+data class GroupInfo(val id: String, val name: String, val creatorId: String, val starostaId: String)
+
+data class GroupMember(
+    val id: String, val username: String, val fullName: String, val avatar: String,
+    val role: String, val creator: Boolean, val starosta: Boolean,
+)
+
+data class GroupNews(
+    val id: String, val text: String, val created: String,
+    val authorId: String, val author: String, val authorAvatar: String,
+)
+
+/** Личный пропуск и отработка. Даты — «ГГГГ-ММ-ДД», время — «ЧЧ:ММ». */
+data class Absence(
+    val id: String, val date: String, val subject: String, val note: String,
+    val makeupDate: String, val makeupTime: String, val makeupPlace: String, val done: Boolean,
+)
+
+/** Ответ action=sync (и частичные ответы действий группы). */
+data class GroupState(
+    val group: GroupInfo?,
+    val members: List<GroupMember>,
+    val news: List<GroupNews>,
+    val absences: List<Absence>,
+) {
+    /** Новый ответ поверх старого: поля, которых нет в ответе, сохраняются. */
+    fun merge(o: org.json.JSONObject): GroupState = GroupState(
+        group = if (o.has("group")) o.optJSONObject("group")?.let {
+            GroupInfo(it.optString("id"), it.optString("name"), it.optString("creatorId"), it.optString("starostaId"))
+        } else group,
+        members = o.optJSONArray("members")?.let { a ->
+            List(a.length()) { i ->
+                val m = a.getJSONObject(i)
+                GroupMember(
+                    m.optString("id"), m.optString("username"), m.optString("fullName"), m.optString("avatar"),
+                    m.optString("role"), m.optBoolean("creator"), m.optBoolean("starosta"),
+                )
+            }
+        } ?: members,
+        news = o.optJSONArray("news")?.let { a ->
+            List(a.length()) { i ->
+                val n = a.getJSONObject(i)
+                GroupNews(n.optString("id"), n.optString("text"), n.optString("created"), n.optString("authorId"), n.optString("author"), n.optString("authorAvatar"))
+            }
+        } ?: news,
+        absences = o.optJSONArray("absences")?.let { a ->
+            List(a.length()) { i ->
+                val x = a.getJSONObject(i)
+                Absence(
+                    x.optString("id"), x.optString("date"), x.optString("subject"), x.optString("note"),
+                    x.optString("makeupDate"), x.optString("makeupTime"), x.optString("makeupPlace"), x.optBoolean("done"),
+                )
+            }
+        } ?: absences,
+    )
+
+    companion object {
+        val EMPTY = GroupState(null, emptyList(), emptyList(), emptyList())
+    }
+}

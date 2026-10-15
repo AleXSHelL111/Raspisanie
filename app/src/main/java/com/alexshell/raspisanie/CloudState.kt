@@ -10,6 +10,7 @@ import com.alexshell.raspisanie.data.Backup
 import com.alexshell.raspisanie.data.CloudApi
 import com.alexshell.raspisanie.data.CloudError
 import com.alexshell.raspisanie.data.CloudUser
+import com.alexshell.raspisanie.data.GroupState
 import com.alexshell.raspisanie.ui.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,6 +39,19 @@ class CloudState(private val vm: AppViewModel) {
     /** Что сейчас выполняется (для индикаторов на кнопках). */
     var busy by mutableStateOf<String?>(null)
         private set
+    /** Группа, объявления и личные пропуски (последний ответ сервера, хранится и офлайн). */
+    private var groupRaw = p.getString("groupData", null)?.let { runCatching { JSONObject(it) }.getOrNull() } ?: JSONObject()
+    var groupState by mutableStateOf(GroupState.EMPTY.merge(groupRaw))
+        private set
+    var groupLoaded by mutableStateOf(p.contains("groupData"))
+        private set
+    var pulling by mutableStateOf(false)
+        private set
+    var groupError by mutableStateOf<String?>(null)
+        private set
+    var newsSeen by mutableStateOf(p.getString("newsSeen", "").orEmpty())
+        private set
+
     /** Дата облачной копии, которую предлагаем загрузить после входа. */
     var restoreAsk by mutableStateOf<String?>(null)
 
@@ -56,7 +70,15 @@ class CloudState(private val vm: AppViewModel) {
     private fun clearSession() {
         token = null
         user = null
+        clearGroup()
         save()
+    }
+
+    private fun clearGroup() {
+        groupRaw = JSONObject()
+        groupState = GroupState.EMPTY
+        groupLoaded = false
+        p.edit().remove("groupData").apply()
     }
 
     fun errorText(code: String): String {
@@ -71,6 +93,19 @@ class CloudState(private val vm: AppViewModel) {
             "too_big" -> "Слишком большая копия"
             "network" -> "Нет связи с сервером"
             "no_server" -> "Сначала укажите адрес сервера"
+            "no_group" -> "Вы пока не состоите в группе"
+            "already_in_group" -> "Вы уже состоите в группе"
+            "bad_name" -> "Введите название группы"
+            "user_not_found" -> "Пользователь с таким юзернеймом не найден"
+            "already_member" -> "Он уже в вашей группе"
+            "in_other_group" -> "Этот пользователь уже состоит в другой группе"
+            "forbidden" -> "Недостаточно прав"
+            "not_found" -> "Запись не найдена"
+            "creator_cannot_leave" -> "Создатель не может выйти — можно только удалить группу"
+            "empty" -> "Введите текст"
+            "bad_date" -> "Неверная дата"
+            "bad_time" -> "Неверное время"
+            "bad_subject" -> "Укажите предмет"
             else -> return tr("Ошибка сервера: {0}", code)
         }
         return tr(key)
@@ -154,7 +189,9 @@ class CloudState(private val vm: AppViewModel) {
     private fun signedIn(r: JSONObject) {
         token = r.getString("token")
         user = CloudUser.from(r.getJSONObject("user"))
+        clearGroup()
         save()
+        pullGroup(quiet = true)
         vm.message = tr("Добро пожаловать, {0}!", user!!.fullName.substringBefore(' '))
     }
 
@@ -256,6 +293,102 @@ class CloudState(private val vm: AppViewModel) {
         restoreAsk = null
         if (load) download() else run("upload") { upload(silent = true) }
     }
+
+    // ---------- Группа, объявления, пропуски ----------
+
+    private fun applyGroup(r: JSONObject) {
+        for (k in listOf("group", "members", "news", "absences")) if (r.has(k)) groupRaw.put(k, r.get(k))
+        groupState = GroupState.EMPTY.merge(groupRaw)
+        groupLoaded = true
+        groupError = null
+        r.optJSONObject("user")?.let { user = CloudUser.from(it); save() }
+        p.edit().putString("groupData", groupRaw.toString()).apply()
+    }
+
+    fun pullGroup(quiet: Boolean = false) {
+        if (!loggedIn || pulling) return
+        vm.viewModelScope.launch {
+            pulling = true
+            try {
+                applyGroup(api("sync"))
+            } catch (e: CloudError) {
+                groupError = errorText(e.code)
+                if (!quiet) vm.message = groupError
+            } catch (e: Exception) {
+                groupError = e.message
+            } finally {
+                pulling = false
+            }
+        }
+    }
+
+    private fun groupAct(action: String, params: JSONObject = JSONObject(), ok: String? = null, then: () -> Unit = {}) = run("g") {
+        applyGroup(api(action, params))
+        ok?.let { vm.message = tr(it) }
+        then()
+    }
+
+    val myId: String? get() = user?.id
+    val canManage: Boolean get() = groupState.group?.let { it.creatorId == myId || it.starostaId == myId } == true
+    val isCreator: Boolean get() = groupState.group?.creatorId == myId
+
+    fun unseenNews(): Int {
+        if (!loggedIn) return 0
+        return groupState.news.count { it.authorId != myId && it.created > newsSeen }
+    }
+
+    fun markNewsSeen() {
+        val last = groupState.news.maxOfOrNull { it.created } ?: return
+        if (last > newsSeen) {
+            newsSeen = last
+            p.edit().putString("newsSeen", last).apply()
+        }
+    }
+
+    fun createGroup(name: String) {
+        if (name.isBlank()) { vm.message = errorText("bad_name"); return }
+        groupAct("groupCreate", JSONObject().put("name", name.trim()), "Группа создана")
+    }
+
+    fun renameGroup(name: String) {
+        if (name.isBlank()) { vm.message = errorText("bad_name"); return }
+        groupAct("groupRename", JSONObject().put("name", name.trim()))
+    }
+
+    fun leaveGroup() = groupAct("groupLeave", ok = "Вы вышли из группы")
+    fun deleteGroup() = groupAct("groupDelete", ok = "Группа удалена")
+
+    fun addMember(username: String, onDone: () -> Unit) {
+        val u = normUsername(username)
+        if (u.isEmpty()) { vm.message = tr("Введите юзернейм"); return }
+        groupAct("memberAdd", JSONObject().put("username", u), "Одногруппник добавлен", onDone)
+    }
+
+    fun removeMember(userId: String, onDone: () -> Unit) = groupAct("memberRemove", JSONObject().put("userId", userId), then = onDone)
+    fun setRole(userId: String, role: String, onDone: () -> Unit) =
+        groupAct("memberRole", JSONObject().put("userId", userId).put("role", role.trim()), "Роль сохранена", onDone)
+    fun setStarosta(userId: String, onDone: () -> Unit) =
+        groupAct("setStarosta", JSONObject().put("userId", userId), if (userId.isEmpty()) "Староста снят" else "Староста назначен", onDone)
+
+    fun addNews(text: String, onDone: () -> Unit) {
+        if (text.isBlank()) { vm.message = errorText("empty"); return }
+        groupAct("newsAdd", JSONObject().put("text", text.trim()), "Объявление опубликовано", onDone)
+    }
+
+    fun deleteNews(id: String) = groupAct("newsDelete", JSONObject().put("id", id))
+
+    fun saveAbsence(a: com.alexshell.raspisanie.data.Absence, onDone: () -> Unit) {
+        if (a.subject.isBlank()) { vm.message = errorText("bad_subject"); return }
+        groupAct(
+            "absSave",
+            JSONObject().put("id", a.id).put("date", a.date).put("subject", a.subject.trim()).put("note", a.note.trim())
+                .put("makeupDate", a.makeupDate).put("makeupTime", a.makeupTime).put("makeupPlace", a.makeupPlace.trim())
+                .put("done", a.done),
+            if (a.id.isEmpty()) "Пропуск добавлен" else "Сохранено", onDone,
+        )
+    }
+
+    fun deleteAbsence(id: String, onDone: () -> Unit) = groupAct("absDelete", JSONObject().put("id", id), then = onDone)
 
     companion object {
         /** Ссылка на веб-приложение вашей Google Таблицы (…/exec) — тогда вводить адрес в приложении не нужно. */

@@ -2,22 +2,31 @@
  * КГМУ расписание — сервер профилей и синхронизации.
  *
  * Хранит данные в этой Google Таблице:
- *   Users    — профили: юзернейм, полное имя, группа, аватар, хеш пароля
+ *   Users    — профили: юзернейм, полное имя, номер группы, аватар, хеш пароля
  *   Sessions — токены входа на устройствах
  *   Backups  — облачная копия ДЗ, правок, настроек и файла расписания
  *              (частями по 40 000 символов — ограничение ячейки)
+ *   Groups   — группы: название, создатель, староста
+ *   Members  — участники групп и их роли
+ *   News     — объявления (хранятся 3 недели, затем удаляются сами)
+ *   Absences — личные пропуски и отработки
  *
  * Установка: Расширения → Apps Script → вставить этот код → Сохранить →
  * Начать развертывание → Новое развертывание → тип «Веб-приложение»,
  * Запуск от имени: «Я», Доступ: «Все» → Развернуть → скопировать ссылку …/exec.
  */
 
-const VERSION = 2;
+const VERSION = 3;
+const NEWS_DAYS = 21; // сколько дней хранятся объявления
 const CHUNK = 40000;
 const SHEETS = {
   Users: ['id', 'username', 'fullName', 'group', 'avatar', 'salt', 'hash', 'created', 'seen'],
   Sessions: ['token', 'userId', 'created', 'seen'],
   Backups: ['userId', 'updated', 'part', 'data'],
+  Groups: ['id', 'name', 'creatorId', 'starostaId', 'created'],
+  Members: ['groupId', 'userId', 'role', 'added'],
+  News: ['id', 'groupId', 'authorId', 'text', 'created'],
+  Absences: ['id', 'userId', 'date', 'subject', 'note', 'makeupDate', 'makeupTime', 'makeupPlace', 'done', 'created', 'updated'],
 };
 
 /* ---------------- Вход ---------------- */
@@ -153,6 +162,92 @@ function newSession_(u) {
   return token;
 }
 
+/* ---------------- Группы ---------------- */
+
+function membership_(u) { return rows_('Members').filter(function (r) { return r.userId === u.id; })[0] || null; }
+
+function groupOf_(u) {
+  const m = membership_(u);
+  return m ? rows_('Groups').filter(function (g) { return g.id === m.groupId; })[0] || null : null;
+}
+
+/** Группа пользователя или ошибка, если он ни в одной не состоит. */
+function myGroup_(u) {
+  const g = groupOf_(u);
+  if (!g) fail('no_group');
+  return g;
+}
+
+/** Создатель и староста управляют составом и ролями. */
+function canManage_(g, u) { return g.creatorId === u.id || g.starostaId === u.id; }
+
+function deleteGroup_(g) {
+  ['Members', 'News'].forEach(function (n) {
+    deleteRows_(n, rows_(n).filter(function (r) { return r.groupId === g.id; }));
+  });
+  deleteRows_('Groups', [g]);
+}
+
+/** Удаляет объявления старше NEWS_DAYS дней — чтобы таблица не разрасталась. */
+function pruneNews_() {
+  const border = new Date(Date.now() - NEWS_DAYS * 86400000).toISOString();
+  const old = rows_('News').filter(function (r) { return r.created < border; });
+  if (old.length) deleteRows_('News', old);
+  return old.length;
+}
+
+/** Для триггера по времени (необязательно): Триггеры → cleanupOldNews → раз в день. */
+function cleanupOldNews() {
+  setup_();
+  return pruneNews_();
+}
+
+function groupView_(u) {
+  const g = groupOf_(u);
+  if (!g) return { group: null, members: [], news: [] };
+  const users = {};
+  rows_('Users').forEach(function (r) { users[r.id] = r; });
+  const members = rows_('Members').filter(function (m) { return m.groupId === g.id && users[m.userId]; }).map(function (m) {
+    const x = users[m.userId];
+    return {
+      id: x.id, username: x.username, fullName: x.fullName, avatar: x.avatar, role: m.role,
+      creator: x.id === g.creatorId, starosta: x.id === g.starostaId,
+    };
+  }).sort(function (a, b) {
+    const w = function (m) { return m.creator ? 0 : m.starosta ? 1 : m.role ? 2 : 3; };
+    return w(a) - w(b) || a.fullName.localeCompare(b.fullName, 'ru');
+  });
+  const news = rows_('News').filter(function (n) { return n.groupId === g.id; }).map(function (n) {
+    const a = users[n.authorId];
+    return { id: n.id, text: n.text, created: n.created, authorId: n.authorId,
+      author: a ? a.fullName : '', authorUsername: a ? a.username : '', authorAvatar: a ? a.avatar : '' };
+  }).sort(function (a, b) { return a.created < b.created ? 1 : -1; });
+  return {
+    group: { id: g.id, name: g.name, creatorId: g.creatorId, starostaId: g.starostaId, created: g.created },
+    members: members, news: news,
+  };
+}
+
+function absences_(u) {
+  return rows_('Absences').filter(function (r) { return r.userId === u.id; }).map(function (r) {
+    return { id: r.id, date: r.date, subject: r.subject, note: r.note, makeupDate: r.makeupDate,
+      makeupTime: r.makeupTime, makeupPlace: r.makeupPlace, done: r.done === 'true', created: r.created };
+  }).sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+}
+
+function date_(v, required) {
+  const s = str_(v, 10);
+  if (!s && !required) return '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) fail('bad_date');
+  return s;
+}
+
+function time_(v) {
+  const s = str_(v, 5);
+  if (s && !/^\d{1,2}:\d{2}$/.test(s)) fail('bad_time');
+  return s;
+}
+
 /* ---------------- Действия ---------------- */
 
 const ACTIONS = {
@@ -220,7 +315,10 @@ const ACTIONS = {
   deleteAccount: function (req) {
     const u = auth_(req);
     if (hash_(u.salt, String(req.password || '')) !== u.hash) fail('bad_password');
-    ['Sessions', 'Backups'].forEach(function (n) {
+    const g = groupOf_(u);
+    if (g && g.creatorId === u.id) deleteGroup_(g);
+    else if (g && g.starostaId === u.id) update_('Groups', g, { starostaId: '' });
+    ['Sessions', 'Backups', 'Members', 'Absences'].forEach(function (n) {
       deleteRows_(n, rows_(n).filter(function (r) { return r.userId === u.id; }));
     });
     deleteRows_('Users', [u]);
@@ -254,5 +352,141 @@ const ACTIONS = {
     const u = auth_(req);
     const p = rows_('Backups').filter(function (r) { return r.userId === u.id; })[0];
     return { updated: p ? p.updated : null };
+  },
+
+  /* ----- Группа ----- */
+
+  /** Всё для экрана «Моя группа» одним запросом: группа, участники, объявления, мои пропуски. */
+  sync: function (req) {
+    const u = auth_(req);
+    pruneNews_();
+    return Object.assign({ user: publicUser_(u), absences: absences_(u) }, groupView_(u));
+  },
+
+  groupCreate: function (req) {
+    const u = auth_(req);
+    if (membership_(u)) fail('already_in_group');
+    const name = str_(req.name, 60);
+    if (!name) fail('bad_name');
+    const g = { id: uid_(), name: name, creatorId: u.id, starostaId: '', created: now_() };
+    append_('Groups', g);
+    append_('Members', { groupId: g.id, userId: u.id, role: '', added: now_() });
+    return groupView_(u);
+  },
+
+  groupRename: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (g.creatorId !== u.id) fail('forbidden');
+    const name = str_(req.name, 60);
+    if (!name) fail('bad_name');
+    update_('Groups', g, { name: name });
+    return groupView_(u);
+  },
+
+  /** Добавить одногруппника по юзернейму (создатель или староста). */
+  memberAdd: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (!canManage_(g, u)) fail('forbidden');
+    const name = String(req.username || '').trim().replace(/^@/, '').toLowerCase();
+    const t = rows_('Users').filter(function (r) { return r.username === name; })[0];
+    if (!t) fail('user_not_found');
+    const m = membership_(t);
+    if (m) fail(m.groupId === g.id ? 'already_member' : 'in_other_group');
+    append_('Members', { groupId: g.id, userId: t.id, role: '', added: now_() });
+    return groupView_(u);
+  },
+
+  memberRemove: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (!canManage_(g, u)) fail('forbidden');
+    if (req.userId === g.creatorId || req.userId === u.id) fail('forbidden');
+    const m = rows_('Members').filter(function (r) { return r.groupId === g.id && r.userId === req.userId; })[0];
+    if (!m) fail('not_found');
+    deleteRows_('Members', [m]);
+    if (g.starostaId === req.userId) update_('Groups', g, { starostaId: '' });
+    return groupView_(u);
+  },
+
+  /** Своя роль: любая подпись — «Профорг», «Журнал», «Ответственный за ДЗ»… Пусто — снять. */
+  memberRole: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (!canManage_(g, u)) fail('forbidden');
+    const m = rows_('Members').filter(function (r) { return r.groupId === g.id && r.userId === req.userId; })[0];
+    if (!m) fail('not_found');
+    update_('Members', m, { role: str_(req.role, 40) });
+    return groupView_(u);
+  },
+
+  /** Назначить старосту (только создатель). userId пустой — снять. */
+  setStarosta: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (g.creatorId !== u.id) fail('forbidden');
+    const id = String(req.userId || '');
+    if (id && !rows_('Members').some(function (r) { return r.groupId === g.id && r.userId === id; })) fail('not_found');
+    update_('Groups', g, { starostaId: id });
+    return groupView_(u);
+  },
+
+  groupLeave: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (g.creatorId === u.id) fail('creator_cannot_leave');
+    deleteRows_('Members', rows_('Members').filter(function (r) { return r.userId === u.id; }));
+    if (g.starostaId === u.id) update_('Groups', g, { starostaId: '' });
+    return { group: null, members: [], news: [] };
+  },
+
+  groupDelete: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (g.creatorId !== u.id) fail('forbidden');
+    deleteGroup_(g);
+    return { group: null, members: [], news: [] };
+  },
+
+  /* ----- Объявления: пишут все участники, хранятся 3 недели ----- */
+
+  newsAdd: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    const text = str_(req.text, 3000);
+    if (!text) fail('empty');
+    append_('News', { id: uid_(), groupId: g.id, authorId: u.id, text: text, created: now_() });
+    pruneNews_();
+    return groupView_(u);
+  },
+
+  newsDelete: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    const n = rows_('News').filter(function (r) { return r.id === req.id && r.groupId === g.id; })[0];
+    if (!n) fail('not_found');
+    if (n.authorId !== u.id && !canManage_(g, u)) fail('forbidden');
+    deleteRows_('News', [n]);
+    return groupView_(u);
+  },
+
+  /* ----- Личные пропуски и отработки (видит только сам пользователь) ----- */
+
+  absSave: function (req) {
+    const u = auth_(req);
+    const item = {
+      date: date_(req.date, true), subject: str_(req.subject, 200), note: str_(req.note, 500),
+      makeupDate: date_(req.makeupDate, false), makeupTime: time_(req.makeupTime), makeupPlace: str_(req.makeupPlace, 200),
+      done: req.done ? 'true' : 'false', updated: now_(),
+    };
+    if (!item.subject) fail('bad_subject');
+    if (req.id) {
+      const r = rows_('Absences').filter(function (x) { return x.id === req.id && x.userId === u.id; })[0];
+      if (!r) fail('not_found');
+      update_('Absences', r, item);
+    } else {
+      append_('Absences', Object.assign({ id: uid_(), userId: u.id, created: now_() }, item));
+    }
+    return { absences: absences_(u) };
+  },
+
+  absDelete: function (req) {
+    const u = auth_(req);
+    const r = rows_('Absences').filter(function (x) { return x.id === req.id && x.userId === u.id; })[0];
+    if (!r) fail('not_found');
+    deleteRows_('Absences', [r]);
+    return { absences: absences_(u) };
   },
 };

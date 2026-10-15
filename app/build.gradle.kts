@@ -12,8 +12,8 @@ android {
         applicationId = "com.alexshell.raspisanie"
         minSdk = 26
         targetSdk = 35
-        versionCode = 17
-        versionName = "2.0.1"
+        versionCode = 18
+        versionName = "2.1"
     }
 
     // Постоянный ключ, чтобы новые сборки устанавливались поверх старых.
