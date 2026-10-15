@@ -437,6 +437,7 @@ private fun AbsenceSheet(vm: AppViewModel, initial: Absence, onDismiss: () -> Un
     var pick by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     val d = parseDate(date) ?: LocalDate.now()
+    val mk = parseDate(mkDate)
     val daySubjects = vm.lessonsOn(d).map { it.subject }.distinct()
     FormSheet(onDismiss) {
         Text(
@@ -454,7 +455,6 @@ private fun AbsenceSheet(vm: AppViewModel, initial: Absence, onDismiss: () -> Un
         FormSpacer()
         NeonField(note, { note = it }, tr("Заметка"), placeholder = tr("Например: болел, есть справка"))
         SectionTitle(tr("Отработка"), color = Neon.Cyan)
-        val mk = parseDate(mkDate)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlineButton(mk?.let { "📅 ${it.weekdayShort()}, ${it.dayMonth()}" } ?: tr("Дата"), Neon.Cyan, Modifier.weight(1.3f)) { pick = "mkDate" }
             OutlineButton(mkTime.ifBlank { tr("Время") }, Neon.Cyan, Modifier.weight(1f)) { pick = "mkTime" }
