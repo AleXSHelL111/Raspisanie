@@ -120,30 +120,7 @@ fun LessonEditor(vm: AppViewModel, original: Lesson?, initialDate: LocalDate, on
             )
             Spacer(Modifier.height(14.dp))
 
-            OutlinedTextField(
-                value = subject,
-                onValueChange = { subject = it },
-                label = { Text(tr("Предмет")) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp),
-                colors = fieldColors,
-            )
-            if (subjects.isNotEmpty()) {
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()).padding(top = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    subjects.forEach { s ->
-                        FilterChip(
-                            selected = s == subject,
-                            onClick = { subject = s },
-                            label = { Text(if (s.length > 28) s.take(26) + "…" else s) },
-                            colors = chipColors(),
-                        )
-                    }
-                }
-            }
+            NeonComboField(subject, { subject = it }, tr("Предмет"), subjects)
 
             Label(tr("Тип занятия"))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

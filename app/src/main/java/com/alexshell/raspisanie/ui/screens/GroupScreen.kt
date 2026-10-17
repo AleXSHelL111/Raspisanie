@@ -293,7 +293,7 @@ private fun GroupHwComposer(vm: AppViewModel) {
         Text(tr("ДЗ для всей группы"), color = Neon.Violet, fontWeight = FontWeight.Bold)
         Text(tr("Задание появится у всех одногруппников во вкладке «ДЗ»."), color = Neon.Muted, fontSize = 13.sp)
         Spacer(Modifier.height(8.dp))
-        ChoiceChips(vm.subjects().map { it to it }, subject) { subject = it }
+        com.alexshell.raspisanie.ui.components.NeonDropdown(tr("Предмет"), subject, vm.subjects(), { subject = it }, placeholder = tr("Выберите предмет"))
         if (subject != null) {
             Text(
                 target?.let { tr("К следующей паре: {0}", "${it.date.weekdayShort()}, ${it.date.dayMonth()}, ${it.timeText}") }
@@ -510,11 +510,10 @@ private fun AbsenceSheet(vm: AppViewModel, initial: Absence, onDismiss: () -> Un
         SectionTitle(tr("Когда пропустили"))
         OutlineButton("📅 ${d.weekdayShort()}, ${d.dayMonth()}", Neon.Cyan) { pick = "date" }
         FormSpacer()
-        NeonField(subject, { subject = it }, tr("Что пропустили"), placeholder = tr("Предмет"))
-        if (daySubjects.isNotEmpty()) {
-            Spacer(Modifier.height(6.dp))
-            ChoiceChips(daySubjects.map { it to it }, subject) { subject = it }
-        }
+        // Сначала пары этого дня, затем все остальные предметы; можно вписать своё.
+        com.alexshell.raspisanie.ui.components.NeonComboField(
+            subject, { subject = it }, tr("Что пропустили"), (daySubjects + vm.subjects()).distinct(), placeholder = tr("Предмет"),
+        )
         FormSpacer()
         NeonField(note, { note = it }, tr("Заметка"), placeholder = tr("Например: болел, есть справка"))
         SectionTitle(tr("Отработка"), color = Neon.Cyan)

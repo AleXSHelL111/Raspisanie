@@ -359,7 +359,8 @@ fun SegmentedTabs(
             val sel = i == selected
             Box(
                 Modifier
-                    .weight(1f)
+                    // Ширина по длине подписи — длинные («Объявления») не переносятся.
+                    .weight(if (items.size > 3) title.length.coerceAtLeast(3).toFloat() + 2f else 1f)
                     .height(40.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(
@@ -374,7 +375,11 @@ fun SegmentedTabs(
                     title,
                     color = if (sel) Neon.Cyan else Neon.Muted,
                     fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
-                    fontSize = 15.sp,
+                    fontSize = if (items.size > 3) 13.sp else 15.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 2.dp),
                 )
             }
         }

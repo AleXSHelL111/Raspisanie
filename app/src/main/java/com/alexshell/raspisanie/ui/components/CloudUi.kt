@@ -26,6 +26,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -207,3 +209,91 @@ fun <T> ChoiceChips(items: List<Pair<T, String>>, selected: T?, color: (T) -> Co
 
 @Composable
 fun FormSpacer() = Spacer(Modifier.height(10.dp))
+
+/** Выпадающий список выбора (например, предмета) в неоновом стиле. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun NeonDropdown(
+    label: String,
+    value: String?,
+    options: List<String>,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+) {
+    var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.material3.ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }, modifier = modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = value.orEmpty(),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            placeholder = placeholder?.let { { Text(it, color = Neon.Dim) } },
+            singleLine = true,
+            trailingIcon = { androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
+            modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Neon.Cyan, unfocusedBorderColor = Neon.Stroke,
+                focusedLabelColor = Neon.Cyan, unfocusedLabelColor = Neon.Muted,
+                focusedTextColor = Neon.Text, unfocusedTextColor = Neon.Text,
+            ),
+        )
+        androidx.compose.material3.ExposedDropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            containerColor = Neon.SurfaceHi,
+        ) {
+            options.forEach { o ->
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text(o, color = if (o == value) Neon.Cyan else Neon.Text, fontWeight = if (o == value) FontWeight.Bold else FontWeight.Normal) },
+                    onClick = { onSelect(o); open = false },
+                )
+            }
+        }
+    }
+}
+
+/** Поле ввода с выпадающими подсказками: можно выбрать из списка или вписать своё. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun NeonComboField(
+    value: String,
+    onChange: (String) -> Unit,
+    label: String,
+    options: List<String>,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+) {
+    var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val shown = if (value.isBlank() || value in options) options else options.filter { it.contains(value.trim(), ignoreCase = true) }
+    androidx.compose.material3.ExposedDropdownMenuBox(expanded = open && shown.isNotEmpty(), onExpandedChange = { open = it }, modifier = modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = { onChange(it); open = true },
+            label = { Text(label) },
+            placeholder = placeholder?.let { { Text(it, color = Neon.Dim) } },
+            singleLine = true,
+            trailingIcon = { if (options.isNotEmpty()) androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
+            modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable).fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Neon.Cyan, unfocusedBorderColor = Neon.Stroke,
+                focusedLabelColor = Neon.Cyan, unfocusedLabelColor = Neon.Muted,
+                focusedTextColor = Neon.Text, unfocusedTextColor = Neon.Text, cursorColor = Neon.Cyan,
+            ),
+        )
+        androidx.compose.material3.ExposedDropdownMenu(
+            expanded = open && shown.isNotEmpty(),
+            onDismissRequest = { open = false },
+            containerColor = Neon.SurfaceHi,
+        ) {
+            shown.forEach { o ->
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text(o, color = if (o == value) Neon.Cyan else Neon.Text) },
+                    onClick = { onChange(o); open = false },
+                )
+            }
+        }
+    }
+}

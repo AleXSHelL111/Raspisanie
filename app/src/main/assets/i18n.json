@@ -407,6 +407,14 @@
   "fr": "Vous êtes déjà dans un groupe",
   "zh": "你已经在小组中"
  },
+ "Выберите предмет": {
+  "ar": "اختر المادة",
+  "de": "Fach wählen",
+  "en": "Choose a subject",
+  "es": "Elige una asignatura",
+  "fr": "Choisissez une matière",
+  "zh": "选择科目"
+ },
  "Выберите свой поток": {
   "ar": "اختر دفعتك",
   "de": "Wähle deinen Zug",
