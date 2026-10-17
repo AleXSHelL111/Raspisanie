@@ -239,7 +239,7 @@ fun NeonDropdown(
                 focusedTextColor = Neon.Text, unfocusedTextColor = Neon.Text,
             ),
         )
-        androidx.compose.material3.ExposedDropdownMenu(
+        ExposedDropdownMenu(
             expanded = open,
             onDismissRequest = { open = false },
             containerColor = Neon.SurfaceHi,
@@ -283,7 +283,7 @@ fun NeonComboField(
                 focusedTextColor = Neon.Text, unfocusedTextColor = Neon.Text, cursorColor = Neon.Cyan,
             ),
         )
-        androidx.compose.material3.ExposedDropdownMenu(
+        ExposedDropdownMenu(
             expanded = open && shown.isNotEmpty(),
             onDismissRequest = { open = false },
             containerColor = Neon.SurfaceHi,
