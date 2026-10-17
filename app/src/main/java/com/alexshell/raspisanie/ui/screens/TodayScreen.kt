@@ -90,7 +90,7 @@ fun TodayScreen(
         item { SectionTitle(if (todayLessons.isEmpty()) tr("Сегодня пар нет") else tr("Сегодня") + " · ${todayLessons.size} ${plural(todayLessons.size.toLong(), "занятие", "занятия", "занятий")}") }
         items(todayLessons, key = { "t" + it.key }) { l ->
             val hw = vm.homeworkFor(l)
-            LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) })
+            LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) }, duty = vm.cloud.dutyFor(l)?.fullName)
         }
 
         if (nextDay != null) {
@@ -99,7 +99,7 @@ fun TodayScreen(
             }
             items(nextDayLessons, key = { "n" + it.key }) { l ->
                 val hw = vm.homeworkFor(l)
-                LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) })
+                LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) }, duty = vm.cloud.dutyFor(l)?.fullName)
             }
         }
 
@@ -136,13 +136,16 @@ private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: ()
     val today = now.toLocalDate()
     var langDialog by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     // Настройки — слева, язык — справа, в одну строку: часы остаются на прежнем месте.
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    var proDialog by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         NeonIconButton(Icons.Filled.Settings, tr("Настройки"), onClick = onOpenSettings)
+        com.alexshell.raspisanie.ui.components.ProButton { proDialog = true }
         com.alexshell.raspisanie.ui.components.NeonLabelButton(
             com.alexshell.raspisanie.ui.I18n.lang.uppercase(), tr("Язык"), color = Neon.Violet,
         ) { langDialog = true }
     }
     if (langDialog) com.alexshell.raspisanie.ui.components.LanguageDialog { langDialog = false }
+    if (proDialog) com.alexshell.raspisanie.ui.components.ProDialog { proDialog = false }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             now.clock(),
@@ -162,6 +165,12 @@ private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: ()
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             vm.group?.let { NeonChip(tr("группа {0}", it), Neon.Cyan) }
             vm.schedule?.takeIf { it.hasWeekParity }?.let { NeonChip(tr("{0} неделя", it.weekType(today)), Neon.Magenta) }
+        }
+        // Кто сегодня дежурит (назначают создатель и староста группы).
+        val duty = if (vm.cloud.inGroup) vm.cloud.groupState.duties.filter { it.date == today.toString() }.map { it.fullName }.distinct() else emptyList()
+        if (duty.isNotEmpty()) {
+            Spacer(Modifier.height(6.dp))
+            NeonChip("🧹 " + tr("Дежурный сегодня") + ": " + duty.joinToString(", "), Neon.Amber)
         }
     }
 }

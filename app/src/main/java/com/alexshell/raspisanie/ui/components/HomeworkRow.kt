@@ -61,6 +61,12 @@ fun HomeworkRow(
                     fontSize = 15.sp,
                     textDecoration = if (hw.done) TextDecoration.LineThrough else null,
                 )
+                if (hw.groupHwId != null) {
+                    Text(
+                        "👥 " + tr("ДЗ для группы") + (hw.author?.let { " · $it" } ?: ""),
+                        color = Neon.Violet, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    )
+                }
                 footer?.let {
                     Text(it, color = footerColor, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
                 }

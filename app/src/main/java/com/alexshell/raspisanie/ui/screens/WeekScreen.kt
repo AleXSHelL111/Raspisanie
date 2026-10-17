@@ -156,7 +156,7 @@ fun WeekScreen(
         }
         items(dayLessons, key = { it.key }) { l ->
             val hw = vm.homeworkFor(l)
-            LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) })
+            LessonCard(l, now, hw.size, hw.any { !it.done }, onClick = { onLesson(l) }, duty = vm.cloud.dutyFor(l)?.fullName)
         }
         item {
             OutlinedButton(

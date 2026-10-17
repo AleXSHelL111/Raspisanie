@@ -223,6 +223,14 @@
   "fr": "Saisissez votre nom d'utilisateur",
   "zh": "请输入用户名"
  },
+ "Версия {0}": {
+  "ar": "الإصدار {0}",
+  "de": "Version {0}",
+  "en": "Version {0}",
+  "es": "Versión {0}",
+  "fr": "Version {0}",
+  "zh": "版本 {0}"
+ },
  "Вечерние напоминания": {
   "ar": "تذكيرات المساء",
   "de": "Abenderinnerungen",
@@ -334,6 +342,14 @@
   "es": "Todas iguales ({0})",
   "fr": "Toutes ({0})",
   "zh": "所有同类 ({0})"
+ },
+ "Всего": {
+  "ar": "الإجمالي",
+  "de": "Gesamt",
+  "en": "Total",
+  "es": "Total",
+  "fr": "Total",
+  "zh": "总计"
  },
  "Вход": {
   "ar": "الدخول",
@@ -575,6 +591,30 @@
   "fr": "Devoir fait",
   "zh": "作业已完成"
  },
+ "ДЗ группы пока нет": {
+  "ar": "لا توجد واجبات للمجموعة بعد",
+  "de": "Noch keine Gruppenaufgaben",
+  "en": "No group homework yet",
+  "es": "Aún no hay tareas del grupo",
+  "fr": "Pas encore de devoirs de groupe",
+  "zh": "暂无小组作业"
+ },
+ "ДЗ для всей группы": {
+  "ar": "واجب لكل المجموعة",
+  "de": "Aufgabe für die ganze Gruppe",
+  "en": "Homework for the whole group",
+  "es": "Tarea para todo el grupo",
+  "fr": "Devoirs pour tout le groupe",
+  "zh": "全组作业"
+ },
+ "ДЗ для группы": {
+  "ar": "واجب المجموعة",
+  "de": "Gruppenaufgabe",
+  "en": "Group homework",
+  "es": "Tarea del grupo",
+  "fr": "Devoir du groupe",
+  "zh": "小组作业"
+ },
  "ДЗ добавлено на {0}": {
   "ar": "أُضيف الواجب ليوم {0}",
   "de": "Aufgabe für {0} hinzugefügt",
@@ -598,6 +638,14 @@
   "es": "Tareas para mañana: {0}",
   "fr": "Devoirs pour demain : {0}",
   "zh": "明天的作业：{0}"
+ },
+ "ДЗ отправлено всей группе": {
+  "ar": "تم إرسال الواجب لكل المجموعة",
+  "de": "Aufgabe an die ganze Gruppe gesendet",
+  "en": "Homework sent to the whole group",
+  "es": "Tarea enviada a todo el grupo",
+  "fr": "Devoir envoyé à tout le groupe",
+  "zh": "作业已发送给全组"
  },
  "ДЗ, правки расписания, настройки и сам файл расписания сохраняются в облаке. Войдите под тем же юзернеймом на другом телефоне или на сайте — и всё перенесётся.": {
   "ar": "تُحفظ الواجبات وتعديلات الجدول والإعدادات وملف الجدول نفسه في السحابة. سجّل الدخول باسم المستخدم نفسه على هاتف آخر أو على الموقع وسينتقل كل شيء.",
@@ -655,6 +703,46 @@
   "fr": "Date et heure",
   "zh": "日期和时间"
  },
+ "Дежурный": {
+  "ar": "المناوب",
+  "de": "Dienst",
+  "en": "On duty",
+  "es": "De guardia",
+  "fr": "De service",
+  "zh": "值日生"
+ },
+ "Дежурный на пару": {
+  "ar": "المناوب في هذه الحصة",
+  "de": "Dienst für diesen Kurs",
+  "en": "On duty for this class",
+  "es": "De guardia en esta clase",
+  "fr": "De service pour ce cours",
+  "zh": "本节课值日生"
+ },
+ "Дежурный назначен": {
+  "ar": "تم تعيين المناوب",
+  "de": "Dienst zugewiesen",
+  "en": "Duty assigned",
+  "es": "Guardia asignada",
+  "fr": "Service attribué",
+  "zh": "已安排值日生"
+ },
+ "Дежурный сегодня": {
+  "ar": "المناوب اليوم",
+  "de": "Heute Dienst",
+  "en": "On duty today",
+  "es": "De guardia hoy",
+  "fr": "De service aujourd'hui",
+  "zh": "今日值日生"
+ },
+ "Дежурный снят": {
+  "ar": "تم إلغاء المناوب",
+  "de": "Dienst entfernt",
+  "en": "Duty removed",
+  "es": "Guardia quitada",
+  "fr": "Service retiré",
+  "zh": "已取消值日生"
+ },
  "Дисциплина по выбору": {
   "ar": "مادة اختيارية",
   "de": "Wahlfach",
@@ -678,6 +766,22 @@
   "es": "Optativas",
   "fr": "Options",
   "zh": "选修课"
+ },
+ "Для всей группы": {
+  "ar": "لكل المجموعة",
+  "de": "Für die ganze Gruppe",
+  "en": "For the whole group",
+  "es": "Para todo el grupo",
+  "fr": "Pour tout le groupe",
+  "zh": "发给全组"
+ },
+ "Добавим функции ИИ": {
+  "ar": "ميزات الذكاء الاصطناعي قادمة",
+  "de": "KI-Funktionen kommen",
+  "en": "AI features are coming",
+  "es": "Llegan funciones de IA",
+  "fr": "L'IA arrive bientôt",
+  "zh": "AI 功能即将上线"
  },
  "Добавить ДЗ": {
   "ar": "إضافة واجب",
@@ -711,13 +815,21 @@
   "fr": "Ajouter un camarade",
   "zh": "添加同学"
  },
- "Добавить пропуск": {
-  "ar": "إضافة غياب",
-  "de": "Fehlzeit hinzufügen",
-  "en": "Add absence",
-  "es": "Añadir falta",
-  "fr": "Ajouter une absence",
-  "zh": "添加缺勤"
+ "Добавить отработку": {
+  "ar": "إضافة تعويض",
+  "de": "Nachholtermin hinzufügen",
+  "en": "Add make-up",
+  "es": "Añadir recuperación",
+  "fr": "Ajouter un rattrapage",
+  "zh": "添加补课"
+ },
+ "Добавьте задание — оно появится у всех в личных ДЗ.": {
+  "ar": "أضف واجبًا وسيظهر في واجبات الجميع.",
+  "de": "Füge eine Aufgabe hinzu – sie erscheint bei allen in den Aufgaben.",
+  "en": "Add an assignment and it will appear in everyone's homework.",
+  "es": "Añade una tarea y aparecerá en las tareas de todos.",
+  "fr": "Ajoutez un devoir : il apparaîtra chez tout le monde.",
+  "zh": "添加作业后，它会出现在每个人的作业中。"
  },
  "Добро пожаловать, {0}!": {
   "ar": "أهلًا بك يا {0}!",
@@ -839,6 +951,14 @@
   "fr": "Chargement…",
   "zh": "加载中…"
  },
+ "Задание появится у всех одногруппников во вкладке «ДЗ».": {
+  "ar": "سيظهر الواجب في تبويب «الواجبات» لدى كل الزملاء.",
+  "de": "Die Aufgabe erscheint bei allen im Tab „Aufgaben“.",
+  "en": "The assignment will appear in every groupmate's Homework tab.",
+  "es": "La tarea aparecerá en la pestaña «Tareas» de todos.",
+  "fr": "Le devoir apparaîtra dans l'onglet Devoirs de chaque camarade.",
+  "zh": "作业会出现在每位同学的“作业”标签页中。"
+ },
  "Закат": {
   "ar": "الغروب",
   "de": "Sonnenuntergang",
@@ -846,6 +966,14 @@
   "es": "Atardecer",
   "fr": "Coucher de soleil",
   "zh": "日落"
+ },
+ "Закрыть": {
+  "ar": "إغلاق",
+  "de": "Schließen",
+  "en": "Close",
+  "es": "Cerrar",
+  "fr": "Fermer",
+  "zh": "关闭"
  },
  "Заменить данные на этом устройстве данными из файла?": {
   "ar": "استبدال بيانات هذا الجهاز ببيانات الملف؟",
@@ -1423,6 +1551,14 @@
   "fr": "Non, garder celles-ci",
   "zh": "不，保留当前数据"
  },
+ "Новая отработка": {
+  "ar": "تعويض جديد",
+  "de": "Neuer Nachholtermin",
+  "en": "New make-up",
+  "es": "Nueva recuperación",
+  "fr": "Nouveau rattrapage",
+  "zh": "新补课"
+ },
  "Новое занятие": {
   "ar": "حصة جديدة",
   "de": "Neuer Kurs",
@@ -1615,6 +1751,14 @@
   "fr": "Marqué comme rattrapé",
   "zh": "已标记为已补课"
  },
+ "Отправить группе": {
+  "ar": "إرسال للمجموعة",
+  "de": "An die Gruppe senden",
+  "en": "Send to group",
+  "es": "Enviar al grupo",
+  "fr": "Envoyer au groupe",
+  "zh": "发送给小组"
+ },
  "Отправляю…": {
   "ar": "جارٍ الإرسال…",
   "de": "Wird gesendet…",
@@ -1639,6 +1783,14 @@
   "fr": "Rattrapage",
   "zh": "补课"
  },
+ "Отработка добавлена": {
+  "ar": "تمت إضافة التعويض",
+  "de": "Nachholtermin hinzugefügt",
+  "en": "Make-up added",
+  "es": "Recuperación añadida",
+  "fr": "Rattrapage ajouté",
+  "zh": "已添加补课"
+ },
  "Отработка не назначена": {
   "ar": "لم يُحدَّد موعد التعويض",
   "de": "Kein Nachholtermin",
@@ -1646,6 +1798,30 @@
   "es": "Recuperación sin fijar",
   "fr": "Aucun rattrapage prévu",
   "zh": "尚未安排补课"
+ },
+ "Отработки": {
+  "ar": "التعويضات",
+  "de": "Nachholen",
+  "en": "Make-ups",
+  "es": "Recuperaciones",
+  "fr": "Rattrapages",
+  "zh": "补课"
+ },
+ "Отработки видите только вы": {
+  "ar": "أنت وحدك ترى تعويضاتك",
+  "de": "Nur du siehst deine Nachholtermine",
+  "en": "Only you can see your make-ups",
+  "es": "Solo tú ves tus recuperaciones",
+  "fr": "Vous seul voyez vos rattrapages",
+  "zh": "只有你能看到自己的补课"
+ },
+ "Отработок нет 🎉": {
+  "ar": "لا تعويضات 🎉",
+  "de": "Nichts nachzuholen 🎉",
+  "en": "No make-ups 🎉",
+  "es": "Sin recuperaciones 🎉",
+  "fr": "Aucun rattrapage 🎉",
+  "zh": "没有补课 🎉"
  },
  "Ошибка импорта: {0}": {
   "ar": "خطأ في الاستيراد: {0}",
@@ -1782,6 +1958,14 @@
   "es": "Espera…",
   "fr": "Patientez…",
   "zh": "请稍候…"
+ },
+ "Подпишись на соцсети": {
+  "ar": "تابعنا",
+  "de": "Folge uns",
+  "en": "Follow us",
+  "es": "Síguenos",
+  "fr": "Suivez-nous",
+  "zh": "关注我们"
  },
  "Подходит файл того же формата, что выкладывает учебный отдел. Можно также открыть .xlsx из Telegram или проводника через «Открыть с помощью».": {
   "ar": "يناسب ملف بنفس الصيغة التي ينشرها القسم الأكاديمي. يمكنك أيضًا فتح ‎.xlsx من تيليجرام أو مدير الملفات عبر «فتح باستخدام».",
@@ -1943,38 +2127,6 @@
   "fr": "Absence ajoutée",
   "zh": "已添加缺勤"
  },
- "Пропуски": {
-  "ar": "الغيابات",
-  "de": "Fehlzeiten",
-  "en": "Absences",
-  "es": "Faltas",
-  "fr": "Absences",
-  "zh": "缺勤"
- },
- "Пропуски видите только вы": {
-  "ar": "أنت وحدك ترى غياباتك",
-  "de": "Nur du siehst deine Fehlzeiten",
-  "en": "Only you can see your absences",
-  "es": "Solo tú ves tus faltas",
-  "fr": "Vous seul voyez vos absences",
-  "zh": "只有你能看到自己的缺勤"
- },
- "Пропусков нет 🎉": {
-  "ar": "لا غيابات 🎉",
-  "de": "Keine Fehlzeiten 🎉",
-  "en": "No absences 🎉",
-  "es": "Sin faltas 🎉",
-  "fr": "Aucune absence 🎉",
-  "zh": "没有缺勤 🎉"
- },
- "Пропущено": {
-  "ar": "غياب",
-  "de": "Verpasst",
-  "en": "Missed",
-  "es": "Faltas",
-  "fr": "Manqués",
-  "zh": "缺勤"
- },
  "Профиль": {
   "ar": "الملف الشخصي",
   "de": "Profil",
@@ -2007,6 +2159,14 @@
   "fr": "Délégué syndical",
   "zh": "工会委员"
  },
+ "Прошедшие": {
+  "ar": "السابقة",
+  "de": "Vergangene",
+  "en": "Past",
+  "es": "Pasadas",
+  "fr": "Passés",
+  "zh": "已过去"
+ },
  "РАСПИСАНИЕ": {
   "ar": "الجدول",
   "de": "STUNDENPLAN",
@@ -2022,6 +2182,14 @@
   "es": "Actividad en segundo plano permitida",
   "fr": "Activité en arrière-plan autorisée",
   "zh": "已允许后台运行"
+ },
+ "Раздел в разработке": {
+  "ar": "قيد التطوير",
+  "de": "In Entwicklung",
+  "en": "Coming soon",
+  "es": "En desarrollo",
+  "fr": "En développement",
+  "zh": "开发中"
  },
  "Разрешить": {
   "ar": "سماح",
@@ -2270,6 +2438,14 @@
   "es": "Indica primero la dirección del servidor",
   "fr": "Indiquez d'abord l'adresse du serveur",
   "zh": "请先填写服务器地址"
+ },
+ "Снять": {
+  "ar": "إلغاء",
+  "de": "Entfernen",
+  "en": "Remove",
+  "es": "Quitar",
+  "fr": "Retirer",
+  "zh": "取消"
  },
  "Снять со старосты": {
   "ar": "إلغاء دور رئيس المجموعة",
@@ -2551,6 +2727,14 @@
   "fr": "Supprimer le groupe pour tous ? Les annonces seront aussi supprimées.",
   "zh": "为所有成员删除小组？公告也会被删除。"
  },
+ "Удалить задание для всей группы?": {
+  "ar": "حذف الواجب للمجموعة كلها؟",
+  "de": "Aufgabe für die ganze Gruppe löschen?",
+  "en": "Delete this assignment for the whole group?",
+  "es": "¿Eliminar la tarea para todo el grupo?",
+  "fr": "Supprimer ce devoir pour tout le groupe ?",
+  "zh": "为全组删除此作业？"
+ },
  "Удалить занятие?": {
   "ar": "حذف الحصة؟",
   "de": "Kurs löschen?",
@@ -2575,13 +2759,13 @@
   "fr": "Supprimer l'annonce ?",
   "zh": "删除公告？"
  },
- "Удалить пропуск?": {
-  "ar": "حذف هذا الغياب؟",
-  "de": "Fehlzeit löschen?",
-  "en": "Delete this absence?",
-  "es": "¿Eliminar la falta?",
-  "fr": "Supprimer cette absence ?",
-  "zh": "删除此缺勤？"
+ "Удалить отработку?": {
+  "ar": "حذف هذا التعويض؟",
+  "de": "Nachholtermin löschen?",
+  "en": "Delete this make-up?",
+  "es": "¿Eliminar la recuperación?",
+  "fr": "Supprimer ce rattrapage ?",
+  "zh": "删除此补课？"
  },
  "Удалить профиль": {
   "ar": "حذف الملف الشخصي",
@@ -2846,6 +3030,14 @@
   "es": "sí",
   "fr": "oui",
   "zh": "是"
+ },
+ "для расписания и не только😉": {
+  "ar": "للجدول وأكثر😉",
+  "de": "für den Stundenplan und mehr😉",
+  "en": "for your schedule and more😉",
+  "es": "para el horario y mucho más😉",
+  "fr": "pour l'emploi du temps et plus encore😉",
+  "zh": "不只是课表😉"
  },
  "дней": {
   "ar": "يوم|أيام",

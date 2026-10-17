@@ -150,7 +150,7 @@ fun GroupScreen(vm: AppViewModel, padding: PaddingValues, onOpenProfile: () -> U
         item {
             val dot = if (tab != 0 && c.unseenNews() > 0) " •" else ""
             SegmentedTabs(
-                listOf(tr("Объявления") + dot to true, tr("Участники") to true, tr("Пропуски") to true),
+                listOf(tr("Объявления") + dot to true, tr("ДЗ") to true, tr("Участники") to true, tr("Отработки") to true),
                 tab, { tab = it }, horizontalPadding = 0.dp,
             )
         }
@@ -165,9 +165,10 @@ fun GroupScreen(vm: AppViewModel, padding: PaddingValues, onOpenProfile: () -> U
             return@LazyColumn
         }
         when {
-            tab == 2 -> absTab(vm, d) { sheet = GSheet.Abs(it) }
+            tab == 3 -> absTab(vm, d) { sheet = GSheet.Abs(it) }
             d.group == null -> item { NoGroupCard(vm) }
-            tab == 1 -> membersTab(vm, d, onMember = { sheet = GSheet.Member(it) }, onRename = { renaming = true }, onConfirm = { confirm = it })
+            tab == 1 -> groupHwTab(vm, d)
+            tab == 2 -> membersTab(vm, d, onMember = { sheet = GSheet.Member(it) }, onRename = { renaming = true }, onConfirm = { confirm = it })
             else -> newsTab(vm, d)
         }
     }
@@ -247,6 +248,68 @@ private fun NewsComposer(vm: AppViewModel) {
     }
 }
 
+private fun LazyListScope.groupHwTab(vm: AppViewModel, d: GroupState) {
+    val c = vm.cloud
+    val today = LocalDate.now()
+    val up = d.homework.filter { (parseDate(it.date) ?: today) >= today }
+    val past = d.homework.filter { (parseDate(it.date) ?: today) < today }.reversed().take(10)
+    item { GroupHwComposer(vm) }
+    if (d.homework.isEmpty()) item {
+        NeonCard(accent = Neon.Violet) {
+            Text(tr("ДЗ группы пока нет"), color = Neon.Violet, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(tr("Добавьте задание — оно появится у всех в личных ДЗ."), color = Neon.Muted)
+        }
+    }
+    listOf(up to tr("Предстоящие · {0}", up.size), past to tr("Прошедшие")).forEach { (list, title) ->
+        if (list.isNotEmpty()) item { SectionTitle(title, color = if (list === up) Neon.Violet else Neon.Muted) }
+        items(list, key = { "gh" + it.id }) { h ->
+            NeonCard(accent = Neon.Violet, corner = 18.dp) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1f)) {
+                        Text(h.subject, color = Neon.Violet, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(h.text, fontSize = 15.sp)
+                        val dd = parseDate(h.date)
+                        Text(
+                            tr("к паре: {0}", "${dd?.relative(today) ?: h.date}, ${com.alexshell.raspisanie.data.TimeSlot.fmt(h.start)}") + " · " + h.author,
+                            color = Neon.Dim, fontSize = 12.sp,
+                        )
+                    }
+                    if (h.authorId == c.myId || c.canManage) {
+                        IconButton(onClick = { c.deleteGroupHomework(h.id) }) { Icon(Icons.Filled.Delete, tr("Удалить"), tint = Neon.Dim) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GroupHwComposer(vm: AppViewModel) {
+    val c = vm.cloud
+    var subject by rememberSaveable { mutableStateOf<String?>(null) }
+    var text by rememberSaveable { mutableStateOf("") }
+    val target = subject?.let { vm.nextBySubject(it) }
+    NeonCard(accent = Neon.Violet) {
+        Text(tr("ДЗ для всей группы"), color = Neon.Violet, fontWeight = FontWeight.Bold)
+        Text(tr("Задание появится у всех одногруппников во вкладке «ДЗ»."), color = Neon.Muted, fontSize = 13.sp)
+        Spacer(Modifier.height(8.dp))
+        ChoiceChips(vm.subjects().map { it to it }, subject) { subject = it }
+        if (subject != null) {
+            Text(
+                target?.let { tr("К следующей паре: {0}", "${it.date.weekdayShort()}, ${it.date.dayMonth()}, ${it.timeText}") }
+                    ?: tr("Будущих пар по предмету нет"),
+                color = if (target != null) Neon.Cyan else Neon.Amber, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+        FormSpacer()
+        NeonField(text, { text = it }, tr("Что задали?"), minLines = 2)
+        Spacer(Modifier.height(10.dp))
+        OutlineButton(tr("Отправить группе"), Neon.Violet, enabled = target != null && text.isNotBlank() && c.busy == null, loading = c.busy == "g") {
+            target?.let { c.addGroupHomework(it, text) { text = ""; subject = null } }
+        }
+    }
+}
+
 private fun LazyListScope.membersTab(
     vm: AppViewModel, d: GroupState,
     onMember: (String) -> Unit, onRename: () -> Unit, onConfirm: (String) -> Unit,
@@ -311,7 +374,7 @@ private fun LazyListScope.absTab(vm: AppViewModel, d: GroupState, onOpen: (Absen
     item {
         NeonCard(accent = Neon.Lime, glow = true) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                listOf(Triple(list.size, "Пропущено", Neon.Magenta), Triple(done, "Отработано", Neon.Lime), Triple(list.size - done, "Осталось", Neon.Amber))
+                listOf(Triple(list.size, "Всего", Neon.Magenta), Triple(done, "Отработано", Neon.Lime), Triple(list.size - done, "Осталось", Neon.Amber))
                     .forEach { (n, t, color) ->
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("$n", fontSize = 30.sp, fontWeight = FontWeight.Black, color = color)
@@ -319,18 +382,18 @@ private fun LazyListScope.absTab(vm: AppViewModel, d: GroupState, onOpen: (Absen
                         }
                     }
             }
-            Text(tr("Пропуски видите только вы"), color = Neon.Dim, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+            Text(tr("Отработки видите только вы"), color = Neon.Dim, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
         }
     }
     item {
-        GradientButton("+  " + tr("Добавить пропуск")) {
+        GradientButton("+  " + tr("Добавить отработку")) {
             val today = LocalDate.now()
             onOpen(Absence("", today.toString(), vm.lessonsOn(today).firstOrNull()?.subject.orEmpty(), "", "", "", "", false))
         }
     }
     if (list.isEmpty()) item {
         NeonCard(accent = Neon.Lime) {
-            Text(tr("Пропусков нет 🎉"), color = Neon.Lime, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(tr("Отработок нет 🎉"), color = Neon.Lime, fontWeight = FontWeight.Bold, fontSize = 17.sp)
             Text(tr("Отмечайте пропуски и время отработки, чтобы ничего не забыть."), color = Neon.Muted)
         }
     }
@@ -441,7 +504,7 @@ private fun AbsenceSheet(vm: AppViewModel, initial: Absence, onDismiss: () -> Un
     val daySubjects = vm.lessonsOn(d).map { it.subject }.distinct()
     FormSheet(onDismiss) {
         Text(
-            if (initial.id.isEmpty()) tr("Добавить пропуск") else tr("Пропуск"),
+            if (initial.id.isEmpty()) tr("Новая отработка") else tr("Отработка"),
             fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Neon.Lime, style = TextStyle(shadow = Neon.glow(Neon.Lime, 18f)),
         )
         SectionTitle(tr("Когда пропустили"))
@@ -485,7 +548,7 @@ private fun AbsenceSheet(vm: AppViewModel, initial: Absence, onDismiss: () -> Un
             NeonTimePickerDialog(tr("Время"), init, onDismiss = { pick = null }, onConfirm = { m -> mkTime = "%02d:%02d".format(m / 60, m % 60); pick = null })
         }
     }
-    if (confirmDelete) ConfirmDialog(tr("Удалить"), tr("Удалить пропуск?"), { confirmDelete = false }) {
+    if (confirmDelete) ConfirmDialog(tr("Удалить"), tr("Удалить отработку?"), { confirmDelete = false }) {
         confirmDelete = false; c.deleteAbsence(initial.id, onDismiss)
     }
 }

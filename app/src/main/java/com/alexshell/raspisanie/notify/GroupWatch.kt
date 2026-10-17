@@ -57,7 +57,8 @@ object GroupWatch {
         if (url.isBlank()) return
         I18n.init(context)
         val first = !p.contains("watchSince")
-        val since = p.getString("watchSince", null) ?: java.time.Instant.now().toString()
+        // Первый раз — «9999»: ничего старого не присылаем, дальше — время сервера (часы телефона могут спешить).
+        val since = p.getString("watchSince", null) ?: "9999"
         val r = try {
             withContext(Dispatchers.IO) {
                 CloudApi.call(url, JSONObject().put("action", "poll").put("token", token).put("since", since))
@@ -72,7 +73,17 @@ object GroupWatch {
         if (group != null && prevGroup != null && prevGroup != groupId) {
             Notifier.showGroup(context, 7000, tr("Вас добавили в группу"), "«" + group.optString("name") + "»")
         }
-        var last = since
+        var last = r.optString("now").ifEmpty { since }
+        r.optJSONArray("homework")?.takeIf { !first }?.let { hw ->
+            for (i in 0 until hw.length()) {
+                val h = hw.getJSONObject(i)
+                Notifier.showGroup(
+                    context, 7300 + (h.optString("id").hashCode() and 0xFFF),
+                    "📝 " + tr("ДЗ для группы") + ": " + h.optString("subject"),
+                    h.optString("text") + h.optString("author").let { if (it.isBlank()) "" else " — $it" },
+                )
+            }
+        }
         val news = r.optJSONArray("news")
         if (news != null && !first) {
             for (i in 0 until news.length()) {

@@ -100,6 +100,34 @@ c({ action: 'newsAdd', token: v.token, text: 'Своё не уведомляет
 r = c({ action: 'poll', token: v.token, since: t0 }); assert.equal(r.news.length, 1); assert.equal(r.news[0].author, 'Анна Иванова');
 r = c({ action: 'poll', token: v.token, since: r.news[0].created }); assert.equal(r.news.length, 0);
 
+// ---------- ДЗ группы и дежурные ----------
+const today = new Date().toISOString().slice(0, 10);
+r = c({ action: 'groupHwAdd', token: g1.token, subject: 'X', date: today, text: 't' }); assert.equal(r.error, 'no_group');
+r = c({ action: 'groupHwAdd', token: v.token, subject: 'Гигиена', date: '20.10', text: 't' }); assert.equal(r.error, 'bad_date');
+r = c({ action: 'groupHwAdd', token: v.token, subject: 'Гигиена', date: today, start: 600, text: '' }); assert.equal(r.error, 'empty');
+const t1 = new Date(Date.now() - 1).toISOString();
+r = c({ action: 'groupHwAdd', token: v.token, subject: 'Гигиена', date: today, start: 600, text: 'Выучить тему 3' }); assert.ok(r.ok);
+assert.equal(r.homework.length, 1); assert.equal(r.homework[0].author, 'Вера Смирнова'); assert.equal(r.homework[0].start, 600);
+r = c({ action: 'poll', token: a.token, since: t1 }); assert.equal(r.homework.length, 1); // для уведомлений
+r = c({ action: 'poll', token: v.token, since: t1 }); assert.equal(r.homework.length, 0); // своё — нет
+const ghwId = r.ok && c({ action: 'sync', token: a.token }).homework[0].id;
+r = c({ action: 'groupHwDelete', token: g1.token, id: ghwId }); assert.equal(r.error, 'no_group');
+// старое ДЗ (40 дней назад) удаляется при синхронизации
+env.sheets.GroupHw.data.push(['old', c({ action: 'sync', token: a.token }).group.id, a.user.id, 'Старое', '2020-01-01', '480', 'x', '2020-01-01T00:00:00Z']);
+r = c({ action: 'sync', token: a.token }); assert.equal(r.homework.length, 1);
+// дежурные: только создатель/староста
+r = c({ action: 'dutySet', token: v.token, date: today, start: 480, userId: v.user.id }); assert.equal(r.error, 'forbidden');
+r = c({ action: 'dutySet', token: a.token, date: today, start: 480, subject: 'Фармакология', userId: 'nope' }); assert.equal(r.error, 'not_found');
+r = c({ action: 'dutySet', token: a.token, date: today, start: 480, subject: 'Фармакология', userId: v.user.id }); assert.ok(r.ok);
+assert.equal(r.duties.length, 1); assert.equal(r.duties[0].fullName, 'Вера Смирнова'); assert.equal(r.duties[0].start, 480);
+r = c({ action: 'dutySet', token: a.token, date: today, start: 480, userId: a.user.id }); assert.equal(r.duties.length, 1); assert.equal(r.duties[0].userId, a.user.id); // замена
+r = c({ action: 'sync', token: v.token }); assert.equal(r.duties[0].fullName, 'Анна Иванова'); // все видят
+const dutyBefore = c({ action: 'poll', token: v.token, since: '' }).duty;
+r = c({ action: 'dutySet', token: a.token, date: today, start: 480, userId: '' }); assert.equal(r.duties.length, 0); // снять
+r = c({ action: 'poll', token: v.token, since: '' }); assert.notEqual(r.duty, dutyBefore); assert.ok(r.now);
+c({ action: 'dutySet', token: a.token, date: today, start: 600, userId: v.user.id });
+r = c({ action: 'groupHwDelete', token: a.token, id: ghwId }); assert.ok(r.ok); assert.equal(r.homework.length, 0); // создатель удаляет чужое
+
 // ---------- Личные пропуски ----------
 r = c({ action: 'absSave', token: b.token, date: '14.10', subject: 'Гигиена' }); assert.equal(r.error, 'bad_date');
 r = c({ action: 'absSave', token: b.token, date: '2026-10-14', subject: '' }); assert.equal(r.error, 'bad_subject');

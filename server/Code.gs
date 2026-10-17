@@ -10,13 +10,17 @@
  *   Members  — участники групп и их роли
  *   News     — объявления (хранятся 3 недели, затем удаляются сами)
  *   Absences — личные пропуски и отработки
+ *   GroupHw  — домашние задания для всей группы
+ *   Duty     — дежурные на пары
  *
  * Установка: Расширения → Apps Script → вставить этот код → Сохранить →
  * Начать развертывание → Новое развертывание → тип «Веб-приложение»,
  * Запуск от имени: «Я», Доступ: «Все» → Развернуть → скопировать ссылку …/exec.
  */
 
-const VERSION = 4;
+const VERSION = 5;
+const HW_KEEP_DAYS = 30;   // ДЗ группы хранится столько дней после даты пары
+const DUTY_KEEP_DAYS = 7;  // дежурства — столько дней после пары
 const NEWS_DAYS = 21; // сколько дней хранятся объявления
 const CHUNK = 40000;
 const SHEETS = {
@@ -27,6 +31,8 @@ const SHEETS = {
   Members: ['groupId', 'userId', 'role', 'added'],
   News: ['id', 'groupId', 'authorId', 'text', 'created'],
   Absences: ['id', 'userId', 'date', 'subject', 'note', 'makeupDate', 'makeupTime', 'makeupPlace', 'done', 'created', 'updated'],
+  GroupHw: ['id', 'groupId', 'authorId', 'subject', 'date', 'start', 'text', 'created'],
+  Duty: ['groupId', 'date', 'start', 'subject', 'userId', 'setBy', 'created'],
 };
 
 /* ---------------- Вход ---------------- */
@@ -182,7 +188,7 @@ function myGroup_(u) {
 function canManage_(g, u) { return g.creatorId === u.id || g.starostaId === u.id; }
 
 function deleteGroup_(g) {
-  ['Members', 'News'].forEach(function (n) {
+  ['Members', 'News', 'GroupHw', 'Duty'].forEach(function (n) {
     deleteRows_(n, rows_(n).filter(function (r) { return r.groupId === g.id; }));
   });
   deleteRows_('Groups', [g]);
@@ -196,15 +202,27 @@ function pruneNews_() {
   return old.length;
 }
 
+/** Дата «ГГГГ-ММ-ДД» на n дней раньше сегодняшней. */
+function daysAgo_(n) { return new Date(Date.now() - n * 86400000).toISOString().slice(0, 10); }
+
+/** Удаляет старые ДЗ группы и прошедшие дежурства. */
+function pruneOld_() {
+  const hw = rows_('GroupHw').filter(function (r) { return r.date < daysAgo_(HW_KEEP_DAYS); });
+  if (hw.length) deleteRows_('GroupHw', hw);
+  const duty = rows_('Duty').filter(function (r) { return r.date < daysAgo_(DUTY_KEEP_DAYS); });
+  if (duty.length) deleteRows_('Duty', duty);
+}
+
 /** Для триггера по времени (необязательно): Триггеры → cleanupOldNews → раз в день. */
 function cleanupOldNews() {
   setup_();
+  pruneOld_();
   return pruneNews_();
 }
 
 function groupView_(u) {
   const g = groupOf_(u);
-  if (!g) return { group: null, members: [], news: [] };
+  if (!g) return { group: null, members: [], news: [], homework: [], duties: [] };
   const users = {};
   rows_('Users').forEach(function (r) { users[r.id] = r; });
   const members = rows_('Members').filter(function (m) { return m.groupId === g.id && users[m.userId]; }).map(function (m) {
@@ -222,9 +240,19 @@ function groupView_(u) {
     return { id: n.id, text: n.text, created: n.created, authorId: n.authorId,
       author: a ? a.fullName : '', authorUsername: a ? a.username : '', authorAvatar: a ? a.avatar : '' };
   }).sort(function (a, b) { return a.created < b.created ? 1 : -1; });
+  const homework = rows_('GroupHw').filter(function (h) { return h.groupId === g.id; }).map(function (h) {
+    const a = users[h.authorId];
+    return { id: h.id, subject: h.subject, date: h.date, start: Number(h.start) || 0, text: h.text, created: h.created,
+      authorId: h.authorId, author: a ? a.fullName : '' };
+  }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start; });
+  const duties = rows_('Duty').filter(function (d) { return d.groupId === g.id; }).map(function (d) {
+    const x = users[d.userId];
+    return { date: d.date, start: Number(d.start) || 0, subject: d.subject, userId: d.userId,
+      fullName: x ? x.fullName : '', avatar: x ? x.avatar : '' };
+  });
   return {
     group: { id: g.id, name: g.name, creatorId: g.creatorId, starostaId: g.starostaId, created: g.created },
-    members: members, news: news,
+    members: members, news: news, homework: homework, duties: duties,
   };
 }
 
@@ -318,7 +346,7 @@ const ACTIONS = {
     const g = groupOf_(u);
     if (g && g.creatorId === u.id) deleteGroup_(g);
     else if (g && g.starostaId === u.id) update_('Groups', g, { starostaId: '' });
-    ['Sessions', 'Backups', 'Members', 'Absences'].forEach(function (n) {
+    ['Sessions', 'Backups', 'Members', 'Absences', 'Duty'].forEach(function (n) {
       deleteRows_(n, rows_(n).filter(function (r) { return r.userId === u.id; }));
     });
     deleteRows_('Users', [u]);
@@ -360,6 +388,7 @@ const ACTIONS = {
   sync: function (req) {
     const u = auth_(req);
     pruneNews_();
+    pruneOld_();
     return Object.assign({ user: publicUser_(u), absences: absences_(u) }, groupView_(u));
   },
 
@@ -403,6 +432,7 @@ const ACTIONS = {
     const m = rows_('Members').filter(function (r) { return r.groupId === g.id && r.userId === req.userId; })[0];
     if (!m) fail('not_found');
     deleteRows_('Members', [m]);
+    deleteRows_('Duty', rows_('Duty').filter(function (d) { return d.groupId === g.id && d.userId === req.userId; }));
     if (g.starostaId === req.userId) update_('Groups', g, { starostaId: '' });
     return groupView_(u);
   },
@@ -431,15 +461,16 @@ const ACTIONS = {
     const u = auth_(req), g = myGroup_(u);
     if (g.creatorId === u.id) fail('creator_cannot_leave');
     deleteRows_('Members', rows_('Members').filter(function (r) { return r.userId === u.id; }));
+    deleteRows_('Duty', rows_('Duty').filter(function (d) { return d.groupId === g.id && d.userId === u.id; }));
     if (g.starostaId === u.id) update_('Groups', g, { starostaId: '' });
-    return { group: null, members: [], news: [] };
+    return { group: null, members: [], news: [], homework: [], duties: [] };
   },
 
   groupDelete: function (req) {
     const u = auth_(req), g = myGroup_(u);
     if (g.creatorId !== u.id) fail('forbidden');
     deleteGroup_(g);
-    return { group: null, members: [], news: [] };
+    return { group: null, members: [], news: [], homework: [], duties: [] };
   },
 
   /* ----- Объявления: пишут все участники, хранятся 3 недели ----- */
@@ -467,10 +498,10 @@ const ACTIONS = {
    * объявления других участников новее since.
    */
   poll: function (req) {
-    const u = auth_(req), m = membership_(u);
-    if (!m) return { group: null, news: [] };
+    const u = auth_(req), m = membership_(u), now = now_();
+    if (!m) return { group: null, news: [], homework: [], now: now, duty: '' };
     const g = rows_('Groups').filter(function (x) { return x.id === m.groupId; })[0];
-    if (!g) return { group: null, news: [] };
+    if (!g) return { group: null, news: [], homework: [], now: now, duty: '' };
     const since = String(req.since || '');
     const names = {};
     rows_('Users').forEach(function (r) { names[r.id] = r.fullName; });
@@ -479,7 +510,53 @@ const ACTIONS = {
     }).map(function (n) {
       return { id: n.id, text: n.text, created: n.created, author: names[n.authorId] || '' };
     }).sort(function (a, b) { return a.created < b.created ? -1 : 1; });
-    return { group: { id: g.id, name: g.name }, added: m.added, news: news };
+    const homework = rows_('GroupHw').filter(function (h) {
+      return h.groupId === g.id && h.authorId !== u.id && h.created > since;
+    }).map(function (h) {
+      return { id: h.id, subject: h.subject, date: h.date, text: h.text, created: h.created, author: names[h.authorId] || '' };
+    });
+    // Отпечаток дежурств: меняется при любом назначении или снятии — тогда клиент обновит данные.
+    const duties = rows_('Duty').filter(function (d) { return d.groupId === g.id; });
+    const duty = duties.length + '|' + duties.map(function (d) { return d.created; }).sort().pop();
+    // now — время сервера: клиент запоминает его как since (часы телефона могут спешить).
+    return { group: { id: g.id, name: g.name }, added: m.added, news: news, homework: homework, now: now, duty: duty };
+  },
+
+  /* ----- ДЗ для всей группы: добавляет любой участник ----- */
+
+  groupHwAdd: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    const item = {
+      id: uid_(), groupId: g.id, authorId: u.id, subject: str_(req.subject, 200), date: date_(req.date, true),
+      start: Math.max(0, Math.min(1439, Number(req.start) || 0)), text: str_(req.text, 3000), created: now_(),
+    };
+    if (!item.subject) fail('bad_subject');
+    if (!item.text) fail('empty');
+    append_('GroupHw', item);
+    return groupView_(u);
+  },
+
+  groupHwDelete: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    const h = rows_('GroupHw').filter(function (r) { return r.id === req.id && r.groupId === g.id; })[0];
+    if (!h) fail('not_found');
+    if (h.authorId !== u.id && !canManage_(g, u)) fail('forbidden');
+    deleteRows_('GroupHw', [h]);
+    return groupView_(u);
+  },
+
+  /* ----- Дежурный на пару: назначают создатель и староста ----- */
+
+  /** userId пустой — снять дежурного с этой пары. */
+  dutySet: function (req) {
+    const u = auth_(req), g = myGroup_(u);
+    if (!canManage_(g, u)) fail('forbidden');
+    const date = date_(req.date, true), start = String(Math.max(0, Math.min(1439, Number(req.start) || 0)));
+    const userId = String(req.userId || '');
+    if (userId && !rows_('Members').some(function (r) { return r.groupId === g.id && r.userId === userId; })) fail('not_found');
+    deleteRows_('Duty', rows_('Duty').filter(function (d) { return d.groupId === g.id && d.date === date && d.start === start; }));
+    if (userId) append_('Duty', { groupId: g.id, date: date, start: start, subject: str_(req.subject, 200), userId: userId, setBy: u.id, created: now_() });
+    return groupView_(u);
   },
 
   /* ----- Личные пропуски и отработки (видит только сам пользователь) ----- */

@@ -54,6 +54,8 @@ fun LessonCard(
     homeworkPending: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Имя дежурного на эту пару (из группы), если назначен. */
+    duty: String? = null,
 ) {
     val state = stateOf(lesson, now)
     val accent = Neon.kindColor(lesson.kind)
@@ -123,12 +125,15 @@ fun LessonCard(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            if (homeworkPending) "Есть ДЗ к этой паре ($homeworkCount)" else tr("ДЗ выполнено"),
+                            if (homeworkPending) tr("Есть ДЗ к этой паре ({0})", homeworkCount) else tr("ДЗ выполнено"),
                             color = if (homeworkPending) Neon.Magenta else Neon.Lime,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
+                }
+                duty?.let {
+                    Text("🧹 " + tr("Дежурный") + ": " + it, color = Neon.Amber, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
                 }
                 when (state) {
                     LessonState.NOW -> {

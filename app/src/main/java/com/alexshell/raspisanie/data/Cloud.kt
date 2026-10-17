@@ -90,12 +90,23 @@ data class Absence(
     val makeupDate: String, val makeupTime: String, val makeupPlace: String, val done: Boolean,
 )
 
+/** ДЗ для всей группы. */
+data class GroupHomework(
+    val id: String, val subject: String, val date: String, val start: Int, val text: String,
+    val authorId: String, val author: String, val created: String,
+)
+
+/** Дежурный на пару: дата «ГГГГ-ММ-ДД» и начало пары в минутах. */
+data class Duty(val date: String, val start: Int, val subject: String, val userId: String, val fullName: String)
+
 /** Ответ action=sync (и частичные ответы действий группы). */
 data class GroupState(
     val group: GroupInfo?,
     val members: List<GroupMember>,
     val news: List<GroupNews>,
     val absences: List<Absence>,
+    val homework: List<GroupHomework> = emptyList(),
+    val duties: List<Duty> = emptyList(),
 ) {
     /** Новый ответ поверх старого: поля, которых нет в ответе, сохраняются. */
     fun merge(o: org.json.JSONObject): GroupState = GroupState(
@@ -126,6 +137,21 @@ data class GroupState(
                 )
             }
         } ?: absences,
+        homework = o.optJSONArray("homework")?.let { a ->
+            List(a.length()) { i ->
+                val h = a.getJSONObject(i)
+                GroupHomework(
+                    h.optString("id"), h.optString("subject"), h.optString("date"), h.optInt("start"), h.optString("text"),
+                    h.optString("authorId"), h.optString("author"), h.optString("created"),
+                )
+            }
+        } ?: homework,
+        duties = o.optJSONArray("duties")?.let { a ->
+            List(a.length()) { i ->
+                val d = a.getJSONObject(i)
+                Duty(d.optString("date"), d.optInt("start"), d.optString("subject"), d.optString("userId"), d.optString("fullName"))
+            }
+        } ?: duties,
     )
 
     companion object {

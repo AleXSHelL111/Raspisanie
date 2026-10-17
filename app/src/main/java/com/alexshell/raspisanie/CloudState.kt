@@ -299,14 +299,19 @@ class CloudState(private val vm: AppViewModel) {
     // ---------- Группа, объявления, пропуски ----------
 
     private fun applyGroup(r: JSONObject) {
-        for (k in listOf("group", "members", "news", "absences")) if (r.has(k)) groupRaw.put(k, r.get(k))
+        for (k in listOf("group", "members", "news", "absences", "homework", "duties")) if (r.has(k)) groupRaw.put(k, r.get(k))
         groupState = GroupState.EMPTY.merge(groupRaw)
         groupLoaded = true
         groupError = null
         r.optJSONObject("user")?.let { user = CloudUser.from(it); save() }
         p.edit().putString("groupData", groupRaw.toString()).apply()
+        // ДЗ группы — сразу в личные ДЗ у каждого участника.
+        if (r.has("homework")) vm.importGroupHomework(if (groupState.group != null) groupState.homework else emptyList())
         // Что видно в приложении — не присылаем уведомлением.
-        com.alexshell.raspisanie.notify.GroupWatch.markSeen(app, groupState.group?.id.orEmpty(), groupState.news.maxOfOrNull { it.created })
+        com.alexshell.raspisanie.notify.GroupWatch.markSeen(
+            app, groupState.group?.id.orEmpty(),
+            (groupState.news.map { it.created } + groupState.homework.map { it.created }).maxOrNull(),
+        )
     }
 
     fun pullGroup(quiet: Boolean = false) {
@@ -380,6 +385,31 @@ class CloudState(private val vm: AppViewModel) {
     }
 
     fun deleteNews(id: String) = groupAct("newsDelete", JSONObject().put("id", id))
+
+    val inGroup: Boolean get() = loggedIn && groupState.group != null
+
+    /** ДЗ для всей группы: появится в личных ДЗ у всех, включая автора. */
+    fun addGroupHomework(l: com.alexshell.raspisanie.data.Lesson, text: String, onDone: () -> Unit = {}) {
+        if (text.isBlank()) { vm.message = errorText("empty"); return }
+        groupAct(
+            "groupHwAdd",
+            JSONObject().put("subject", l.subject).put("date", l.date.toString()).put("start", l.start).put("text", text.trim()),
+            "ДЗ отправлено всей группе", onDone,
+        )
+    }
+
+    fun deleteGroupHomework(id: String) = groupAct("groupHwDelete", JSONObject().put("id", id))
+
+    /** Дежурный на эту пару, если назначен. */
+    fun dutyFor(l: com.alexshell.raspisanie.data.Lesson): com.alexshell.raspisanie.data.Duty? =
+        if (!inGroup) null else groupState.duties.firstOrNull { it.date == l.date.toString() && it.start == l.start }
+
+    /** Назначить дежурного на пару ([userId] пустой — снять). */
+    fun setDuty(l: com.alexshell.raspisanie.data.Lesson, userId: String) = groupAct(
+        "dutySet",
+        JSONObject().put("date", l.date.toString()).put("start", l.start).put("subject", l.subject).put("userId", userId),
+        if (userId.isEmpty()) "Дежурный снят" else "Дежурный назначен",
+    )
 
     fun saveAbsence(a: com.alexshell.raspisanie.data.Absence, onDone: () -> Unit) {
         if (a.subject.isBlank()) { vm.message = errorText("bad_subject"); return }

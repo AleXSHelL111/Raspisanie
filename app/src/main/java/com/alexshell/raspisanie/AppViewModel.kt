@@ -412,6 +412,33 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * ДЗ группы попадает и в личные ДЗ: каждый отмечает выполнение у себя.
+     * Удалённые из группы задания пропадают и из личного списка.
+     */
+    fun importGroupHomework(list: List<com.alexshell.raspisanie.data.GroupHomework>) {
+        val g = group ?: return
+        val p = getApplication<Application>().getSharedPreferences("cloud", android.content.Context.MODE_PRIVATE)
+        val imported = p.getStringSet("ghwImported", emptySet()).orEmpty().toMutableSet()
+        val ids = list.map { it.id }.toSet()
+        var result = homework.filter { it.groupHwId == null || it.groupHwId in ids }
+        var id = System.currentTimeMillis()
+        for (h in list) {
+            if (!imported.add(h.id) || result.any { it.groupHwId == h.id }) continue
+            val date = runCatching { LocalDate.parse(h.date) }.getOrNull() ?: continue
+            val l = lessons.firstOrNull { it.subject == h.subject && it.date == date && it.start == h.start }
+                ?: lessons.firstOrNull { it.subject == h.subject && it.date == date }
+            result = result + Homework(
+                id = id++, group = g,
+                lessonKey = l?.key ?: "${h.subject}|$date|${h.start}|PRACTICE",
+                subject = h.subject, dueDate = date, dueStart = l?.start ?: h.start, text = h.text,
+                groupHwId = h.id, author = h.author.ifBlank { null },
+            )
+        }
+        p.edit().putStringSet("ghwImported", imported.filter { it in ids }.toSet()).apply()
+        if (result != homework) updateHomework(result)
+    }
+
     fun lessonByKey(key: String): Lesson? = lessons.firstOrNull { it.key == key }
 
     // Инициализация — в самом конце, когда все свойства уже созданы.

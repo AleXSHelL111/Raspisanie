@@ -58,6 +58,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
     val next = remember(lesson, vm.lessons) { vm.nextOccurrence(lesson) }
     var toNext by rememberSaveable { mutableStateOf(next != null) }
     var text by rememberSaveable { mutableStateOf("") }
+    var forGroup by rememberSaveable { mutableStateOf(false) }
     val discipline = vm.schedule?.disciplineFor(lesson.subject)
     var confirmDelete by remember { mutableStateOf(false) }
 
@@ -100,6 +101,7 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                 Spacer(Modifier.height(6.dp))
                 NeonChip(tr("изменено вручную"), Neon.Amber)
             }
+            DutyBlock(vm, lesson)
             InfoRow(tr("Где"), lesson.location)
             InfoRow(tr("Дисциплина по выбору"), lesson.elective?.takeIf { it != lesson.subject } ?: lesson.elective?.let { tr("да") })
             InfoRow(tr("Кафедра / база"), discipline?.department?.takeIf { it != lesson.location })
@@ -158,6 +160,14 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
                     label = { Text(tr("К этой паре")) },
                     colors = chipColors(),
                 )
+                if (vm.cloud.inGroup) {
+                    FilterChip(
+                        selected = forGroup,
+                        onClick = { forGroup = !forGroup },
+                        label = { Text("👥 " + tr("Для всей группы")) },
+                        colors = chipColors(Neon.Violet),
+                    )
+                }
             }
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
@@ -177,8 +187,13 @@ fun LessonSheet(lesson: Lesson, vm: AppViewModel, onEdit: (Lesson) -> Unit, onDi
             Button(
                 onClick = {
                     val target = if (toNext && next != null) next else lesson
-                    vm.addHomework(target, text)
-                    vm.message = tr("ДЗ добавлено на {0}", "${target.date.weekdayShort()}, ${target.date.dayMonth()}")
+                    if (forGroup && vm.cloud.inGroup) {
+                        // Для всей группы: задание придёт в личные ДЗ всем, включая автора.
+                        vm.cloud.addGroupHomework(target, text)
+                    } else {
+                        vm.addHomework(target, text)
+                        vm.message = tr("ДЗ добавлено на {0}", "${target.date.weekdayShort()}, ${target.date.dayMonth()}")
+                    }
                     text = ""
                 },
                 enabled = text.isNotBlank(),
@@ -231,5 +246,38 @@ private fun InfoRow(label: String, value: String?) {
     Column(Modifier.padding(top = 12.dp)) {
         Text(label.uppercase(), color = Neon.Dim, fontSize = 11.sp, letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold)
         Text(value, color = Neon.Text, fontSize = 14.sp)
+    }
+}
+
+
+/** Дежурный на пару: видят все участники группы, назначают создатель и староста. */
+@Composable
+private fun DutyBlock(vm: AppViewModel, lesson: Lesson) {
+    val c = vm.cloud
+    if (!c.inGroup) return
+    val duty = c.dutyFor(lesson)
+    if (!c.canManage) {
+        duty?.let { InfoRow("🧹 " + tr("Дежурный"), it.fullName) }
+        return
+    }
+    Text(
+        "🧹 " + tr("Дежурный на пару"), color = Neon.Muted, fontSize = 12.sp,
+        fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp),
+    )
+    Row(
+        Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        c.groupState.members.forEach { m ->
+            FilterChip(
+                selected = duty?.userId == m.id,
+                onClick = { c.setDuty(lesson, m.id) },
+                label = { Text(m.fullName) },
+                colors = chipColors(Neon.Amber),
+            )
+        }
+        if (duty != null) {
+            FilterChip(selected = false, onClick = { c.setDuty(lesson, "") }, label = { Text("✕ " + tr("Снять")) }, colors = chipColors())
+        }
     }
 }

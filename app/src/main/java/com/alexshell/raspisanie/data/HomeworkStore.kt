@@ -16,6 +16,10 @@ data class Homework(
     val text: String,
     val done: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
+    /** id задания в группе, если ДЗ пришло от группы (общее для всех). */
+    val groupHwId: String? = null,
+    /** Кто добавил ДЗ группы. */
+    val author: String? = null,
 )
 
 /** Хранит домашние задания в SharedPreferences в виде JSON. */
@@ -38,6 +42,8 @@ class HomeworkStore(context: Context) {
                     text = o.getString("text"),
                     done = o.optBoolean("done"),
                     createdAt = o.optLong("createdAt"),
+                    groupHwId = o.optString("groupHwId").ifEmpty { null },
+                    author = o.optString("author").ifEmpty { null },
                 )
             }
         }.getOrDefault(emptyList())
@@ -57,6 +63,7 @@ class HomeworkStore(context: Context) {
                     .put("text", h.text)
                     .put("done", h.done)
                     .put("createdAt", h.createdAt)
+                    .apply { h.groupHwId?.let { put("groupHwId", it) }; h.author?.let { put("author", it) } }
             )
         }
         prefs.edit().putString(KEY, arr.toString()).apply()
