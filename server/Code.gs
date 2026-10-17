@@ -4,8 +4,8 @@
  * Хранит данные в этой Google Таблице:
  *   Users    — профили: юзернейм, полное имя, номер группы, аватар, хеш пароля
  *   Sessions — токены входа на устройствах
- *   Backups  — облачная копия ДЗ, правок, настроек и файла расписания
- *              (частями по 40 000 символов — ограничение ячейки)
+ *   Backups  — облачная копия ДЗ, правок и настроек (частями по 40 000 символов)
+ *   Files    — файл расписания из копии (отдельно: он большой и меняется редко)
  *   Groups   — группы: название, создатель, староста
  *   Members  — участники групп и их роли
  *   News     — объявления (хранятся 3 недели, затем удаляются сами)
@@ -18,7 +18,7 @@
  * Запуск от имени: «Я», Доступ: «Все» → Развернуть → скопировать ссылку …/exec.
  */
 
-const VERSION = 5;
+const VERSION = 6;
 const HW_KEEP_DAYS = 30;   // ДЗ группы хранится столько дней после даты пары
 const DUTY_KEEP_DAYS = 7;  // дежурства — столько дней после пары
 const NEWS_DAYS = 21; // сколько дней хранятся объявления
@@ -27,6 +27,7 @@ const SHEETS = {
   Users: ['id', 'username', 'fullName', 'group', 'avatar', 'salt', 'hash', 'created', 'seen'],
   Sessions: ['token', 'userId', 'created', 'seen'],
   Backups: ['userId', 'updated', 'part', 'data'],
+  Files: ['userId', 'updated', 'part', 'data'],
   Groups: ['id', 'name', 'creatorId', 'starostaId', 'created'],
   Members: ['groupId', 'userId', 'role', 'added'],
   News: ['id', 'groupId', 'authorId', 'text', 'created'],
@@ -48,18 +49,19 @@ function doPost(e) {
   } catch (err) {
     return out({ ok: false, error: 'bad_json' });
   }
-  const lock = LockService.getScriptLock();
+  const fn = ACTIONS[req.action];
+  if (!fn) return out({ ok: false, error: 'unknown_action' });
+  // Чтение идёт параллельно, без очереди; блокируются только изменения.
+  const lock = READ_ONLY[req.action] ? null : LockService.getScriptLock();
   try {
-    lock.waitLock(20000);
+    if (lock && !lock.tryLock(15000)) return out({ ok: false, error: 'busy' });
     setup_();
-    const fn = ACTIONS[req.action];
-    if (!fn) return out({ ok: false, error: 'unknown_action' });
     return out(Object.assign({ ok: true }, fn(req)));
   } catch (err) {
     const msg = String((err && err.message) || err);
     return out({ ok: false, error: msg.indexOf('E:') === 0 ? msg.slice(2) : 'server', detail: msg });
   } finally {
-    try { lock.releaseLock(); } catch (e2) {}
+    if (lock) try { lock.releaseLock(); } catch (e2) {}
   }
 }
 
@@ -71,7 +73,13 @@ function fail(code) { throw new Error('E:' + code); }
 
 /* ---------------- Таблица ---------------- */
 
+/** Действия, которые только читают таблицу, — их не нужно ставить в очередь. */
+const READ_ONLY = { ping: true, checkUsername: true, me: true, sync: true, poll: true, backupLoad: true, backupInfo: true };
+
+let ready_ = false;
 function setup_() {
+  if (ready_) return;
+  ready_ = true;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   Object.keys(SHEETS).forEach(function (name) {
     if (ss.getSheetByName(name)) return;
@@ -95,6 +103,43 @@ function rows_(name) {
     res.push(o);
   }
   return res;
+}
+
+/**
+ * Строки листа, у которых первый столбец равен value — без чтения всего листа
+ * (лист копий большой: в нём файлы расписания всех пользователей).
+ */
+function findRows_(name, value) {
+  const sh = sheet_(name), cols = SHEETS[name], last = sh.getLastRow();
+  if (last < 2 || !value) return [];
+  const cells = sh.getRange(2, 1, last - 1, 1).createTextFinder(String(value)).matchEntireCell(true).findAll();
+  return cells.map(function (c) {
+    const r = c.getRow(), vals = sh.getRange(r, 1, 1, cols.length).getValues()[0], o = { _row: r };
+    cols.forEach(function (k, j) { o[k] = vals[j] === null ? '' : String(vals[j]); });
+    return o;
+  });
+}
+
+/** Номера строк по первому столбцу (без чтения содержимого). */
+function findRowNums_(name, value) {
+  const sh = sheet_(name), last = sh.getLastRow();
+  if (last < 2 || !value) return [];
+  return sh.getRange(2, 1, last - 1, 1).createTextFinder(String(value)).matchEntireCell(true).findAll()
+    .map(function (c) { return c.getRow(); });
+}
+
+/** Записать большой текст частями по CHUNK символов вместо прежних строк пользователя. */
+function saveParts_(name, userId, text) {
+  const old = findRowNums_(name, userId), updated = now_(), sh = sheet_(name), rows = [];
+  for (let i = 0, p = 0; i < text.length; i += CHUNK, p++) rows.push([cell_(userId), cell_(updated), cell_(p), cell_(text.slice(i, i + CHUNK))]);
+  if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, 4).setValues(rows);
+  old.sort(function (a, b) { return b - a; }).forEach(function (n) { sh.deleteRow(n); });
+  return updated;
+}
+
+function loadParts_(name, userId) {
+  const parts = findRows_(name, userId).sort(function (a, b) { return Number(a.part) - Number(b.part); });
+  return parts.length ? { data: parts.map(function (r) { return r.data; }).join(''), updated: parts[0].updated } : null;
 }
 
 /** Текст пишем с апострофом — таблица не превратит его в формулу, число или дату. */
@@ -155,7 +200,7 @@ function publicUser_(u) {
 function auth_(req) {
   const token = String(req.token || '');
   if (!token) fail('auth');
-  const s = rows_('Sessions').filter(function (r) { return r.token === token; })[0];
+  const s = findRows_('Sessions', token)[0];
   if (!s) fail('auth');
   const u = rows_('Users').filter(function (r) { return r.id === s.userId; })[0];
   if (!u) fail('auth');
@@ -235,17 +280,18 @@ function groupView_(u) {
     const w = function (m) { return m.creator ? 0 : m.starosta ? 1 : m.role ? 2 : 3; };
     return w(a) - w(b) || a.fullName.localeCompare(b.fullName, 'ru');
   });
-  const news = rows_('News').filter(function (n) { return n.groupId === g.id; }).map(function (n) {
+  const border = new Date(Date.now() - NEWS_DAYS * 86400000).toISOString();
+  const news = rows_('News').filter(function (n) { return n.groupId === g.id && n.created >= border; }).map(function (n) {
     const a = users[n.authorId];
     return { id: n.id, text: n.text, created: n.created, authorId: n.authorId,
       author: a ? a.fullName : '', authorUsername: a ? a.username : '', authorAvatar: a ? a.avatar : '' };
   }).sort(function (a, b) { return a.created < b.created ? 1 : -1; });
-  const homework = rows_('GroupHw').filter(function (h) { return h.groupId === g.id; }).map(function (h) {
+  const homework = rows_('GroupHw').filter(function (h) { return h.groupId === g.id && h.date >= daysAgo_(HW_KEEP_DAYS); }).map(function (h) {
     const a = users[h.authorId];
     return { id: h.id, subject: h.subject, date: h.date, start: Number(h.start) || 0, text: h.text, created: h.created,
       authorId: h.authorId, author: a ? a.fullName : '' };
   }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start; });
-  const duties = rows_('Duty').filter(function (d) { return d.groupId === g.id; }).map(function (d) {
+  const duties = rows_('Duty').filter(function (d) { return d.groupId === g.id && d.date >= daysAgo_(DUTY_KEEP_DAYS); }).map(function (d) {
     const x = users[d.userId];
     return { date: d.date, start: Number(d.start) || 0, subject: d.subject, userId: d.userId,
       fullName: x ? x.fullName : '', avatar: x ? x.avatar : '' };
@@ -311,14 +357,12 @@ const ACTIONS = {
 
   logout: function (req) {
     const token = String(req.token || '');
-    deleteRows_('Sessions', rows_('Sessions').filter(function (r) { return r.token === token; }));
+    deleteRows_('Sessions', findRows_('Sessions', token));
     return {};
   },
 
   me: function (req) {
-    const u = auth_(req);
-    update_('Users', u, { seen: now_() });
-    return { user: publicUser_(u) };
+    return { user: publicUser_(auth_(req)) };
   },
 
   updateProfile: function (req) {
@@ -346,7 +390,7 @@ const ACTIONS = {
     const g = groupOf_(u);
     if (g && g.creatorId === u.id) deleteGroup_(g);
     else if (g && g.starostaId === u.id) update_('Groups', g, { starostaId: '' });
-    ['Sessions', 'Backups', 'Members', 'Absences', 'Duty'].forEach(function (n) {
+    ['Sessions', 'Backups', 'Files', 'Members', 'Absences', 'Duty'].forEach(function (n) {
       deleteRows_(n, rows_(n).filter(function (r) { return r.userId === u.id; }));
     });
     deleteRows_('Users', [u]);
@@ -355,31 +399,36 @@ const ACTIONS = {
 
   /* ----- Облачная копия ----- */
 
+  /**
+   * data — ДЗ, правки и настройки (маленькие, сохраняются часто).
+   * file — файл расписания: присылается, только когда изменился.
+   */
   backupSave: function (req) {
     const u = auth_(req);
     const data = String(req.data || '');
     if (!data) fail('empty');
     if (data.length > 4000000) fail('too_big');
-    deleteRows_('Backups', rows_('Backups').filter(function (r) { return r.userId === u.id; }));
-    const updated = now_(), sh = sheet_('Backups'), rows = [];
-    for (let i = 0, p = 0; i < data.length; i += CHUNK, p++) rows.push([cell_(u.id), cell_(updated), cell_(p), cell_(data.slice(i, i + CHUNK))]);
-    sh.getRange(sh.getLastRow() + 1, 1, rows.length, 4).setValues(rows);
-    if (req.group !== undefined) update_('Users', u, { group: str_(req.group, 20), seen: now_() });
+    const updated = saveParts_('Backups', u.id, data);
+    if (req.file) {
+      if (String(req.file).length > 6000000) fail('too_big');
+      saveParts_('Files', u.id, String(req.file));
+    }
+    if (req.group !== undefined && str_(req.group, 20) !== u.group) update_('Users', u, { group: str_(req.group, 20) });
     return { updated: updated, size: data.length };
   },
 
   backupLoad: function (req) {
     const u = auth_(req);
-    const parts = rows_('Backups').filter(function (r) { return r.userId === u.id; })
-      .sort(function (a, b) { return Number(a.part) - Number(b.part); });
-    if (!parts.length) return { data: null, updated: null };
-    return { data: parts.map(function (r) { return r.data; }).join(''), updated: parts[0].updated };
+    const b = loadParts_('Backups', u.id);
+    if (!b) return { data: null, updated: null, file: null };
+    const f = loadParts_('Files', u.id);
+    return { data: b.data, updated: b.updated, file: f ? f.data : null };
   },
 
   backupInfo: function (req) {
     const u = auth_(req);
-    const p = rows_('Backups').filter(function (r) { return r.userId === u.id; })[0];
-    return { updated: p ? p.updated : null };
+    const p = findRows_('Backups', u.id)[0];
+    return { updated: p ? p.updated : null, hasFile: findRowNums_('Files', u.id).length > 0 };
   },
 
   /* ----- Группа ----- */
@@ -387,8 +436,6 @@ const ACTIONS = {
   /** Всё для экрана «Моя группа» одним запросом: группа, участники, объявления, мои пропуски. */
   sync: function (req) {
     const u = auth_(req);
-    pruneNews_();
-    pruneOld_();
     return Object.assign({ user: publicUser_(u), absences: absences_(u) }, groupView_(u));
   },
 
@@ -533,6 +580,7 @@ const ACTIONS = {
     if (!item.subject) fail('bad_subject');
     if (!item.text) fail('empty');
     append_('GroupHw', item);
+    pruneOld_();
     return groupView_(u);
   },
 

@@ -2359,6 +2359,14 @@
   "fr": "Serveur",
   "zh": "服务器"
  },
+ "Сервер занят — попробуйте через минуту": {
+  "ar": "الخادم مشغول — حاول بعد دقيقة",
+  "de": "Der Server ist ausgelastet – in einer Minute erneut versuchen",
+  "en": "The server is busy, try again in a minute",
+  "es": "El servidor está ocupado, inténtalo en un minuto",
+  "fr": "Le serveur est occupé, réessayez dans une minute",
+  "zh": "服务器繁忙，请一分钟后再试"
+ },
  "Сервер на связи ✓": {
   "ar": "الخادم متصل ✓",
   "de": "Server erreichbar ✓",
@@ -2366,6 +2374,14 @@
   "es": "Servidor conectado ✓",
   "fr": "Serveur joignable ✓",
   "zh": "服务器连接正常 ✓"
+ },
+ "Сервер не отвечает — попробуйте чуть позже": {
+  "ar": "الخادم لا يستجيب — حاول بعد قليل",
+  "de": "Der Server antwortet nicht – bitte gleich erneut versuchen",
+  "en": "The server isn't responding, please try again shortly",
+  "es": "El servidor no responde, inténtalo en un momento",
+  "fr": "Le serveur ne répond pas, réessayez un peu plus tard",
+  "zh": "服务器无响应，请稍后再试"
  },
  "Сессия истекла — войдите снова": {
   "ar": "انتهت الجلسة — سجّل الدخول مجددًا",

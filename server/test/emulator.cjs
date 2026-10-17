@@ -19,6 +19,14 @@ function makeEnv() {
           for (let i = 0; i < nr; i++) { while (data.length < r + i) data.push([]); for (let j = 0; j < nc; j++) data[r - 1 + i][c - 1 + j] = strip(vals[i][j]); }
           return { setFontWeight() {} };
         },
+        createTextFinder: (text) => {
+          const f = { matchEntireCell() { return f; }, findAll() {
+            const res = [];
+            for (let i = 0; i < nr; i++) { const v = (data[r - 1 + i] || [])[c - 1]; if (v !== undefined && String(v) === String(text)) res.push({ getRow: () => r + i }); }
+            return res;
+          } };
+          return f;
+        },
         getValues: () => { const out = []; for (let i = 0; i < nr; i++) { const row = []; for (let j = 0; j < nc; j++) { const v = (data[r - 1 + i] || [])[c - 1 + j]; row.push(v === undefined ? '' : v); } out.push(row); } return out; },
       }),
     };
@@ -31,7 +39,7 @@ function makeEnv() {
   const ctx = {
     console,
     SpreadsheetApp: { getActiveSpreadsheet: () => ss },
-    LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
+    LockService: { getScriptLock: () => ({ waitLock() {}, tryLock() { return true; }, releaseLock() {} }) },
     Utilities: {
       getUuid: () => crypto.randomUUID(),
       DigestAlgorithm: { SHA_256: 'sha256' }, Charset: { UTF_8: 'utf8' },

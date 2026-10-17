@@ -44,6 +44,13 @@ r = c({ action: 'backupInfo', token: a2 }); assert.ok(r.updated);
 r = c({ action: 'me', token: a2 }); assert.equal(r.user.group, '314');
 r = c({ action: 'backupLoad', token: b.token }); assert.equal(r.data, null); // чужую копию не видно
 
+// Файл расписания хранится отдельно и присылается только при изменении
+r = c({ action: 'backupSave', token: b.token, data: '{"app":"kgmu"}', file: 'F'.repeat(90000) }); assert.ok(r.ok);
+r = c({ action: 'backupSave', token: b.token, data: '{"app":"kgmu","v":2}' }); assert.ok(r.ok); // без файла — файл остаётся
+r = c({ action: 'backupLoad', token: b.token }); assert.equal(r.data, '{"app":"kgmu","v":2}'); assert.equal(r.file.length, 90000);
+r = c({ action: 'backupInfo', token: b.token }); assert.equal(r.hasFile, true);
+assert.equal(env.sheets.Files.data.length - 1, 3);
+
 // ---------- Группа ----------
 const v = c({ action: 'register', username: 'vera', fullName: 'Вера Смирнова', password: 'pass' });
 const g1 = c({ action: 'register', username: 'gleb', fullName: 'Глеб Орлов', password: 'pass' });
@@ -78,7 +85,8 @@ const nid = c({ action: 'sync', token: a.token }).news[0].id;
 r = c({ action: 'newsDelete', token: g1.token, id: nid }); assert.equal(r.error, 'not_found');
 // старое объявление (22 дня) удаляется само
 env.sheets.News.data.push(['old1', c({ action: 'sync', token: a.token }).group.id, a.user.id, 'старое', new Date(Date.now() - 22 * 86400000).toISOString()]);
-r = c({ action: 'sync', token: a.token }); assert.equal(r.news.length, 1); assert.equal(env.sheets.News.data.length - 1, 1);
+r = c({ action: 'sync', token: a.token }); assert.equal(r.news.length, 1); // старое уже не показывается
+env.ctx.cleanupOldNews(); assert.equal(env.sheets.News.data.length - 1, 1); // и удаляется при чистке
 r = c({ action: 'newsDelete', token: b.token, id: nid }); assert.ok(r.ok); assert.equal(r.news.length, 0); // староста удаляет чужое
 // выход, удаление участника, удаление группы
 r = c({ action: 'groupLeave', token: a.token }); assert.equal(r.error, 'creator_cannot_leave');
@@ -112,7 +120,7 @@ r = c({ action: 'poll', token: a.token, since: t1 }); assert.equal(r.homework.le
 r = c({ action: 'poll', token: v.token, since: t1 }); assert.equal(r.homework.length, 0); // своё — нет
 const ghwId = r.ok && c({ action: 'sync', token: a.token }).homework[0].id;
 r = c({ action: 'groupHwDelete', token: g1.token, id: ghwId }); assert.equal(r.error, 'no_group');
-// старое ДЗ (40 дней назад) удаляется при синхронизации
+// старое ДЗ (40 дней назад) не показывается
 env.sheets.GroupHw.data.push(['old', c({ action: 'sync', token: a.token }).group.id, a.user.id, 'Старое', '2020-01-01', '480', 'x', '2020-01-01T00:00:00Z']);
 r = c({ action: 'sync', token: a.token }); assert.equal(r.homework.length, 1);
 // дежурные: только создатель/староста
@@ -148,7 +156,6 @@ r = c({ action: 'absDelete', token: b.token, id: abs.id }); assert.equal(r.absen
 r = c({ action: 'logout', token: a2 }); r = c({ action: 'me', token: a2 }); assert.equal(r.error, 'auth');
 r = c({ action: 'deleteAccount', token: a.token, password: 'wrong' }); assert.equal(r.error, 'bad_password');
 r = c({ action: 'deleteAccount', token: a.token, password: 'secret' }); assert.ok(r.ok);
-assert.equal(env.sheets.Backups.data.length - 1, 0);
 assert.equal(env.sheets.Groups.data.length - 1, 0); // группа создателя удалена вместе с ним
 r = c({ action: 'deleteAccount', token: b.token, password: 'newpass' }); assert.ok(r.ok); assert.equal(env.sheets.Absences.data.length - 1, 0);
 r = c({ action: 'login', username: 'anna.ivanova', password: 'secret' }); assert.equal(r.error, 'bad_login');

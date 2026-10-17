@@ -92,6 +92,7 @@ class CloudState(private val vm: AppViewModel) {
             "password_short" -> "Пароль — минимум 4 символа"
             "bad_password" -> "Неверный пароль"
             "too_big" -> "Слишком большая копия"
+            "busy" -> "Сервер занят — попробуйте через минуту"
             "network" -> "Нет связи с сервером"
             "no_server" -> "Сначала укажите адрес сервера"
             "no_group" -> "Вы пока не состоите в группе"
@@ -210,7 +211,7 @@ class CloudState(private val vm: AppViewModel) {
             val b = api("backupLoad")
             val raw = b.optString("data").takeIf { it.isNotEmpty() && it != "null" }
             if (raw != null) {
-                withContext(Dispatchers.IO) { Backup.import(app, JSONObject(raw)) }
+                withContext(Dispatchers.IO) { Backup.import(app, backupFrom(b, raw)); fileHash()?.let { p.edit().putString("fileSynced", it).apply() } }
                 syncAt = java.time.Instant.now().toString()
                 save()
             }
@@ -265,14 +266,38 @@ class CloudState(private val vm: AppViewModel) {
         if (!loggedIn || !auto || url.isBlank()) return
         autoJob?.cancel()
         autoJob = vm.viewModelScope.launch {
-            delay(5000)
+            delay(20000)
             runCatching { upload(silent = true) }
         }
     }
 
+    /** Отпечаток файла расписания — отправляем его, только когда он изменился. */
+    private fun fileHash(): String? {
+        val f = com.alexshell.raspisanie.data.Repository.importedFile(app)
+        if (!f.exists()) return null
+        val crc = java.util.zip.CRC32().apply { update(f.readBytes()) }
+        return "${crc.value}:${f.length()}"
+    }
+
+    /** Копия из облака: файл расписания хранится на сервере отдельно. */
+    private fun backupFrom(r: JSONObject, raw: String): JSONObject {
+        val d = JSONObject(raw)
+        val file = r.optString("file").takeIf { it.isNotEmpty() && it != "null" }
+        if ((d.isNull("file") || d.optString("file").isEmpty()) && file != null) d.put("file", file)
+        return d
+    }
+
     private suspend fun upload(silent: Boolean) {
-        val json = withContext(Dispatchers.IO) { Backup.export(app).toString() }
-        api("backupSave", JSONObject().put("data", json).put("group", vm.group.orEmpty()))
+        // ДЗ и настройки — каждый раз (это мало), файл расписания — только если изменился.
+        val (json, file, hash) = withContext(Dispatchers.IO) {
+            val h = fileHash()
+            val f = if (h != null && h != p.getString("fileSynced", null)) Backup.export(app).optString("file") else null
+            Triple(Backup.export(app, withFile = false).toString(), f, h)
+        }
+        val params = JSONObject().put("data", json).put("group", vm.group.orEmpty())
+        if (!file.isNullOrEmpty()) params.put("file", file)
+        api("backupSave", params)
+        if (!file.isNullOrEmpty()) p.edit().putString("fileSynced", hash).apply()
         syncAt = java.time.Instant.now().toString()
         save()
         if (!silent) vm.message = tr("Сохранено в облако")
@@ -284,7 +309,7 @@ class CloudState(private val vm: AppViewModel) {
         val r = api("backupLoad")
         val raw = r.optString("data").takeIf { it.isNotEmpty() && it != "null" }
         if (raw == null) { vm.message = tr("В облаке пока нет копии"); return@run }
-        withContext(Dispatchers.IO) { Backup.import(app, JSONObject(raw)) }
+        withContext(Dispatchers.IO) { Backup.import(app, backupFrom(r, raw)); fileHash()?.let { p.edit().putString("fileSynced", it).apply() } }
         vm.reloadAll(null)
         syncAt = java.time.Instant.now().toString()
         save()
