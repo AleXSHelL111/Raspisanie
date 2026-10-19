@@ -390,6 +390,9 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
             "week" -> tab = Tab.WEEK.ordinal
             "today" -> tab = Tab.TODAY.ordinal
             "pro" -> proDialog = true
+            "site" -> runCatching {
+                context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://kgmuraspisanie.ru")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
             "tg" -> runCatching {
                 context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.alexshell.raspisanie.ui.components.TELEGRAM_LINK)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }

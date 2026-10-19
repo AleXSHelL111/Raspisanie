@@ -78,6 +78,7 @@ class ChatState(private val vm: AppViewModel) {
             is Assistant.Act.AddHw -> vm.lessonByKey(act.lessonKey)?.let { vm.addHomework(it, act.text) }
             is Assistant.Act.DoneHw -> vm.markDone(act.ids)
             is Assistant.Act.Mode -> vm.changeThemeMode(act.mode)
+            is Assistant.Act.Palette -> vm.setTheme(act.id)
             is Assistant.Act.Open -> vm.viewModelScope.launch { delay(700); openRequest = act.target }
             null -> {}
         }

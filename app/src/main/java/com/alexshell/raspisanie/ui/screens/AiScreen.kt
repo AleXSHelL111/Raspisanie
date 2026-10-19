@@ -63,6 +63,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -89,7 +95,11 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
     var input by rememberSaveable { mutableStateOf("") }
     var confirmClear by remember { mutableStateOf(false) }
     val list = rememberLazyListState()
-    val send = { text: String -> if (!chat.busy && text.isNotBlank()) { chat.send(text); input = "" } }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
+    // После отправки прячем клавиатуру.
+    val send = { text: String -> if (!chat.busy && text.isNotBlank()) { chat.send(text); input = ""; keyboard?.hide(); focus.clearFocus() } }
+    val onLink = { target: String -> chat.openRequest = target }
 
     // Новое сообщение, «размышление» или печать ответа — прокручиваем вниз.
     val rows = chat.messages.size + (if (chat.thinking != null || chat.typing != null) 1 else 0)
@@ -140,10 +150,10 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
                 ) {
                     items(chat.messages.size) { i ->
                         val m = chat.messages[i]
-                        if (m.user) UserBubble(m.text) else BotBubble { Text(rich(m.text), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) }
+                        if (m.user) UserBubble(m.text) else BotBubble { Text(rich(m.text, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) }
                     }
                     if (chat.thinking != null) item { BotBubble(spinning = true) { Thinking(tr(chat.thinking.orEmpty())) } }
-                    chat.typing?.let { full -> item { BotBubble { Text(rich(full, chat.typed, caret = true), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) } } }
+                    chat.typing?.let { full -> item { BotBubble { Text(rich(full, chat.typed, caret = true, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) } } }
                 }
             }
         }
@@ -333,7 +343,7 @@ private fun Thinking(label: String) {
 
 /** Текст ответа с **жирным** и _(курсивом)_; [limit] — сколько символов уже «напечатано». */
 @Composable
-private fun rich(text: String, limit: Int = Int.MAX_VALUE, caret: Boolean = false): AnnotatedString {
+private fun rich(text: String, limit: Int = Int.MAX_VALUE, caret: Boolean = false, onLink: (String) -> Unit = {}): AnnotatedString {
     val accent = Neon.Cyan
     val muted = Neon.Muted
     val blink by rememberInfiniteTransition(label = "caret").animateFloat(
@@ -346,6 +356,11 @@ private fun rich(text: String, limit: Int = Int.MAX_VALUE, caret: Boolean = fals
             val shown = p.text.take(left)
             left -= p.text.length
             when {
+                p.link != null -> {
+                    val target = p.link
+                    val style = TextLinkStyles(SpanStyle(color = accent, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline))
+                    withLink(LinkAnnotation.Clickable(target, style) { onLink(target) }) { append(shown) }
+                }
                 p.bold -> withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = accent)) { append(shown) }
                 p.italic -> withStyle(SpanStyle(fontStyle = FontStyle.Italic, color = muted)) { append(shown) }
                 else -> append(shown)
