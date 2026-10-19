@@ -71,7 +71,7 @@ fun TodayScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item { Column { ClockHeader(vm, now, onOpenSettings) } }
+        item { Column { ClockHeader(vm, now, onOpenSettings, onOpenAi) } }
         // В карточке пары — только ДЗ именно к этой паре.
         val heroLesson = current ?: next
         val heroHw = heroLesson?.let { l -> vm.homeworkFor(l).count { !it.done } } ?: 0
@@ -133,7 +133,7 @@ fun TodayScreen(
 }
 
 @Composable
-private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: () -> Unit) {
+private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: () -> Unit, onOpenAi: () -> Unit) {
     val today = now.toLocalDate()
     var langDialog by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     // Настройки — слева, язык — справа, в одну строку: часы остаются на прежнем месте.

@@ -90,15 +90,15 @@ fun ProButton(onClick: () -> Unit) {
 
 /** Неоновый «ИИ-шар»: три вращающиеся дуги и пульсирующее ядро. */
 @Composable
-fun AiOrb(size: androidx.compose.ui.unit.Dp = 190.dp) {
-    val k = size / 190.dp
+fun AiOrb(diameter: androidx.compose.ui.unit.Dp = 190.dp) {
+    val k = diameter / 190.dp
     val t = rememberInfiniteTransition(label = "orb")
     val a1 by t.animateFloat(0f, 360f, infiniteRepeatable(tween(2600, easing = LinearEasing)), label = "a1")
     val a2 by t.animateFloat(360f, 0f, infiniteRepeatable(tween(1900, easing = LinearEasing)), label = "a2")
     val a3 by t.animateFloat(0f, 360f, infiniteRepeatable(tween(3400, easing = LinearEasing)), label = "a3")
     val pulse by t.animateFloat(1f, 1.12f, infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
     val c1 = Neon.Cyan; val c2 = Neon.Magenta; val c3 = Neon.Violet
-    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+    Box(Modifier.size(diameter), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val w = 4.dp.toPx()
             fun arc(angle: Float, inset: Float, color: Color, sweep: Float) = rotate(angle) {
