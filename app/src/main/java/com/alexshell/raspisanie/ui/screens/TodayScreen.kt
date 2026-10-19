@@ -51,6 +51,7 @@ fun TodayScreen(
     onLesson: (Lesson) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenHomework: () -> Unit,
+    onOpenAi: () -> Unit = {},
 ) {
     val today = now.toLocalDate()
     val todayLessons = vm.lessonsOn(today)
@@ -145,7 +146,7 @@ private fun ClockHeader(vm: AppViewModel, now: LocalDateTime, onOpenSettings: ()
         ) { langDialog = true }
     }
     if (langDialog) com.alexshell.raspisanie.ui.components.LanguageDialog { langDialog = false }
-    if (proDialog) com.alexshell.raspisanie.ui.components.ProDialog { proDialog = false }
+    if (proDialog) com.alexshell.raspisanie.ui.components.ProDialog(onOpenAi = onOpenAi) { proDialog = false }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             now.clock(),

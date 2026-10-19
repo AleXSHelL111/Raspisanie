@@ -167,7 +167,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val title: String) { TODAY("Сегодня"), WEEK("Неделя"), HOMEWORK("ДЗ"), GROUP("Моя группа") }
+private enum class Tab(val title: String) { TODAY("Сегодня"), WEEK("Неделя"), AI("KGMU AI"), HOMEWORK("ДЗ"), GROUP("Моя группа") }
 
 @Composable
 private fun App(vm: AppViewModel) {
@@ -355,7 +355,10 @@ private fun Onboarding(vm: AppViewModel) {
 
 @Composable
 private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> Unit) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+    // Приложение открывается на чате с KGMU AI.
+    var tab by rememberSaveable { mutableIntStateOf(Tab.AI.ordinal) }
+    var proDialog by rememberSaveable { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     var openedLesson by remember { mutableStateOf<Lesson?>(null) }
     // Редактор: (занятие или null для нового, дата для нового)
     var editor by remember { mutableStateOf<Pair<Lesson?, LocalDate>?>(null) }
@@ -376,6 +379,23 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
 
     // Свежие объявления группы — для значка на вкладке.
     LaunchedEffect(Unit) { vm.cloud.pullGroup(quiet = true) }
+
+    // KGMU AI попросил открыть раздел.
+    LaunchedEffect(vm.ai.openRequest) {
+        when (vm.ai.openRequest) {
+            "settings" -> { settingsSection = 0; showSettings = true }
+            "profile" -> { settingsSection = 1; showSettings = true }
+            "group" -> tab = Tab.GROUP.ordinal
+            "hw" -> tab = Tab.HOMEWORK.ordinal
+            "week" -> tab = Tab.WEEK.ordinal
+            "today" -> tab = Tab.TODAY.ordinal
+            "pro" -> proDialog = true
+            "tg" -> runCatching {
+                context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.alexshell.raspisanie.ui.components.TELEGRAM_LINK)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+        }
+        vm.ai.openRequest = null
+    }
 
     LaunchedEffect(vm.message) {
         vm.message?.let {
@@ -410,10 +430,13 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                         icon = when (t) {
                             Tab.TODAY -> Icons.Filled.Home
                             Tab.WEEK -> Icons.Filled.DateRange
+                            Tab.AI -> null
                             Tab.HOMEWORK -> Icons.Filled.Edit
                             Tab.GROUP -> Icons.Filled.Person
                         },
                         badge = pending,
+                        iconRes = if (t == Tab.AI) R.drawable.ic_ai_sparkle else null,
+                        special = t == Tab.AI,
                     )
                 },
                 selected = tab,
@@ -432,7 +455,9 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
                     vm, now, padding, open,
                     onOpenSettings = { settingsSection = 0; showSettings = true },
                     onOpenHomework = { tab = Tab.HOMEWORK.ordinal },
+                    onOpenAi = { tab = Tab.AI.ordinal },
                 )
+                Tab.AI -> com.alexshell.raspisanie.ui.screens.AiScreen(vm, padding)
                 Tab.WEEK -> WeekScreen(vm, now, padding, open, onAdd = { d -> editor = null to d })
                 Tab.HOMEWORK -> HomeworkScreen(vm, now, padding, open)
                 Tab.GROUP -> GroupScreen(vm, padding, onOpenProfile = { settingsSection = 1; showSettings = true })
@@ -455,4 +480,5 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     }
     editor?.let { (lesson, date) -> LessonEditor(vm, lesson, date) { editor = null } }
     if (addDialog) AddHomeworkDialog(vm, now) { addDialog = false }
+    if (proDialog) com.alexshell.raspisanie.ui.components.ProDialog(onOpenAi = { tab = Tab.AI.ordinal }) { proDialog = false }
 }

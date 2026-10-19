@@ -1,6 +1,7 @@
 package com.alexshell.raspisanie.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.ui.theme.Neon
 
-data class NavItem(val title: String, val icon: ImageVector, val badge: Int = 0)
+data class NavItem(val title: String, val icon: ImageVector? = null, val badge: Int = 0, val iconRes: Int? = null, val special: Boolean = false)
 
 /** Плавающая неоновая панель навигации в стиле карточек приложения. */
 @Composable
@@ -69,9 +71,13 @@ fun NeonBottomBar(items: List<NavItem>, selected: Int, onSelect: (Int) -> Unit) 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             items.forEachIndexed { i, item ->
-                BarItem(item, i == selected, Modifier.weight(1f)) { onSelect(i) }
+                if (item.special) AiBarLabel(item, Modifier.weight(1f)) { onSelect(i) }
+                else BarItem(item, i == selected, Modifier.weight(1f)) { onSelect(i) }
             }
         }
+        // Круглая кнопка ИИ выступает над панелью, поэтому рисуется поверх неё, а не внутри.
+        val ai = items.indexOfFirst { it.special }
+        if (ai >= 0) AiCircle(items[ai], ai == selected, Modifier.align(Alignment.TopCenter)) { onSelect(ai) }
     }
 }
 
@@ -102,7 +108,7 @@ private fun BarItem(item: NavItem, selected: Boolean, modifier: Modifier, onClic
                     )
                     .border(1.dp, Neon.Cyan.copy(alpha = 0.6f * glow), RoundedCornerShape(16.dp))
             )
-            Icon(item.icon, contentDescription = item.title, tint = color, modifier = Modifier.size(22.dp))
+            item.icon?.let { Icon(it, contentDescription = item.title, tint = color, modifier = Modifier.size(22.dp)) }
             if (item.badge > 0) {
                 Box(
                     Modifier
@@ -126,10 +132,64 @@ private fun BarItem(item: NavItem, selected: Boolean, modifier: Modifier, onClic
         Text(
             item.title,
             color = color,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
+            maxLines = 1,
+            softWrap = false,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             style = if (selected) TextStyle(shadow = Neon.glow(Neon.Cyan, 10f)) else TextStyle.Default,
         )
         Spacer(Modifier.width(1.dp))
+    }
+}
+
+/** Подпись под центральной кнопкой KGMU AI (сама кнопка — [AiCircle]). */
+@Composable
+private fun AiBarLabel(item: NavItem, modifier: Modifier, onClick: () -> Unit) {
+    Column(
+        modifier
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(35.dp))
+        Text(
+            item.title,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1,
+            softWrap = false,
+            style = TextStyle(brush = Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Magenta))),
+        )
+    }
+}
+
+/** Центральная кнопка KGMU AI: выступающий светящийся круг с градиентом. */
+@Composable
+private fun AiCircle(item: NavItem, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "ai").animateFloat(
+        0.45f, 1f,
+        androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(1200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            androidx.compose.animation.core.RepeatMode.Reverse,
+        ),
+        label = "pulse",
+    )
+    val scale by animateFloatAsState(if (selected) 1.07f else 1f, label = "aiScale")
+    Box(
+        modifier
+            .offset(y = (-20).dp)
+            .size(58.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .shadow(18.dp * pulse, CircleShape, ambientColor = Neon.Magenta, spotColor = Neon.Violet)
+            .clip(CircleShape)
+            .background(Brush.linearGradient(listOf(Neon.Cyan, Neon.Violet, Neon.Magenta)))
+            .border(3.dp, Neon.Bg, CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        item.iconRes?.let {
+            Icon(androidx.compose.ui.res.painterResource(it), contentDescription = item.title, tint = Neon.OnAccent, modifier = Modifier.size(28.dp))
+        }
     }
 }

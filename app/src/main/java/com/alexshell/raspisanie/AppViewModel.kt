@@ -35,6 +35,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Профиль, облачная копия и «Моя группа». */
     val cloud = CloudState(this)
 
+    /** Чат с KGMU AI. */
+    val ai = com.alexshell.raspisanie.ai.ChatState(this)
+
     var schedule by mutableStateOf<Schedule?>(null)
         private set
     var loadError by mutableStateOf<String?>(null)
@@ -347,6 +350,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun toggleDone(id: Long) = updateHomework(homework.map { if (it.id == id) it.copy(done = !it.done) else it })
+
+    fun markDone(ids: List<Long>) = updateHomework(homework.map { if (it.id in ids) it.copy(done = true) else it })
 
     fun deleteHomework(id: Long) = updateHomework(homework.filterNot { it.id == id })
 

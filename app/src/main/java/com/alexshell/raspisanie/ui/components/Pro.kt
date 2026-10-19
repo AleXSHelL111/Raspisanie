@@ -90,14 +90,15 @@ fun ProButton(onClick: () -> Unit) {
 
 /** Неоновый «ИИ-шар»: три вращающиеся дуги и пульсирующее ядро. */
 @Composable
-private fun AiOrb() {
+fun AiOrb(size: androidx.compose.ui.unit.Dp = 190.dp) {
+    val k = size / 190.dp
     val t = rememberInfiniteTransition(label = "orb")
     val a1 by t.animateFloat(0f, 360f, infiniteRepeatable(tween(2600, easing = LinearEasing)), label = "a1")
     val a2 by t.animateFloat(360f, 0f, infiniteRepeatable(tween(1900, easing = LinearEasing)), label = "a2")
     val a3 by t.animateFloat(0f, 360f, infiniteRepeatable(tween(3400, easing = LinearEasing)), label = "a3")
     val pulse by t.animateFloat(1f, 1.12f, infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
     val c1 = Neon.Cyan; val c2 = Neon.Magenta; val c3 = Neon.Violet
-    Box(Modifier.size(190.dp), contentAlignment = Alignment.Center) {
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val w = 4.dp.toPx()
             fun arc(angle: Float, inset: Float, color: Color, sweep: Float) = rotate(angle) {
@@ -110,24 +111,24 @@ private fun AiOrb() {
                 drawArc(color, 180f, sweep * 0.6f, false, tl, sz, style = stroke)
             }
             arc(a1, w * 2, c1, 110f)
-            arc(a2, 22.dp.toPx(), c2, 90f)
-            arc(a3, 42.dp.toPx(), c3, 70f)
+            arc(a2, 22.dp.toPx() * k, c2, 90f)
+            arc(a3, 42.dp.toPx() * k, c3, 70f)
         }
         Box(
             Modifier
-                .size(74.dp)
+                .size(74.dp * k)
                 .scale(pulse)
                 .shadow(30.dp, CircleShape, ambientColor = c3, spotColor = c2)
                 .clip(CircleShape)
                 .background(Brush.linearGradient(listOf(c1, c3, c2))),
             contentAlignment = Alignment.Center,
-        ) { Text("AI", color = Neon.OnAccent, fontSize = 24.sp, fontWeight = FontWeight.Black) }
+        ) { Text("AI", color = Neon.OnAccent, fontSize = 24.sp * k, fontWeight = FontWeight.Black) }
     }
 }
 
-/** Окно PRO: раздел в разработке. */
+/** Окно PRO: бета KGMU AI и ссылка на соцсети. */
 @Composable
-fun ProDialog(onDismiss: () -> Unit) {
+fun ProDialog(onOpenAi: () -> Unit = {}, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
@@ -148,7 +149,7 @@ fun ProDialog(onDismiss: () -> Unit) {
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.width(36.dp))
-                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { NeonChip(tr("Раздел в разработке"), Neon.Magenta, filled = true) }
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { NeonChip(tr("Бета-версия"), Neon.Magenta, filled = true) }
                 Box(
                     Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onDismiss),
                     contentAlignment = Alignment.Center,
@@ -158,11 +159,13 @@ fun ProDialog(onDismiss: () -> Unit) {
             AiOrb()
             Spacer(Modifier.height(24.dp))
             Text(
-                tr("Добавим функции ИИ"), fontSize = 26.sp, fontWeight = FontWeight.Black, color = Neon.Text, textAlign = TextAlign.Center,
+                tr("KGMU AI уже здесь"), fontSize = 26.sp, fontWeight = FontWeight.Black, color = Neon.Text, textAlign = TextAlign.Center,
                 style = TextStyle(shadow = Neon.glow(Neon.Violet, 24f)),
             )
             Spacer(Modifier.height(6.dp))
             Text(tr("для расписания и не только😉"), fontSize = 17.sp, color = Neon.Muted, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(22.dp))
+            Box(Modifier.width(260.dp)) { GradientButton("✨ " + tr("Открыть чат с ИИ")) { onDismiss(); onOpenAi() } }
             Spacer(Modifier.weight(1f, fill = false))
             Spacer(Modifier.height(36.dp))
             Text(tr("Версия {0}", version) + " · Created by AleXSHelL", color = Neon.Dim, fontSize = 12.sp, textAlign = TextAlign.Center)

@@ -7,6 +7,14 @@
   "fr": "3 à 24 caractères : lettres latines, chiffres, « _ » et « . »",
   "zh": "3–24 个字符：拉丁字母、数字、“_”和“.”"
  },
+ "KGMU AI уже здесь": {
+  "ar": "KGMU AI هنا الآن",
+  "de": "KGMU AI ist da",
+  "en": "KGMU AI is here",
+  "es": "KGMU AI ya está aquí",
+  "fr": "KGMU AI est arrivé",
+  "zh": "KGMU AI 来了"
+ },
  "{0} мин": {
   "ar": "{0} د",
   "de": "{0} Min.",
@@ -94,6 +102,14 @@
   "es": "PRÓXIMA",
   "fr": "PROCHAIN",
   "zh": "即将"
+ },
+ "Бета-версия": {
+  "ar": "نسخة تجريبية",
+  "de": "Beta-Version",
+  "en": "Beta",
+  "es": "Versión beta",
+  "fr": "Version bêta",
+  "zh": "测试版"
  },
  "Ближайшая пара": {
   "ar": "الحصة القادمة",
@@ -350,6 +366,14 @@
   "es": "Total",
   "fr": "Total",
   "zh": "总计"
+ },
+ "Вспоминаю": {
+  "ar": "أتذكر",
+  "de": "Ich erinnere mich",
+  "en": "Recalling",
+  "es": "Recordando",
+  "fr": "Je me souviens",
+  "zh": "回忆中"
  },
  "Вход": {
   "ar": "الدخول",
@@ -855,6 +879,14 @@
   "fr": "Devoirs",
   "zh": "作业"
  },
+ "Думаю": {
+  "ar": "أفكر",
+  "de": "Ich denke nach",
+  "en": "Thinking",
+  "es": "Pensando",
+  "fr": "Je réfléchis",
+  "zh": "思考中"
+ },
  "Есть ДЗ к этой паре ({0})": {
   "ar": "يوجد واجب لهذه الحصة ({0})",
   "de": "Aufgaben für diesen Kurs ({0})",
@@ -1022,6 +1054,14 @@
   "es": "Clase eliminada",
   "fr": "Cours supprimé",
   "zh": "课程已删除"
+ },
+ "Записываю": {
+  "ar": "أسجّل",
+  "de": "Ich speichere",
+  "en": "Saving",
+  "es": "Guardando",
+  "fr": "J'enregistre",
+  "zh": "记录中"
  },
  "Запись не найдена": {
   "ar": "السجل غير موجود",
@@ -1727,6 +1767,14 @@
   "fr": "Ouvrir les devoirs →",
   "zh": "打开作业 →"
  },
+ "Открыть чат с ИИ": {
+  "ar": "فتح محادثة الذكاء الاصطناعي",
+  "de": "KI-Chat öffnen",
+  "en": "Open AI chat",
+  "es": "Abrir chat con IA",
+  "fr": "Ouvrir le chat IA",
+  "zh": "打开 AI 聊天"
+ },
  "Отмена": {
   "ar": "إلغاء",
   "de": "Abbrechen",
@@ -1751,6 +1799,14 @@
   "fr": "Notez vos absences et les rattrapages pour ne rien oublier.",
   "zh": "记录缺勤和补课时间，避免遗忘。"
  },
+ "Отмечаю": {
+  "ar": "أضع علامة",
+  "de": "Ich hake ab",
+  "en": "Marking",
+  "es": "Marcando",
+  "fr": "Je coche",
+  "zh": "标记中"
+ },
  "Отмечено как отработано": {
   "ar": "تم التعليم كمُعوَّض",
   "de": "Als nachgeholt markiert",
@@ -1758,6 +1814,14 @@
   "es": "Marcado como recuperado",
   "fr": "Marqué comme rattrapé",
   "zh": "已标记为已补课"
+ },
+ "Отправить": {
+  "ar": "إرسال",
+  "de": "Senden",
+  "en": "Send",
+  "es": "Enviar",
+  "fr": "Envoyer",
+  "zh": "发送"
  },
  "Отправить группе": {
   "ar": "إرسال للمجموعة",
@@ -1830,6 +1894,30 @@
   "es": "Sin recuperaciones 🎉",
   "fr": "Aucun rattrapage 🎉",
   "zh": "没有补课 🎉"
+ },
+ "Очистить": {
+  "ar": "مسح",
+  "de": "Leeren",
+  "en": "Clear",
+  "es": "Borrar",
+  "fr": "Effacer",
+  "zh": "清空"
+ },
+ "Очистить чат": {
+  "ar": "مسح المحادثة",
+  "de": "Chat leeren",
+  "en": "Clear chat",
+  "es": "Borrar chat",
+  "fr": "Effacer la discussion",
+  "zh": "清空聊天"
+ },
+ "Очистить чат?": {
+  "ar": "مسح المحادثة؟",
+  "de": "Chat leeren?",
+  "en": "Clear chat?",
+  "es": "¿Borrar el chat?",
+  "fr": "Effacer la discussion ?",
+  "zh": "清空聊天？"
  },
  "Ошибка импорта: {0}": {
   "ar": "خطأ في الاستيراد: {0}",
@@ -2015,6 +2103,14 @@
   "fr": "Aucun utilisateur avec ce nom",
   "zh": "未找到该用户名"
  },
+ "Помощник пока понимает только русский язык": {
+  "ar": "المساعد يفهم الروسية فقط حاليًا",
+  "de": "Der Assistent versteht vorerst nur Russisch",
+  "en": "For now the assistant understands Russian only",
+  "es": "Por ahora el asistente solo entiende ruso",
+  "fr": "Pour l'instant, l'assistant ne comprend que le russe",
+  "zh": "助手目前只懂俄语"
+ },
  "Попросите создателя или старосту добавить вас по юзернейму {0} — или создайте группу сами.": {
   "ar": "اطلب من منشئ المجموعة أو رئيسها إضافتك باسم المستخدم {0} — أو أنشئ مجموعة بنفسك.",
   "de": "Bitte den Gruppenersteller oder Gruppensprecher, dich über deinen Benutzernamen {0} hinzuzufügen – oder erstelle selbst eine Gruppe.",
@@ -2095,6 +2191,22 @@
   "fr": "Mois précédent",
   "zh": "上个月"
  },
+ "Привет! Я KGMU AI": {
+  "ar": "مرحبًا! أنا KGMU AI",
+  "de": "Hallo! Ich bin KGMU AI",
+  "en": "Hi! I'm KGMU AI",
+  "es": "¡Hola! Soy KGMU AI",
+  "fr": "Salut ! Je suis KGMU AI",
+  "zh": "你好！我是 KGMU AI"
+ },
+ "Привет, {0}! Я KGMU AI": {
+  "ar": "مرحبًا يا {0}! أنا KGMU AI",
+  "de": "Hallo, {0}! Ich bin KGMU AI",
+  "en": "Hi, {0}! I'm KGMU AI",
+  "es": "¡Hola, {0}! Soy KGMU AI",
+  "fr": "Salut, {0} ! Je suis KGMU AI",
+  "zh": "你好，{0}！我是 KGMU AI"
+ },
  "Применить ко всем таким парам ({0} шт.)": {
   "ar": "تطبيق على كل الحصص المماثلة ({0})",
   "de": "Auf alle solchen Kurse anwenden ({0})",
@@ -2110,6 +2222,14 @@
   "es": "Probar notificación",
   "fr": "Tester la notification",
   "zh": "测试通知"
+ },
+ "Проверяю ДЗ": {
+  "ar": "أتحقق من الواجبات",
+  "de": "Ich prüfe die Hausaufgaben",
+  "en": "Checking homework",
+  "es": "Revisando la tarea",
+  "fr": "Je vérifie les devoirs",
+  "zh": "查看作业"
  },
  "Проверяю…": {
   "ar": "جارٍ التحقق…",
@@ -2198,6 +2318,14 @@
   "es": "En desarrollo",
   "fr": "En développement",
   "zh": "开发中"
+ },
+ "Размышляю": {
+  "ar": "أتأمل",
+  "de": "Ich überlege",
+  "en": "Reasoning",
+  "es": "Razonando",
+  "fr": "Je raisonne",
+  "zh": "推理中"
  },
  "Разрешить": {
   "ar": "سماح",
@@ -2455,6 +2583,14 @@
   "fr": "Changer le mot de passe (facultatif)",
   "zh": "修改密码（可选）"
  },
+ "Смотрю расписание": {
+  "ar": "أراجع الجدول",
+  "de": "Ich sehe im Stundenplan nach",
+  "en": "Checking the schedule",
+  "es": "Revisando el horario",
+  "fr": "Je consulte l'emploi du temps",
+  "zh": "查看课表"
+ },
  "Сначала укажите адрес сервера": {
   "ar": "أدخل عنوان الخادم أولًا",
   "de": "Gib zuerst die Serveradresse ein",
@@ -2582,6 +2718,22 @@
   "es": "Guardando…",
   "fr": "Sauvegarde…",
   "zh": "正在保存…"
+ },
+ "Спросите о парах, домашке или о приложении — отвечу за секунду": {
+  "ar": "اسأل عن المحاضرات أو الواجبات أو التطبيق — سأجيب في ثانية",
+  "de": "Frag nach Kursen, Hausaufgaben oder der App — ich antworte sofort",
+  "en": "Ask about classes, homework or the app — I'll answer in a second",
+  "es": "Pregunta por las clases, la tarea o la app — respondo en un segundo",
+  "fr": "Posez une question sur les cours, les devoirs ou l'appli — je réponds en une seconde",
+  "zh": "问问课程、作业或应用——我马上回答"
+ },
+ "Спросите что-нибудь…": {
+  "ar": "اسأل شيئًا…",
+  "de": "Frag etwas…",
+  "en": "Ask something…",
+  "es": "Pregunta algo…",
+  "fr": "Posez une question…",
+  "zh": "问点什么…"
  },
  "Ссылка на веб-приложение Google Apps Script (заканчивается на /exec).": {
   "ar": "رابط تطبيق الويب Google Apps Script (ينتهي بـ ‎/exec).",
@@ -3190,6 +3342,14 @@
   "es": "en línea",
   "fr": "en ligne",
   "zh": "线上"
+ },
+ "онлайн · бета": {
+  "ar": "متصل · تجريبي",
+  "de": "online · Beta",
+  "en": "online · beta",
+  "es": "en línea · beta",
+  "fr": "en ligne · bêta",
+  "zh": "在线 · 测试版"
  },
  "пар": {
   "ar": "حصة|حصص",
