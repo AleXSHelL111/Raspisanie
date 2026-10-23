@@ -85,6 +85,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alexshell.raspisanie.AppViewModel
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.delay
 import com.alexshell.raspisanie.ai.Assistant
 import com.alexshell.raspisanie.ui.I18n
 import com.alexshell.raspisanie.ui.components.AiOrb
@@ -110,6 +114,9 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
     val rows = chat.messages.size + (if (chat.thinking != null || chat.typing != null) 1 else 0)
     LaunchedEffect(rows, chat.typing != null) { if (rows > 0) list.animateScrollToItem(rows - 1) }
     LaunchedEffect(chat.typed / 40) { if (chat.typing != null && rows > 0) list.scrollToItem(rows - 1, Int.MAX_VALUE / 2) }
+    // Клавиатура открылась — поле чата уменьшилось, держим последние сообщения на виду.
+    val imeOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    LaunchedEffect(imeOpen) { if (imeOpen && rows > 0) { delay(250); list.scrollToItem(rows - 1, Int.MAX_VALUE / 2) } }
 
     Column(
         Modifier
@@ -136,7 +143,7 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
                     Box(Modifier.size(7.dp).shadow(6.dp, CircleShape, ambientColor = dot, spotColor = dot).clip(CircleShape).background(dot))
                     Spacer(Modifier.size(6.dp))
                     Text(
-                        local.selected?.takeIf { local.usable }?.let { tr("{0} · на устройстве", it.name) } ?: tr("онлайн · бета"),
+                        local.selected?.takeIf { local.usable }?.let { "${it.name} · " + tr("офлайн") } ?: tr("онлайн · бета"),
                         color = Neon.Muted, fontSize = 12.sp, maxLines = 1,
                     )
                 }

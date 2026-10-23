@@ -2615,6 +2615,14 @@
   "fr": "Consignes enregistrées",
   "zh": "要求已保存"
  },
+ "Рекомендации сохранены — KGMU AI будет их соблюдать": {
+  "ar": "تم حفظ التعليمات — سيلتزم بها KGMU AI",
+  "de": "Hinweise gespeichert – KGMU AI hält sich daran",
+  "en": "Instructions saved — KGMU AI will follow them",
+  "es": "Indicaciones guardadas: KGMU AI las seguirá",
+  "fr": "Consignes enregistrées — KGMU AI les respectera",
+  "zh": "要求已保存——KGMU AI 会遵守"
+ },
  "Роль": {
   "ar": "الدور",
   "de": "Rolle",
@@ -3694,6 +3702,14 @@
   "es": "en línea · beta",
   "fr": "en ligne · bêta",
   "zh": "在线 · 测试版"
+ },
+ "офлайн": {
+  "ar": "دون اتصال",
+  "de": "offline",
+  "en": "offline",
+  "es": "sin conexión",
+  "fr": "hors ligne",
+  "zh": "离线"
  },
  "пар": {
   "ar": "حصة|حصص",

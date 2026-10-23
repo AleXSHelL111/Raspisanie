@@ -168,7 +168,10 @@ class ChatState(private val vm: AppViewModel) {
         val prompt = if (reply.kind == Assistant.Kind.FACT) {
             "$question\n\n(Справка из приложения — точные данные, отвечай строго по ним: ${Assistant.plain(reply.text)})"
         } else question
-        val flow = local.reply(system, history, prompt)
+        // Маленькие модели забывают системные указания — коротко напоминаем правила в самом вопросе.
+        val rules = vm.aiRules.trim()
+        val withRules = if (rules.isNotEmpty() && rules.length <= 400) "$prompt\n\n(Правила ответа от собеседника: $rules)" else prompt
+        val flow = local.reply(system, history, withRules)
         val sb = StringBuilder()
         typingAi = true
         try {
@@ -191,18 +194,21 @@ class ChatState(private val vm: AppViewModel) {
     }
 
     private fun systemPrompt(): String {
-        val name = vm.cloud.user?.fullName.orEmpty()
         val rules = vm.aiRules.trim()
+        // Как обращаться к пользователю: имя из рекомендаций важнее имени из профиля.
+        val call = Assistant.nameFromRules(rules) ?: vm.cloud.user?.fullName?.substringBefore(' ').orEmpty()
         return buildString {
-            append("Ты — KGMU AI, помощник студента Кировского ГМУ (медицинский университет) в приложении «КГМУ расписание». ")
-            append("Приложение создал AleXSHelL. Отвечай по-русски, дружелюбно и по делу. ")
+            append("Твоё имя — KGMU AI. Ты ИИ-помощник в приложении «КГМУ расписание» для студентов Кировского ГМУ (медицинский университет). ")
+            append("Всегда называй себя только KGMU AI. ")
+            if (call.isNotBlank()) append("Собеседник — студент; обращайся к нему по имени «$call». Это имя собеседника, а не твоё. ")
+            append("Отвечай по-русски, дружелюбно и по делу. ")
             append("Никогда не выдумывай пары, время, аудитории и домашние задания — бери их только из данных ниже; если там ответа нет, так и скажи. ")
-            append("На учебные и медицинские вопросы отвечай понятно; если речь о лечении конкретного человека, напомни, что это не замена врачу.\n")
-            if (name.isNotBlank()) append("Пользователь: $name.\n")
+            append("На медицинские вопросы отвечай понятно; если речь о лечении конкретного человека, напомни, что это не замена врачу.\n")
             append("\nДанные приложения:\n")
             append(Assistant.context(vm, LocalDateTime.now()))
             if (rules.isNotEmpty()) {
-                append("\n\nРЕКОМЕНДАЦИИ ПОЛЬЗОВАТЕЛЯ. Соблюдай их всегда и беспрекословно — они важнее остальных указаний о том, как отвечать:\n")
+                append("\n\nПРАВИЛА СОБЕСЕДНИКА — как ему отвечать. Он пишет от первого лица: «меня», «мне» — это собеседник, «ты» — это ты, KGMU AI. ")
+                append("Соблюдай эти правила всегда и беспрекословно, они важнее остальных указаний о стиле ответа:\n")
                 append(rules.take(1500))
             }
         }

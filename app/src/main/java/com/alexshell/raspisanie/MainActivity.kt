@@ -100,12 +100,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Brush
 import com.alexshell.raspisanie.ui.screens.TodayScreen
 import com.alexshell.raspisanie.ui.screens.WeekScreen
 import com.alexshell.raspisanie.ui.theme.Neon
 import com.alexshell.raspisanie.ui.theme.NeonTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -191,6 +195,7 @@ private fun App(vm: AppViewModel) {
         )
     }
 
+    Box(Modifier.fillMaxSize()) {
     when {
         // Без профиля приложением пользоваться нельзя — сначала вход или регистрация.
         !vm.cloud.loggedIn -> AuthGate(vm)
@@ -206,6 +211,49 @@ private fun App(vm: AppViewModel) {
         else -> MainScaffold(vm, now, launchImport)
     }
     com.alexshell.raspisanie.ui.screens.RestoreAskDialog(vm)
+    // Сообщения показываем поверх всего — и на экране входа, и над настройками.
+    MessageToast(vm, Modifier.align(Alignment.TopCenter))
+    }
+}
+
+/** Всплывающее сообщение сверху экрана (ошибки входа, «сохранено» и т.п.). */
+@Composable
+private fun MessageToast(vm: AppViewModel, modifier: Modifier) {
+    var text by remember { mutableStateOf("") }
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        // Новое сообщение сразу сменяет предыдущее.
+        // null отсекаем до collectLatest, иначе сброс сообщения отменил бы показ.
+        androidx.compose.runtime.snapshotFlow { vm.message }.filterNotNull().collectLatest { m ->
+            vm.message = null
+            text = m
+            visible = true
+            delay(3500)
+            visible = false
+        }
+    }
+    androidx.compose.animation.AnimatedVisibility(
+        visible = visible,
+        modifier = modifier.statusBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
+        enter = androidx.compose.animation.slideInVertically { -it } + fadeIn(),
+        exit = androidx.compose.animation.slideOutVertically { -it } + fadeOut(),
+    ) {
+        val shape = RoundedCornerShape(18.dp)
+        Text(
+            text,
+            color = Neon.Text,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(16.dp, shape, ambientColor = Neon.Cyan, spotColor = Neon.Cyan)
+                .clip(shape)
+                .background(Neon.SurfaceHi)
+                .border(1.dp, Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Violet, Neon.Magenta)), shape)
+                .clickable { visible = false }
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+        )
+    }
 }
 
 /** Экран входа: регистрация обязательна. */
@@ -363,7 +411,6 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
     var addDialog by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var settingsSection by rememberSaveable { mutableIntStateOf(0) }
-    val snackbar = remember { SnackbarHostState() }
 
     // Android 13+: один раз спрашиваем разрешение на уведомления.
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -398,17 +445,10 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         vm.ai.openRequest = null
     }
 
-    LaunchedEffect(vm.message) {
-        vm.message?.let {
-            snackbar.showSnackbar(it)
-            vm.message = null
-        }
-    }
 
     Scaffold(
         containerColor = Color.Transparent,
         contentColor = Neon.Text,
-        snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
             if (Tab.entries[tab] == Tab.HOMEWORK) {
                 FloatingActionButton(
