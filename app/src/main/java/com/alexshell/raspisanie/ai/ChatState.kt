@@ -3,24 +3,46 @@ package com.alexshell.raspisanie.ai
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.viewModelScope
 import com.alexshell.raspisanie.AppViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.time.LocalDateTime
 import kotlin.random.Random
 
-/** Переписка с KGMU AI: сообщения, «размышление» и печать ответа по буквам. */
+/**
+ * Чаты с KGMU AI: хранятся на устройстве, отвечает простой бот или локальная нейросеть.
+ */
 class ChatState(private val vm: AppViewModel) {
-    data class Msg(val user: Boolean, val text: String, val at: Long = System.currentTimeMillis())
+    /** [ai] — ответ написала нейросеть. */
+    data class Msg(val user: Boolean, val text: String, val at: Long = System.currentTimeMillis(), val ai: Boolean = false)
 
-    private val prefs = vm.getApplication<android.app.Application>().getSharedPreferences("ai", Context.MODE_PRIVATE)
+    class Chat(val id: Long, title: String, updated: Long, val messages: SnapshotStateList<Msg>) {
+        var title by mutableStateOf(title)
+        var updated by mutableLongStateOf(updated)
+    }
 
-    val messages = mutableStateListOf<Msg>().apply { addAll(load()) }
+    private val app = vm.getApplication<android.app.Application>()
+    private val file = File(app.filesDir, "ai_chats.json")
+
+    /** Все чаты, свежие сверху. */
+    val chats = mutableStateListOf<Chat>()
+    var currentId by mutableLongStateOf(0L)
+        private set
+
+    val current: Chat get() = chats.firstOrNull { it.id == currentId } ?: chats.first()
+    val messages: SnapshotStateList<Msg> get() = current.messages
 
     /** Подпись «Думаю…», пока бот «размышляет»; null — не думает. */
     var thinking by mutableStateOf<String?>(null)
@@ -30,47 +52,160 @@ class ChatState(private val vm: AppViewModel) {
         private set
     var typed by mutableIntStateOf(0)
         private set
+    /** Сейчас пишет нейросеть (а не простой бот). */
+    var typingAi by mutableStateOf(false)
+        private set
 
     /** Раздел, который попросили открыть («settings», «group», …) — его открывает экран. */
     var openRequest by mutableStateOf<String?>(null)
 
-    val busy: Boolean get() = thinking != null || typing != null
+    val busy: Boolean get() = job?.isActive == true
+    private var job: Job? = null
+
+    init {
+        load()
+        if (chats.isEmpty()) chats += Chat(System.currentTimeMillis(), "", System.currentTimeMillis(), mutableStateListOf())
+        currentId = chats.first().id
+    }
+
+    // ---------- Чаты ----------
+
+    fun newChat() {
+        if (busy) return
+        if (current.messages.isEmpty()) return
+        val c = Chat(System.currentTimeMillis(), "", System.currentTimeMillis(), mutableStateListOf())
+        chats.add(0, c)
+        currentId = c.id
+        save()
+    }
+
+    fun select(id: Long) {
+        if (busy || chats.none { it.id == id }) return
+        currentId = id
+    }
+
+    fun delete(id: Long) {
+        if (busy) return
+        chats.removeAll { it.id == id }
+        if (chats.isEmpty()) chats += Chat(System.currentTimeMillis(), "", System.currentTimeMillis(), mutableStateListOf())
+        if (chats.none { it.id == currentId }) currentId = chats.first().id
+        save()
+    }
+
+    /** Очистить текущий чат (удаляет его из списка). */
+    fun clear() = delete(currentId)
+
+    // ---------- Отправка ----------
 
     fun send(raw: String) {
         val text = raw.trim()
         if (text.isEmpty() || busy) return
-        messages += Msg(true, text)
-        save()
+        val chat = current
+        val history = chat.messages.takeLast(6).map { it.user to it.text.take(600) }
+        chat.messages += Msg(true, text)
+        if (chat.title.isBlank()) chat.title = text.take(40)
+        touch(chat)
         val reply = runCatching { Assistant.answer(vm, text) }
             .getOrElse { Assistant.Reply("Ой, что-то пошло не так 🙈 Попробуйте спросить по-другому.") }
-        vm.viewModelScope.launch {
-            // Пауза «на размышление» зависит от длины ответа.
-            val wait = 650L + minOf(1200, reply.text.length * 5) + Random.nextLong(350)
-            thinking = "Думаю"
-            delay(wait * 45 / 100)
-            thinking = reply.think ?: "Размышляю"
-            delay(wait * 55 / 100)
-            thinking = null
-            val plain = Assistant.plainLength(reply.text)
-            val dur = minOf(1600, plain * 12).toLong()
-            typing = reply.text
-            typed = 0
-            val t0 = System.currentTimeMillis()
-            while (System.currentTimeMillis() - t0 < dur) {
-                typed = (plain * (System.currentTimeMillis() - t0) / dur).toInt() + 1
-                delay(24)
+        val local = vm.localAi
+        val useAi = local.usable && reply.act == null && reply.kind != Assistant.Kind.ACTION && reply.kind != Assistant.Kind.FIXED
+        job = vm.viewModelScope.launch {
+            if (useAi) {
+                val ok = runCatching { answerWithAi(chat, text, reply, history) }
+                    .onFailure { if (it is CancellationException) throw it }
+                    .isSuccess
+                if (ok) return@launch
+                // Нейросеть не справилась — отвечает простой бот.
+                vm.message = "Нейросеть недоступна: ${local.engineError ?: "ошибка"}. Ответил простой бот."
             }
-            typing = null
-            messages += Msg(false, reply.text)
-            save()
-            perform(reply.act)
+            answerWithBot(chat, reply)
         }
     }
 
-    fun clear() {
-        if (busy) return
-        messages.clear()
-        save()
+    /** Остановить ответ: уже написанное сохраняется. */
+    fun stop() {
+        val partial = typing
+        job?.cancel()
+        job = null
+        thinking = null
+        typing = null
+        if (!partial.isNullOrBlank()) {
+            current.messages += Msg(false, partial.trimEnd() + " …", ai = typingAi)
+            touch(current)
+        }
+        typingAi = false
+    }
+
+    private suspend fun answerWithBot(chat: Chat, reply: Assistant.Reply) {
+        // Пауза «на размышление» зависит от длины ответа.
+        val wait = 650L + minOf(1200, reply.text.length * 5) + Random.nextLong(350)
+        thinking = "Думаю"
+        delay(wait * 45 / 100)
+        thinking = reply.think ?: "Размышляю"
+        delay(wait * 55 / 100)
+        thinking = null
+        val plain = Assistant.plainLength(reply.text)
+        val dur = minOf(1600, plain * 12).toLong()
+        typingAi = false
+        typing = reply.text
+        typed = 0
+        val t0 = System.currentTimeMillis()
+        while (System.currentTimeMillis() - t0 < dur) {
+            typed = (plain * (System.currentTimeMillis() - t0) / dur).toInt() + 1
+            delay(24)
+        }
+        typing = null
+        chat.messages += Msg(false, reply.text)
+        touch(chat)
+        perform(reply.act)
+    }
+
+    private suspend fun answerWithAi(chat: Chat, question: String, reply: Assistant.Reply, history: List<Pair<Boolean, String>>) {
+        val local = vm.localAi
+        thinking = if (local.engineState == LocalAi.EngineState.READY) "Думаю" else "Запускаю нейросеть"
+        val system = systemPrompt()
+        // Для вопросов о расписании и ДЗ даём нейросети точный ответ бота — пусть перескажет по правилам пользователя.
+        val prompt = if (reply.kind == Assistant.Kind.FACT) {
+            "$question\n\n(Справка из приложения — точные данные, отвечай строго по ним: ${Assistant.plain(reply.text)})"
+        } else question
+        val flow = local.reply(system, history, prompt)
+        val sb = StringBuilder()
+        typingAi = true
+        try {
+            flow.collect { piece ->
+                if (piece.isEmpty()) return@collect
+                if (thinking != null) { thinking = null; typing = "" }
+                sb.append(piece)
+                typing = sb.toString()
+                typed = sb.length
+            }
+        } finally {
+            thinking = null
+        }
+        val answer = sb.toString().trim()
+        typing = null
+        typingAi = false
+        if (answer.isEmpty()) error("пустой ответ")
+        chat.messages += Msg(false, answer, ai = true)
+        touch(chat)
+    }
+
+    private fun systemPrompt(): String {
+        val name = vm.cloud.user?.fullName.orEmpty()
+        val rules = vm.aiRules.trim()
+        return buildString {
+            append("Ты — KGMU AI, помощник студента Кировского ГМУ (медицинский университет) в приложении «КГМУ расписание». ")
+            append("Приложение создал AleXSHelL. Отвечай по-русски, дружелюбно и по делу. ")
+            append("Никогда не выдумывай пары, время, аудитории и домашние задания — бери их только из данных ниже; если там ответа нет, так и скажи. ")
+            append("На учебные и медицинские вопросы отвечай понятно; если речь о лечении конкретного человека, напомни, что это не замена врачу.\n")
+            if (name.isNotBlank()) append("Пользователь: $name.\n")
+            append("\nДанные приложения:\n")
+            append(Assistant.context(vm, LocalDateTime.now()))
+            if (rules.isNotEmpty()) {
+                append("\n\nРЕКОМЕНДАЦИИ ПОЛЬЗОВАТЕЛЯ. Соблюдай их всегда и беспрекословно — они важнее остальных указаний о том, как отвечать:\n")
+                append(rules.take(1500))
+            }
+        }
     }
 
     private fun perform(act: Assistant.Act?) {
@@ -84,14 +219,52 @@ class ChatState(private val vm: AppViewModel) {
         }
     }
 
-    private fun load(): List<Msg> = runCatching {
-        val arr = JSONArray(prefs.getString("msgs", "[]"))
-        List(arr.length()) { i -> arr.getJSONObject(i).let { Msg(it.getBoolean("u"), it.getString("t"), it.optLong("at")) } }
-    }.getOrDefault(emptyList())
+    // ---------- Хранение ----------
+
+    private fun touch(chat: Chat) {
+        chat.updated = System.currentTimeMillis()
+        // Активный чат поднимаем наверх списка.
+        val i = chats.indexOf(chat)
+        if (i > 0) { chats.removeAt(i); chats.add(0, chat) }
+        save()
+    }
+
+    private fun load() {
+        runCatching {
+            if (file.exists()) {
+                val arr = JSONArray(file.readText())
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val msgs = o.getJSONArray("msgs")
+                    chats += Chat(
+                        o.getLong("id"), o.optString("title"), o.optLong("updated"),
+                        mutableStateListOf<Msg>().apply {
+                            for (j in 0 until msgs.length()) msgs.getJSONObject(j).let {
+                                add(Msg(it.getBoolean("u"), it.getString("t"), it.optLong("at"), it.optBoolean("ai")))
+                            }
+                        },
+                    )
+                }
+            } else {
+                // Переписка из версии 2.4 становится первым чатом.
+                val old = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getString("msgs", null) ?: return@runCatching
+                val arr = JSONArray(old)
+                val msgs = mutableStateListOf<Msg>()
+                for (j in 0 until arr.length()) arr.getJSONObject(j).let { msgs += Msg(it.getBoolean("u"), it.getString("t"), it.optLong("at")) }
+                if (msgs.isNotEmpty()) chats += Chat(System.currentTimeMillis(), msgs.firstOrNull { it.user }?.text?.take(40).orEmpty(), System.currentTimeMillis(), msgs)
+            }
+        }
+        chats.sortByDescending { it.updated }
+    }
 
     private fun save() {
         val arr = JSONArray()
-        messages.takeLast(60).forEach { arr.put(JSONObject().put("u", it.user).put("t", it.text).put("at", it.at)) }
-        prefs.edit().putString("msgs", arr.toString()).apply()
+        chats.filter { it.messages.isNotEmpty() }.take(50).forEach { c ->
+            val msgs = JSONArray()
+            c.messages.takeLast(200).forEach { msgs.put(JSONObject().put("u", it.user).put("t", it.text).put("at", it.at).put("ai", it.ai)) }
+            arr.put(JSONObject().put("id", c.id).put("title", c.title).put("updated", c.updated).put("msgs", msgs))
+        }
+        val text = arr.toString()
+        vm.viewModelScope.launch(Dispatchers.IO) { runCatching { file.writeText(text) } }
     }
 }

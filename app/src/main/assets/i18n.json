@@ -15,6 +15,14 @@
   "fr": "KGMU AI est arrivé",
   "zh": "KGMU AI 来了"
  },
+ "{0} · на устройстве": {
+  "ar": "{0} · على الجهاز",
+  "de": "{0} · auf dem Gerät",
+  "en": "{0} · on device",
+  "es": "{0} · en el dispositivo",
+  "fr": "{0} · sur l'appareil",
+  "zh": "{0} · 本机运行"
+ },
  "{0} мин": {
   "ar": "{0} د",
   "de": "{0} Min.",
@@ -142,6 +150,14 @@
   "es": "No hay próximas clases de esta asignatura",
   "fr": "Aucun cours à venir pour cette matière",
   "zh": "该科目没有后续课程"
+ },
+ "Быстрая и лёгкая. Подходит большинству телефонов с 8 ГБ памяти.": {
+  "ar": "سريع وخفيف. يناسب معظم الهواتف بذاكرة 8 غيغابايت.",
+  "de": "Schnell und leicht. Passt zu den meisten Handys mit 8 GB RAM.",
+  "en": "Fast and light. Fits most phones with 8 GB of RAM.",
+  "es": "Rápida y ligera. Sirve para la mayoría de móviles con 8 GB de RAM.",
+  "fr": "Rapide et légère. Convient à la plupart des téléphones avec 8 Go de RAM.",
+  "zh": "快速轻巧，适合大多数 8 GB 内存的手机。"
  },
  "В облаке нет файла расписания — загрузите его": {
   "ar": "لا يوجد ملف جدول في السحابة — حمّله",
@@ -287,6 +303,14 @@
   "fr": "Activer",
   "zh": "开启"
  },
+ "Включить нейросеть Gemma 4": {
+  "ar": "تشغيل ذكاء Gemma 4",
+  "de": "Gemma-4-KI einschalten",
+  "en": "Turn on Gemma 4 AI",
+  "es": "Activar la IA Gemma 4",
+  "fr": "Activer l'IA Gemma 4",
+  "zh": "启用 Gemma 4 神经网络"
+ },
  "Войдите в профиль, чтобы создать группу или вступить в неё, читать объявления и вести учёт своих пропусков.": {
   "ar": "سجّل الدخول لإنشاء مجموعة أو الانضمام إليها وقراءة الإعلانات ومتابعة غياباتك.",
   "de": "Melde dich an, um eine Gruppe zu erstellen oder ihr beizutreten, Ankündigungen zu lesen und Fehlzeiten zu erfassen.",
@@ -294,6 +318,14 @@
   "es": "Inicia sesión para crear o unirte a un grupo, leer anuncios y llevar el control de tus faltas.",
   "fr": "Connectez-vous pour créer ou rejoindre un groupe, lire les annonces et suivre vos absences.",
   "zh": "登录后可创建或加入小组、阅读公告并记录自己的缺勤。"
+ },
+ "Войдите или создайте профиль — так ваши ДЗ, правки, настройки и группа сохранятся в облаке и не потеряются.": {
+  "ar": "سجّل الدخول أو أنشئ ملفًا شخصيًا — ستُحفظ واجباتك وتعديلاتك وإعداداتك ومجموعتك في السحابة.",
+  "de": "Melde dich an oder erstelle ein Profil – Hausaufgaben, Änderungen, Einstellungen und Gruppe werden in der Cloud gespeichert.",
+  "en": "Sign in or create a profile — your homework, edits, settings and group will be saved in the cloud and won't get lost.",
+  "es": "Inicia sesión o crea un perfil: tus tareas, cambios, ajustes y grupo se guardarán en la nube.",
+  "fr": "Connectez-vous ou créez un profil : vos devoirs, modifications, réglages et groupe seront sauvegardés dans le cloud.",
+  "zh": "登录或创建账户——你的作业、修改、设置和小组将保存在云端，不会丢失。"
  },
  "Войти": {
   "ar": "دخول",
@@ -526,6 +558,14 @@
   "es": "Día libre ✨",
   "fr": "Jour libre ✨",
   "zh": "休息日 ✨"
+ },
+ "ГБ": {
+  "ar": "غيغابايت",
+  "de": "GB",
+  "en": "GB",
+  "es": "GB",
+  "fr": "Go",
+  "zh": "GB"
  },
  "Где": {
   "ar": "المكان",
@@ -983,6 +1023,14 @@
   "fr": "Charger un nouveau .xlsx",
   "zh": "加载新的 .xlsx"
  },
+ "Загрузка отменена": {
+  "ar": "تم إلغاء التنزيل",
+  "de": "Download abgebrochen",
+  "en": "Download cancelled",
+  "es": "Descarga cancelada",
+  "fr": "Téléchargement annulé",
+  "zh": "下载已取消"
+ },
  "Загрузка…": {
   "ar": "جارٍ التحميل…",
   "de": "Wird geladen…",
@@ -1070,6 +1118,22 @@
   "es": "No se encontró el registro",
   "fr": "Élément introuvable",
   "zh": "未找到记录"
+ },
+ "Запускаю нейросеть": {
+  "ar": "جارٍ تشغيل الذكاء الاصطناعي",
+  "de": "KI wird gestartet",
+  "en": "Starting the AI",
+  "es": "Iniciando la IA",
+  "fr": "Démarrage de l'IA",
+  "zh": "正在启动神经网络"
+ },
+ "Запустится при первом вопросе — это займёт до 10–20 секунд": {
+  "ar": "يبدأ مع أول سؤال — يستغرق حتى 10–20 ثانية",
+  "de": "Startet bei der ersten Frage – dauert bis zu 10–20 Sekunden",
+  "en": "Starts with your first question — takes up to 10–20 seconds",
+  "es": "Se inicia con la primera pregunta: tarda hasta 10–20 segundos",
+  "fr": "Démarre à la première question — jusqu'à 10–20 secondes",
+  "zh": "首次提问时启动——需要 10–20 秒"
  },
  "Золото": {
   "ar": "ذهبي",
@@ -1271,6 +1335,14 @@
   "fr": "Matrix",
   "zh": "矩阵"
  },
+ "Мгновенно отвечает про пары и ДЗ, без нейросети": {
+  "ar": "إجابات فورية عن المحاضرات والواجبات بدون نموذج ذكاء",
+  "de": "Sofortige Antworten zu Kursen und Hausaufgaben, ohne KI",
+  "en": "Instant answers about classes and homework, no AI model",
+  "es": "Respuestas al instante sobre clases y tareas, sin IA",
+  "fr": "Réponses instantanées sur les cours et devoirs, sans IA",
+  "zh": "即时回答课程和作业问题，不使用神经网络"
+ },
  "Минимум 4 символа": {
   "ar": "4 أحرف على الأقل",
   "de": "Mindestens 4 Zeichen",
@@ -1303,6 +1375,22 @@
   "fr": "Mes modifications",
   "zh": "我的课表修改"
  },
+ "Мои рекомендации": {
+  "ar": "تعليماتي",
+  "de": "Meine Hinweise",
+  "en": "My instructions",
+  "es": "Mis indicaciones",
+  "fr": "Mes consignes",
+  "zh": "我的要求"
+ },
+ "Мои чаты": {
+  "ar": "محادثاتي",
+  "de": "Meine Chats",
+  "en": "My chats",
+  "es": "Mis chats",
+  "fr": "Mes discussions",
+  "zh": "我的聊天"
+ },
  "Моя группа": {
   "ar": "مجموعتي",
   "de": "Meine Gruppe",
@@ -1318,6 +1406,14 @@
   "es": "En Xiaomi, Huawei, Honor y Samsung activa también el «Inicio automático» y quita las restricciones de batería de la app; si no, el sistema puede bloquear los recordatorios.",
   "fr": "Sur Xiaomi, Huawei, Honor et Samsung, activez aussi le « Démarrage auto » et retirez les restrictions de batterie pour l'appli, sinon le système peut bloquer les rappels.",
   "zh": "在小米、华为、荣耀和三星手机上，还需开启“自启动”并取消应用的电池限制，否则系统可能拦截提醒。"
+ },
+ "На вашем телефоне {0} ГБ памяти — модель может работать очень медленно или не запуститься.": {
+  "ar": "هاتفك به {0} غيغابايت من الذاكرة — قد يعمل النموذج ببطء شديد أو لا يبدأ.",
+  "de": "Dein Handy hat {0} GB RAM – das Modell kann sehr langsam sein oder nicht starten.",
+  "en": "Your phone has {0} GB of RAM — the model may be very slow or fail to start.",
+  "es": "Tu móvil tiene {0} GB de RAM: el modelo puede ir muy lento o no arrancar.",
+  "fr": "Votre téléphone a {0} Go de RAM — le modèle peut être très lent ou ne pas démarrer.",
+  "zh": "你的手机有 {0} GB 内存——模型可能很慢或无法启动。"
  },
  "На сайте напоминания приходят, пока страница открыта (можно свернуть вкладку). Для напоминаний в фоне лучше Android-приложение.": {
   "ar": "على الموقع تصل التذكيرات ما دامت الصفحة مفتوحة (يمكن تصغير التبويب). للتذكيرات في الخلفية يُفضّل تطبيق أندرويد.",
@@ -1367,6 +1463,14 @@
   "fr": "Nommer délégué",
   "zh": "设为班长"
  },
+ "Называй меня … Отвечай …": {
+  "ar": "نادني … أجب …",
+  "de": "Nenn mich … Antworte …",
+  "en": "Call me … Answer …",
+  "es": "Llámame … Responde …",
+  "fr": "Appelle-moi … Réponds …",
+  "zh": "叫我… 回答…"
+ },
  "Найдена копия в облаке": {
   "ar": "تم العثور على نسخة في السحابة",
   "de": "Cloud-Kopie gefunden",
@@ -1390,6 +1494,14 @@
   "es": "Escribe el primero: lo verán todos tus compañeros.",
   "fr": "Écrivez la première : tous vos camarades la verront.",
   "zh": "发布第一条吧，全组同学都能看到。"
+ },
+ "Напишите, как KGMU AI должен с вами общаться — он будет соблюдать это в каждом ответе. Например: «Называй меня Лёша. Отвечай коротко. Объясняй на примерах из медицины».": {
+  "ar": "اكتب كيف يجب أن يتحدث معك KGMU AI — سيلتزم بذلك في كل إجابة. مثلًا: «نادني أليكس. أجب باختصار. اشرح بأمثلة من الطب».",
+  "de": "Schreib, wie KGMU AI mit dir sprechen soll – es hält sich in jeder Antwort daran. Z. B.: „Nenn mich Alex. Antworte kurz. Erkläre mit Beispielen aus der Medizin.“",
+  "en": "Write how KGMU AI should talk to you — it will follow this in every answer. For example: \"Call me Alex. Answer briefly. Explain with medical examples.\"",
+  "es": "Escribe cómo debe hablarte KGMU AI: lo cumplirá en cada respuesta. Por ejemplo: «Llámame Alex. Responde breve. Explica con ejemplos de medicina».",
+  "fr": "Écrivez comment KGMU AI doit vous parler — il le respectera dans chaque réponse. Par ex. : « Appelle-moi Alex. Réponds brièvement. Explique avec des exemples médicaux. »",
+  "zh": "写下 KGMU AI 应该如何与你交流——它会在每次回答中遵守。例如：“叫我 Alex。回答简短。用医学例子解释。”"
  },
  "Напоминание за несколько минут до начала пары": {
   "ar": "تذكير قبل بدء الحصة ببضع دقائق",
@@ -1487,6 +1599,14 @@
   "fr": "Non rattrapé",
   "zh": "未补课"
  },
+ "Не удалось запустить: {0}": {
+  "ar": "تعذّر التشغيل: {0}",
+  "de": "Start fehlgeschlagen: {0}",
+  "en": "Failed to start: {0}",
+  "es": "No se pudo iniciar: {0}",
+  "fr": "Échec du démarrage : {0}",
+  "zh": "无法启动：{0}"
+ },
  "Не удалось прочитать расписание: {0}": {
   "ar": "تعذرت قراءة الجدول: {0}",
   "de": "Stundenplan konnte nicht gelesen werden: {0}",
@@ -1567,6 +1687,14 @@
   "fr": "Semaine",
   "zh": "本周"
  },
+ "Недостаточно места на телефоне": {
+  "ar": "لا توجد مساحة كافية على الهاتف",
+  "de": "Nicht genug Speicher auf dem Handy",
+  "en": "Not enough space on the phone",
+  "es": "No hay espacio suficiente en el móvil",
+  "fr": "Espace insuffisant sur le téléphone",
+  "zh": "手机空间不足"
+ },
  "Недостаточно прав": {
   "ar": "صلاحيات غير كافية",
   "de": "Keine Berechtigung",
@@ -1575,6 +1703,46 @@
   "fr": "Droits insuffisants",
   "zh": "权限不足"
  },
+ "Недостаточно свободного места на телефоне": {
+  "ar": "لا توجد مساحة فارغة كافية على الهاتف",
+  "de": "Nicht genug freier Speicher auf dem Handy",
+  "en": "Not enough free space on the phone",
+  "es": "No hay suficiente espacio libre en el móvil",
+  "fr": "Pas assez d'espace libre sur le téléphone",
+  "zh": "手机可用空间不足"
+ },
+ "Нейросеть": {
+  "ar": "نموذج الذكاء",
+  "de": "KI-Modell",
+  "en": "AI model",
+  "es": "Modelo de IA",
+  "fr": "Modèle d'IA",
+  "zh": "神经网络"
+ },
+ "Нейросеть запускается…": {
+  "ar": "الذكاء الاصطناعي قيد التشغيل…",
+  "de": "Die KI startet…",
+  "en": "The AI is starting…",
+  "es": "La IA se está iniciando…",
+  "fr": "L'IA démarre…",
+  "zh": "神经网络正在启动…"
+ },
+ "Нейросеть на устройстве": {
+  "ar": "ذكاء اصطناعي على الجهاز",
+  "de": "KI auf dem Gerät",
+  "en": "On-device AI",
+  "es": "IA en el dispositivo",
+  "fr": "IA sur l'appareil",
+  "zh": "本机神经网络"
+ },
+ "Нейросеть работает ({0})": {
+  "ar": "الذكاء الاصطناعي يعمل ({0})",
+  "de": "Die KI läuft ({0})",
+  "en": "The AI is running ({0})",
+  "es": "La IA está funcionando ({0})",
+  "fr": "L'IA fonctionne ({0})",
+  "zh": "神经网络运行中（{0}）"
+ },
  "Неон": {
   "ar": "نيون",
   "de": "Neon",
@@ -1582,6 +1750,14 @@
   "es": "Neón",
   "fr": "Néon",
   "zh": "霓虹"
+ },
+ "Нет доступа к памяти телефона": {
+  "ar": "لا يمكن الوصول إلى ذاكرة الهاتف",
+  "de": "Kein Zugriff auf den Gerätespeicher",
+  "en": "No access to phone storage",
+  "es": "Sin acceso al almacenamiento del móvil",
+  "fr": "Pas d'accès au stockage du téléphone",
+  "zh": "无法访问手机存储"
  },
  "Нет связи с сервером": {
   "ar": "لا اتصال بالخادم",
@@ -1631,6 +1807,14 @@
   "fr": "Nouveau mot de passe",
   "zh": "新密码"
  },
+ "Новый чат": {
+  "ar": "محادثة جديدة",
+  "de": "Neuer Chat",
+  "en": "New chat",
+  "es": "Nuevo chat",
+  "fr": "Nouvelle discussion",
+  "zh": "新聊天"
+ },
  "Номер группы": {
   "ar": "رقم المجموعة",
   "de": "Gruppennummer",
@@ -1646,6 +1830,14 @@
   "es": "Actualizar",
   "fr": "Actualiser",
   "zh": "刷新"
+ },
+ "Обрыв связи — попробуйте ещё раз": {
+  "ar": "انقطع الاتصال — حاول مرة أخرى",
+  "de": "Verbindung unterbrochen – versuch es erneut",
+  "en": "Connection lost — please try again",
+  "es": "Se perdió la conexión: inténtalo de nuevo",
+  "fr": "Connexion perdue — réessayez",
+  "zh": "连接中断——请重试"
  },
  "Общие": {
   "ar": "عام",
@@ -1782,6 +1974,14 @@
   "es": "Cancelar",
   "fr": "Annuler",
   "zh": "取消"
+ },
+ "Отменить загрузку": {
+  "ar": "إلغاء التنزيل",
+  "de": "Download abbrechen",
+  "en": "Cancel download",
+  "es": "Cancelar descarga",
+  "fr": "Annuler le téléchargement",
+  "zh": "取消下载"
  },
  "Отметьте свои — остальные исчезнут из расписания. Сейчас показаны все.": {
   "ar": "حدد موادك وستختفي البقية من الجدول. تُعرض كلها الآن.",
@@ -1943,6 +2143,14 @@
   "fr": "PLUS DE COURS",
   "zh": "没有更多课程"
  },
+ "Память телефона: {0} ГБ · свободно: {1}": {
+  "ar": "ذاكرة الهاتف: {0} غيغابايت · المساحة الفارغة: {1}",
+  "de": "Handy-RAM: {0} GB · frei: {1}",
+  "en": "Phone RAM: {0} GB · free space: {1}",
+  "es": "RAM del móvil: {0} GB · libre: {1}",
+  "fr": "RAM du téléphone : {0} Go · espace libre : {1}",
+  "zh": "手机内存：{0} GB · 可用空间：{1}"
+ },
  "Пар нет 🎉": {
   "ar": "لا حصص 🎉",
   "de": "Keine Kurse 🎉",
@@ -2094,6 +2302,14 @@
   "es": "Nombre completo",
   "fr": "Nom complet",
   "zh": "完整姓名"
+ },
+ "Полностью работают с нейросетью Gemma (вкладка KGMU AI → ⚙). Простой бот учитывает только имя из фразы «Называй меня …».": {
+  "ar": "تعمل بالكامل مع ذكاء Gemma (تبويب KGMU AI ← ⚙). البوت البسيط يستخدم فقط الاسم من عبارة «Называй меня …».",
+  "de": "Voll wirksam mit der Gemma-KI (Tab KGMU AI → ⚙). Der einfache Bot übernimmt nur den Namen aus „Называй меня …“.",
+  "en": "Fully work with the Gemma AI (KGMU AI tab → ⚙). The simple bot only uses the name from \"Call me …\" (in Russian).",
+  "es": "Funcionan por completo con la IA Gemma (pestaña KGMU AI → ⚙). El bot simple solo usa el nombre de «Называй меня …».",
+  "fr": "Pleinement prises en compte par l'IA Gemma (onglet KGMU AI → ⚙). Le bot simple n'utilise que le prénom de « Называй меня … ».",
+  "zh": "完整适用于 Gemma 神经网络（KGMU AI 标签 → ⚙）。简单机器人只会使用“Называй меня …”中的名字。"
  },
  "Пользователь с таким юзернеймом не найден": {
   "ar": "لا يوجد مستخدم بهذا الاسم",
@@ -2255,6 +2471,14 @@
   "fr": "Absence ajoutée",
   "zh": "已添加缺勤"
  },
+ "Простой бот": {
+  "ar": "بوت بسيط",
+  "de": "Einfacher Bot",
+  "en": "Simple bot",
+  "es": "Bot simple",
+  "fr": "Bot simple",
+  "zh": "简单机器人"
+ },
  "Профиль": {
   "ar": "الملف الشخصي",
   "de": "Profil",
@@ -2319,6 +2543,14 @@
   "fr": "En développement",
   "zh": "开发中"
  },
+ "Размер: {0} · нужно от {1} ГБ памяти": {
+  "ar": "الحجم: {0} · يحتاج {1} غيغابايت ذاكرة أو أكثر",
+  "de": "Größe: {0} · braucht ab {1} GB RAM",
+  "en": "Size: {0} · needs {1} GB of RAM or more",
+  "es": "Tamaño: {0} · requiere {1} GB de RAM o más",
+  "fr": "Taille : {0} · nécessite {1} Go de RAM ou plus",
+  "zh": "大小：{0} · 需要至少 {1} GB 内存"
+ },
  "Размышляю": {
   "ar": "أتأمل",
   "de": "Ich überlege",
@@ -2358,6 +2590,22 @@
   "es": "Registro",
   "fr": "Inscription",
   "zh": "注册"
+ },
+ "Рекомендации для ИИ": {
+  "ar": "تعليمات للذكاء الاصطناعي",
+  "de": "Hinweise für die KI",
+  "en": "AI instructions",
+  "es": "Indicaciones para la IA",
+  "fr": "Consignes pour l'IA",
+  "zh": "给 AI 的要求"
+ },
+ "Рекомендации сохранены": {
+  "ar": "تم حفظ التعليمات",
+  "de": "Hinweise gespeichert",
+  "en": "Instructions saved",
+  "es": "Indicaciones guardadas",
+  "fr": "Consignes enregistrées",
+  "zh": "要求已保存"
  },
  "Роль": {
   "ar": "الدور",
@@ -2543,6 +2791,46 @@
   "fr": "Le système peut mettre les rappels en veille",
   "zh": "系统可能会“休眠”提醒"
  },
+ "Скачайте модель Gemma 4 — и KGMU AI будет отвечать как настоящий ИИ: объяснять темы, помогать с учёбой и следовать вашим рекомендациям из профиля. Работает без интернета, переписка не покидает телефон.": {
+  "ar": "نزّل نموذج Gemma 4 وسيجيب KGMU AI كذكاء اصطناعي حقيقي: يشرح المواضيع ويساعد في الدراسة ويتبع تعليماتك. يعمل دون إنترنت والمحادثات لا تغادر الهاتف.",
+  "de": "Lade das Modell Gemma 4 herunter, und KGMU AI antwortet wie eine echte KI: erklärt Themen, hilft beim Lernen und folgt deinen Hinweisen. Funktioniert offline; Chats bleiben auf dem Handy.",
+  "en": "Download the Gemma 4 model and KGMU AI will answer like a real AI: explain topics, help you study and follow your profile instructions. Works offline; your chats never leave the phone.",
+  "es": "Descarga el modelo Gemma 4 y KGMU AI responderá como una IA de verdad: explicará temas, ayudará a estudiar y seguirá tus indicaciones. Funciona sin internet; los chats no salen del móvil.",
+  "fr": "Téléchargez le modèle Gemma 4 et KGMU AI répondra comme une vraie IA : expliquer des sujets, aider à réviser et suivre vos consignes. Fonctionne hors ligne ; vos discussions restent sur le téléphone.",
+  "zh": "下载 Gemma 4 模型后，KGMU AI 将像真正的 AI 一样回答：讲解知识、帮助学习并遵守你的要求。离线运行，聊天内容不会离开手机。"
+ },
+ "Скачана · {0}": {
+  "ar": "تم التنزيل · {0}",
+  "de": "Heruntergeladen · {0}",
+  "en": "Downloaded · {0}",
+  "es": "Descargado · {0}",
+  "fr": "Téléchargé · {0}",
+  "zh": "已下载 · {0}"
+ },
+ "Скачано {0} из {1}": {
+  "ar": "تم تنزيل {0} من {1}",
+  "de": "{0} von {1} heruntergeladen",
+  "en": "Downloaded {0} of {1}",
+  "es": "Descargado {0} de {1}",
+  "fr": "Téléchargé {0} sur {1}",
+  "zh": "已下载 {0} / {1}"
+ },
+ "Скачать ({0})": {
+  "ar": "تنزيل ({0})",
+  "de": "Herunterladen ({0})",
+  "en": "Download ({0})",
+  "es": "Descargar ({0})",
+  "fr": "Télécharger ({0})",
+  "zh": "下载（{0}）"
+ },
+ "Скачивайте по Wi-Fi. Действия (добавить ДЗ, сменить тему) и точные данные о парах по-прежнему выполняет бот — нейросеть только формулирует ответ. Модели: Google Gemma 4 (Apache 2.0), движок LiteRT-LM.": {
+  "ar": "نزّل عبر Wi-Fi. الإجراءات (إضافة واجب، تغيير السمة) وبيانات المحاضرات الدقيقة يقدّمها البوت — الذكاء الاصطناعي يصوغ الإجابة فقط. النماذج: Google Gemma 4 (Apache 2.0)، محرك LiteRT-LM.",
+  "de": "Lade per WLAN herunter. Aktionen (Hausaufgabe hinzufügen, Theme ändern) und genaue Kursdaten kommen weiter vom Bot – die KI formuliert nur die Antwort. Modelle: Google Gemma 4 (Apache 2.0), Engine LiteRT-LM.",
+  "en": "Download over Wi-Fi. Actions (add homework, change theme) and exact class data still come from the bot — the AI only phrases the answer. Models: Google Gemma 4 (Apache 2.0), LiteRT-LM engine.",
+  "es": "Descarga por Wi-Fi. Las acciones (añadir tarea, cambiar tema) y los datos exactos de clases siguen viniendo del bot: la IA solo redacta la respuesta. Modelos: Google Gemma 4 (Apache 2.0), motor LiteRT-LM.",
+  "fr": "Téléchargez en Wi-Fi. Les actions (ajouter un devoir, changer de thème) et les données exactes des cours viennent toujours du bot — l'IA ne fait que formuler la réponse. Modèles : Google Gemma 4 (Apache 2.0), moteur LiteRT-LM.",
+  "zh": "请使用 Wi-Fi 下载。操作（添加作业、切换主题）和准确的课程数据仍由机器人提供——神经网络只负责组织回答。模型：Google Gemma 4（Apache 2.0），引擎 LiteRT-LM。"
+ },
  "Следующая неделя": {
   "ar": "الأسبوع التالي",
   "de": "Nächste Woche",
@@ -2702,6 +2990,14 @@
   "es": "Guardar y comprobar",
   "fr": "Enregistrer et tester",
   "zh": "保存并检查"
+ },
+ "Сохранить рекомендации": {
+  "ar": "حفظ التعليمات",
+  "de": "Hinweise speichern",
+  "en": "Save instructions",
+  "es": "Guardar indicaciones",
+  "fr": "Enregistrer les consignes",
+  "zh": "保存要求"
  },
  "Сохранить файл": {
   "ar": "حفظ الملف",
@@ -2927,6 +3223,14 @@
   "fr": "Retirer du groupe",
   "zh": "移出小组"
  },
+ "Удалить модель": {
+  "ar": "حذف النموذج",
+  "de": "Modell löschen",
+  "en": "Delete model",
+  "es": "Eliminar modelo",
+  "fr": "Supprimer le modèle",
+  "zh": "删除模型"
+ },
  "Удалить объявление?": {
   "ar": "حذف الإعلان؟",
   "de": "Ankündigung löschen?",
@@ -2999,6 +3303,14 @@
   "fr": "Indiquez la matière",
   "zh": "请填写科目"
  },
+ "Умнее, но тяжелее и медленнее. Для флагманов с 12 ГБ памяти.": {
+  "ar": "أذكى لكنه أثقل وأبطأ. للهواتف الرائدة بذاكرة 12 غيغابايت.",
+  "de": "Klüger, aber schwerer und langsamer. Für Flaggschiffe mit 12 GB RAM.",
+  "en": "Smarter but heavier and slower. For flagships with 12 GB of RAM.",
+  "es": "Más lista, pero más pesada y lenta. Para gamas altas con 12 GB de RAM.",
+  "fr": "Plus intelligent mais plus lourd et lent. Pour les haut de gamme avec 12 Go de RAM.",
+  "zh": "更聪明，但更大更慢。适合 12 GB 内存的旗舰机。"
+ },
  "Участники": {
   "ar": "الأعضاء",
   "de": "Mitglieder",
@@ -3039,6 +3351,14 @@
   "fr": "Le fichier et toutes les données sont stockés uniquement dans ce navigateur.",
   "zh": "文件和所有数据仅保存在此浏览器中。"
  },
+ "Файл модели повреждён": {
+  "ar": "ملف النموذج تالف",
+  "de": "Die Modelldatei ist beschädigt",
+  "en": "The model file is damaged",
+  "es": "El archivo del modelo está dañado",
+  "fr": "Le fichier du modèle est endommagé",
+  "zh": "模型文件已损坏"
+ },
  "Файл недоступен": {
   "ar": "الملف غير متاح",
   "de": "Datei nicht verfügbar",
@@ -3078,6 +3398,14 @@
   "es": "Organizador deportivo",
   "fr": "Responsable sport",
   "zh": "体育委员"
+ },
+ "Чаты хранятся только на этом телефоне.": {
+  "ar": "تُحفظ المحادثات على هذا الهاتف فقط.",
+  "de": "Chats werden nur auf diesem Handy gespeichert.",
+  "en": "Chats are stored only on this phone.",
+  "es": "Los chats se guardan solo en este móvil.",
+  "fr": "Les discussions sont stockées uniquement sur ce téléphone.",
+  "zh": "聊天只保存在这部手机上。"
  },
  "Через {0} мин: {1}": {
   "ar": "بعد {0} د: {1}",
@@ -3327,6 +3655,14 @@
   "fr": "pour le cours : {0}",
   "zh": "对应课程：{0}"
  },
+ "на устройстве": {
+  "ar": "على الجهاز",
+  "de": "auf dem Gerät",
+  "en": "on device",
+  "es": "en el dispositivo",
+  "fr": "sur l'appareil",
+  "zh": "本机运行"
+ },
  "начало через {0}": {
   "ar": "تبدأ بعد {0}",
   "de": "beginnt in {0}",
@@ -3398,6 +3734,14 @@
   "es": "invéntalo, p. ej. anna.ivanova",
   "fr": "inventez-en un, ex. anna.ivanova",
   "zh": "自己设定，例如 anna.ivanova"
+ },
+ "сообщений: {0}": {
+  "ar": "الرسائل: {0}",
+  "de": "Nachrichten: {0}",
+  "en": "messages: {0}",
+  "es": "mensajes: {0}",
+  "fr": "messages : {0}",
+  "zh": "消息：{0}"
  },
  "удалится через {0} дн.": {
   "ar": "يُحذف بعد {0} ي",

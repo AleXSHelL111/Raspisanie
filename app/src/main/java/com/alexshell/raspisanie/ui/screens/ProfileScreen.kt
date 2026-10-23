@@ -78,6 +78,8 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
             item { AuthCard(vm) }
         } else {
             item { ProfileCard(vm) }
+            item { SectionTitle(tr("Рекомендации для ИИ"), color = Neon.Magenta) }
+            item { AiRulesCard(vm) }
             item { SectionTitle(tr("Синхронизация"), color = Neon.Cyan) }
             item {
                 NeonCard {
@@ -142,6 +144,12 @@ fun ProfileScreen(vm: AppViewModel, pad: PaddingValues) {
         "logout" -> ConfirmDialog(tr("Выйти из профиля"), tr("Выйти из профиля? Данные на устройстве сохранятся."), { confirm = null }) { c.logout(); confirm = null }
         "delete" -> DeleteDialog(onDismiss = { confirm = null }) { pass -> c.deleteAccount(pass); confirm = null }
     }
+}
+
+/** «Найдена копия в облаке» после входа на устройстве, где уже есть данные. */
+@Composable
+fun RestoreAskDialog(vm: AppViewModel) {
+    val c = vm.cloud
     c.restoreAsk?.let { at ->
         AlertDialog(
             onDismissRequest = { c.answerRestore(false) },
@@ -190,7 +198,7 @@ private fun DeleteDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 }
 
 @Composable
-private fun AuthCard(vm: AppViewModel) {
+fun AuthCard(vm: AppViewModel) {
     val c = vm.cloud
     var register by rememberSaveable { mutableStateOf(true) }
     var fullName by rememberSaveable { mutableStateOf("") }
@@ -224,7 +232,12 @@ private fun AuthCard(vm: AppViewModel) {
         }
         Spacer(Modifier.height(14.dp))
         GradientButton(if (register) tr("Создать профиль") else tr("Войти"), enabled = c.busy == null, loading = c.busy == "auth") {
-            if (register) c.register(fullName, username, pass, avatar) else c.login(username, pass)
+            when {
+                register -> c.register(fullName, username, pass, avatar)
+                // На новом устройстве (нет файла расписания) всё, включая файл, берём из облака.
+                vm.needsFile -> c.loginAndRestore(com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.ifEmpty { c.url }, username, pass)
+                else -> c.login(username, pass)
+            }
         }
     }
 }
@@ -289,5 +302,27 @@ fun ServerCard(vm: AppViewModel) {
         NeonField(url, { url = it }, tr("Адрес сервера"), placeholder = "https://script.google.com/macros/s/…/exec")
         Spacer(Modifier.height(8.dp))
         OutlineButton(tr("Сохранить и проверить"), Neon.Violet, enabled = c.busy == null, loading = c.busy == "ping") { c.setServer(url) }
+    }
+}
+
+/** Рекомендации, которые нейросеть соблюдает в каждом ответе. */
+@Composable
+private fun AiRulesCard(vm: AppViewModel) {
+    var text by rememberSaveable(vm.aiRules) { mutableStateOf(vm.aiRules) }
+    NeonCard(accent = Neon.Magenta) {
+        Text(
+            tr("Напишите, как KGMU AI должен с вами общаться — он будет соблюдать это в каждом ответе. Например: «Называй меня Лёша. Отвечай коротко. Объясняй на примерах из медицины»."),
+            color = Neon.Muted, fontSize = 13.sp,
+        )
+        FormSpacer()
+        NeonField(text, { if (it.length <= 1500) text = it }, tr("Мои рекомендации"), placeholder = tr("Называй меня … Отвечай …"), minLines = 4)
+        Text("${text.length}/1500", color = Neon.Dim, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+        Spacer(Modifier.height(10.dp))
+        GradientButton(tr("Сохранить рекомендации"), enabled = text.trim() != vm.aiRules) {
+            vm.saveAiRules(text)
+            vm.message = tr("Рекомендации сохранены")
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(tr("Полностью работают с нейросетью Gemma (вкладка KGMU AI → ⚙). Простой бот учитывает только имя из фразы «Называй меня …»."), color = Neon.Dim, fontSize = 12.sp)
     }
 }

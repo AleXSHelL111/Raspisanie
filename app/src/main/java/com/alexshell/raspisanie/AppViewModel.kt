@@ -35,7 +35,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Профиль, облачная копия и «Моя группа». */
     val cloud = CloudState(this)
 
-    /** Чат с KGMU AI. */
+    /** Локальная нейросеть (скачивается по желанию). */
+    val localAi = com.alexshell.raspisanie.ai.LocalAi(app, viewModelScope)
+
+    /** Рекомендации пользователя для ИИ: как обращаться, как отвечать и т.п. */
+    var aiRules by mutableStateOf(prefs.getString("ai_rules", "").orEmpty())
+        private set
+
+    fun saveAiRules(text: String) {
+        aiRules = text.trim().take(1500)
+        prefs.edit().putString("ai_rules", aiRules).apply()
+        cloud.changed()
+    }
+
+    /** Чаты с KGMU AI. */
     val ai = com.alexshell.raspisanie.ai.ChatState(this)
 
     var schedule by mutableStateOf<Schedule?>(null)
@@ -375,6 +388,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         notif = Notifier.settings(app)
         chosenElectives = prefs.getStringSet("electives", emptySet())!!.toSet()
         stream = prefs.getInt("stream", 0).takeIf { it > 0 }
+        aiRules = prefs.getString("ai_rules", "").orEmpty()
         themeId = prefs.getString("theme", "neon") ?: "neon"
         com.alexshell.raspisanie.ui.theme.Neon.palette = com.alexshell.raspisanie.ui.theme.Palettes.byId(themeId)
         themeMode = runCatching { com.alexshell.raspisanie.ui.theme.ThemeMode.valueOf(prefs.getString("theme_mode", null) ?: "DARK") }
@@ -449,5 +463,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // Инициализация — в самом конце, когда все свойства уже созданы.
     init {
         reload()
+    }
+
+    override fun onCleared() {
+        localAi.closeNow()
+        super.onCleared()
     }
 }

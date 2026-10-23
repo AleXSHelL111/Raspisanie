@@ -192,6 +192,8 @@ private fun App(vm: AppViewModel) {
     }
 
     when {
+        // Без профиля приложением пользоваться нельзя — сначала вход или регистрация.
+        !vm.cloud.loggedIn -> AuthGate(vm)
         vm.needsFile -> WelcomeImport(vm, launchImport)
         vm.schedule == null && vm.loadError == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = Neon.Cyan)
@@ -203,12 +205,39 @@ private fun App(vm: AppViewModel) {
         vm.needsStream -> StreamOnboarding(vm)
         else -> MainScaffold(vm, now, launchImport)
     }
+    com.alexshell.raspisanie.ui.screens.RestoreAskDialog(vm)
+}
+
+/** Экран входа: регистрация обязательна. */
+@Composable
+private fun AuthGate(vm: AppViewModel) {
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+        Column(
+            Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                tr("КГМУ\nРАСПИСАНИЕ"),
+                fontSize = 40.sp,
+                lineHeight = 44.sp,
+                fontWeight = FontWeight.Black,
+                color = Neon.Cyan,
+                style = TextStyle(shadow = Neon.glow(Neon.Cyan, 36f)),
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                tr("Войдите или создайте профиль — так ваши ДЗ, правки, настройки и группа сохранятся в облаке и не потеряются."),
+                color = Neon.Muted, fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(18.dp))
+            com.alexshell.raspisanie.ui.screens.AuthCard(vm)
+        }
+    }
 }
 
 /** Первый запуск: расписание нужно загрузить самому. */
 @Composable
 private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
-    var login by rememberSaveable { mutableStateOf(false) }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
     Column(
         Modifier.verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(24.dp),
@@ -252,42 +281,11 @@ private fun WelcomeImport(vm: AppViewModel, onImport: () -> Unit) {
             )
         }
         Spacer(Modifier.height(14.dp))
-        if (!login) {
-            OutlineButton("☁ " + tr("Уже есть профиль? Войти"), Neon.Violet) { login = true }
-        } else {
-            WelcomeLogin(vm)
-        }
-        Spacer(Modifier.height(10.dp))
         val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::restoreBackupFile) }
         OutlineButton(tr("Восстановить из файла копии"), Neon.Lime) {
             restore.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
         }
     }
-    }
-}
-
-/** Вход на новом устройстве: расписание, ДЗ и настройки загружаются из облака. */
-@Composable
-private fun WelcomeLogin(vm: AppViewModel) {
-    val c = vm.cloud
-    var url by rememberSaveable { mutableStateOf(c.url) }
-    var username by rememberSaveable { mutableStateOf("") }
-    var pass by rememberSaveable { mutableStateOf("") }
-    NeonCard(accent = Neon.Violet) {
-        Text(tr("Вход в профиль"), color = Neon.Violet, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Text(tr("Расписание, ДЗ и настройки загрузятся из облака."), color = Neon.Muted, fontSize = 13.sp)
-        FormSpacer()
-        if (com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.isEmpty()) {
-            NeonField(url, { url = it }, tr("Адрес сервера"), placeholder = "https://script.google.com/macros/s/…/exec")
-            FormSpacer()
-        }
-        NeonField(username, { username = it }, tr("Юзернейм"), placeholder = "anna.ivanova", username = true)
-        FormSpacer()
-        NeonField(pass, { pass = it }, tr("Пароль"), password = true)
-        Spacer(Modifier.height(14.dp))
-        GradientButton(tr("Войти и загрузить данные"), enabled = c.busy == null, loading = c.busy == "auth") {
-            c.loginAndRestore(com.alexshell.raspisanie.CloudState.DEFAULT_SERVER.ifEmpty { url }, username, pass)
-        }
     }
 }
 

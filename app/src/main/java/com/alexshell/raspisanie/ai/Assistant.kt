@@ -28,7 +28,13 @@ object Assistant {
     }
 
     /** Ответ: текст (с **жирным**), подпись «размышления» и необязательное действие. */
-    data class Reply(val text: String, val think: String? = null, val act: Act? = null)
+    /**
+     * Тип ответа — от него зависит, что делать при включённой нейросети:
+     * ACTION/FIXED отвечает бот, FACT — нейросеть пересказывает точные данные, CHAT/FALLBACK — отвечает сама.
+     */
+    enum class Kind { FACT, ACTION, FIXED, CHAT, FALLBACK }
+
+    data class Reply(val text: String, val think: String? = null, val act: Act? = null, val kind: Kind = Kind.FACT)
 
     private sealed class When {
         data class Day(val d: LocalDate) : When()
@@ -129,6 +135,33 @@ object Assistant {
     }
 
     fun plainLength(text: String) = parts(text).sumOf { it.text.length }
+
+    /** Текст без разметки (**, ссылок) — для нейросети. */
+    fun plain(text: String) = parts(text).joinToString("") { it.text }
+
+    /** Краткая сводка для нейросети: дата, пары на сегодня и ближайший учебный день, невыполненные ДЗ. */
+    fun context(vm: AppViewModel, now: LocalDateTime): String {
+        val c = Ctx(vm, now)
+        val today = c.today
+        fun lessonLine(l: Lesson) = "- ${l.timeText} ${l.subject} (${kindRu(l.kind)})" +
+            (if (l.online) ", онлайн" else l.location?.takeIf { it.isNotBlank() }?.let { ", ${it.take(70)}" } ?: "")
+        return buildString {
+            val sch = vm.schedule
+            append("Сейчас: ${WD_FULL[wdIdx(today)]}, ${dm(today)}, ${"%02d:%02d".format(now.hour, now.minute)}.")
+            if (sch != null && sch.hasWeekParity) append(" Учебная неделя: ${sch.weekType(today)}-я.")
+            vm.group?.let { append(" Группа $it.") }
+            val todayList = c.on(today)
+            append("\nПары сегодня: ")
+            if (todayList.isEmpty()) append("нет.") else append("\n" + todayList.joinToString("\n") { lessonLine(it) })
+            c.lessons.firstOrNull { it.date > today }?.date?.let { d ->
+                append("\nСледующий учебный день — ${dayRu(d, today)} (${WD_FULL[wdIdx(d)]}, ${dm(d)}):\n")
+                append(c.on(d).joinToString("\n") { lessonLine(it) })
+            }
+            val hw = c.hw.filter { !it.done && it.dueDate >= today }.sortedWith(compareBy({ it.dueDate }, { it.dueStart })).take(6)
+            append("\nНевыполненные ДЗ: ")
+            if (hw.isEmpty()) append("нет.") else append("\n" + hw.joinToString("\n") { "- ${it.subject} к ${dayRu(it.dueDate, today)}: ${it.text.take(120)}" })
+        }
+    }
 
     fun norm(s: String): String = s.lowercase().replace('ё', 'е')
         .replace(Regex("[^\\p{L}\\p{N}:.\\-\\s]"), " ").replace(Regex("\\s+"), " ").trim()
@@ -312,13 +345,20 @@ object Assistant {
         } + (if (list.size > 10) "\n…и ещё ${list.size - 10}" else "") + (if (overNote) "\n⚠️ Просрочено: ${over.size}" else "")
     }
 
+    private fun chat(text: String) = Reply(text, kind = Kind.CHAT)
+
+    /** «Называй меня Лёша» из рекомендаций пользователя — чтобы и простой бот обращался по имени. */
+    fun nameFromRules(rules: String): String? =
+        Regex("(?i)(?:называй|зови|обращайся ко)\\s+(?:меня\\s+|мне\\s+)?([А-ЯЁA-Zа-яёa-z-]{2,20})").find(rules)?.groupValues?.get(1)
+            ?.takeIf { it.lowercase() !in setOf("на", "по", "меня", "мне") }?.replaceFirstChar { it.uppercase() }
+
     fun answer(vm: AppViewModel, raw: String, now: LocalDateTime = LocalDateTime.now()): Reply {
         val t = norm(raw)
         val c = Ctx(vm, now)
         val today = c.today
         fun has(re: String) = Regex(re).containsMatchIn(t)
-        val name = vm.cloud.user?.fullName?.substringBefore(' ').orEmpty()
-        if (t.isEmpty()) return Reply(HELP)
+        val name = nameFromRules(vm.aiRules) ?: vm.cloud.user?.fullName?.substringBefore(' ').orEmpty()
+        if (t.isEmpty()) return Reply(HELP, kind = Kind.FIXED)
         if (c.lessons.isEmpty()) return Reply("Пока не вижу вашего расписания 🤔 Загрузите файл .xlsx в [[настройках|settings]] и выберите группу — тогда смогу отвечать про пары.")
         val w = parseDate(t, today)
         val day = (w as? When.Day)?.d
@@ -329,7 +369,7 @@ object Assistant {
 
         // --- Действия ---
         if (has("(добав|запиш|запомн|созда|сохран)") && has("(дз|домашк|задани|задал)") && !has("^(а )?(как|где|можно ли)")) {
-            if (subj == null) return Reply("По какому предмету записать задание? Напишите, например: «**добавь дз по анатомии: выучить кости черепа**».")
+            if (subj == null) return Reply("По какому предмету записать задание? Напишите, например: «**добавь дз по анатомии: выучить кости черепа**».", kind = Kind.ACTION)
             val colon = Regex("[:—–]|\\s-\\s").find(raw)
             var text = colon?.let { raw.substring(it.range.last + 1).trimStart(' ', '-', '—', '–', ':') }.orEmpty()
             if (text.isBlank()) {
@@ -337,9 +377,9 @@ object Assistant {
                 val si = words.indexOfFirst { subjectOf(norm(it), c.lessons) == subj }
                 text = if (si >= 0) words.drop(si + 1).filter { wd -> !Regex("^(на|к)$", RegexOption.IGNORE_CASE).matches(wd) && parseDate(norm(wd), today) == null }.joinToString(" ") else ""
             }
-            if (text.isBlank()) return Reply("Что задали по предмету **$subj**? Напишите текст после двоеточия, например: «добавь дз по фарме: выучить 10 препаратов».")
+            if (text.isBlank()) return Reply("Что задали по предмету **$subj**? Напишите текст после двоеточия, например: «добавь дз по фарме: выучить 10 препаратов».", kind = Kind.ACTION)
             val target = day?.let { d -> c.lessons.firstOrNull { it.subject == subj && it.date == d } } ?: vm.nextBySubject(subj, now)
-                ?: return Reply("Не нашёл впереди пар по предмету **$subj** 🤷 Задание некуда привязать.")
+                ?: return Reply("Не нашёл впереди пар по предмету **$subj** 🤷 Задание некуда привязать.", kind = Kind.ACTION)
             return Reply(
                 "✅ Записал ДЗ по предмету **${target.subject}** к паре ${dayRu(target.date, today)} в ${fmt(target.start)}:\n«${text.trim()}»\n\nНапомню о нём, если включены уведомления о ДЗ 🔔",
                 think = "Записываю", act = Act.AddHw(target.key, text.trim()),
@@ -507,7 +547,7 @@ object Assistant {
         // --- Общение ---
         if (has("^(привет|здравств|хай|хей|йо|добр\\S* (утро|день|вечер)|салют|hello|hi)$NW")) {
             val tl = c.on(today).filter { it.endAt > now }
-            return Reply(
+            return chat(
                 "${pick(listOf("Привет", "Здравствуйте", "Хей"))}${if (name.isNotEmpty()) ", $name" else ""}! 👋 " +
                     when {
                         tl.isNotEmpty() -> "Сегодня ещё ${pars(tl.size)}, ближайшая — **${tl[0].subject}** в ${fmt(tl[0].start)}."
@@ -516,18 +556,18 @@ object Assistant {
                     } + "\nЧем помочь?"
             )
         }
-        if (has("(спасиб|спс|благодар|thank|пасиб)")) return Reply(pick(listOf("Всегда пожалуйста! 😊", "Обращайтесь! 🤖", "Рад помочь! Удачи на парах 🍀")))
-        if (has("(как дела|как ты|как поживаешь|что нового|чем занимаешься|что делаешь|чем занят)")) return Reply(pick(listOf("Отлично! Слежу за расписанием, чтобы вы ничего не пропустили 😎", "Всё хорошо, работаю без перерывов на обед 🤖 А у вас как?", "Слежу за вашим расписанием и жду вопросов 🤖 Спросите, например, «какие пары завтра?»")))
-        if (has("(кто ты|ты кто|что ты такое|что ты умеешь|что умеешь|помощь|помоги|команды|help|^\\?$|что можешь|функци)")) return Reply(HELP)
+        if (has("(спасиб|спс|благодар|thank|пасиб)")) return chat(pick(listOf("Всегда пожалуйста! 😊", "Обращайтесь! 🤖", "Рад помочь! Удачи на парах 🍀")))
+        if (has("(как дела|как ты|как поживаешь|что нового|чем занимаешься|что делаешь|чем занят)")) return chat(pick(listOf("Отлично! Слежу за расписанием, чтобы вы ничего не пропустили 😎", "Всё хорошо, работаю без перерывов на обед 🤖 А у вас как?", "Слежу за вашим расписанием и жду вопросов 🤖 Спросите, например, «какие пары завтра?»")))
+        if (has("(кто ты|ты кто|что ты такое|что ты умеешь|что умеешь|помощь|помоги|команды|help|^\\?$|что можешь|функци)")) return Reply(HELP, kind = Kind.FIXED)
         if (has("(кто (тебя )?(создал|сделал|разработ)|создатель|автор|разработчик)")) return Reply("Меня создал **AleXSHelL** для студентов КГМУ 💙 Новости и обновления — в канале [[t.me/kgmuraspisanie|tg]]")
-        if (has("(шутк|анекдот|пошути|рассмеши)")) return Reply(pick(listOf(
+        if (has("(шутк|анекдот|пошути|рассмеши)")) return chat(pick(listOf(
             "Студент-медик спит на лекции. Преподаватель: «Вам неинтересно?» — «Что вы, я изучаю физиологию сна на практике!» 😴",
             "Почему анатомию учат по ночам? Потому что днём кости ещё не сложились 💀",
             "Лучшее лекарство от сессии — расписание, открытое заранее 😉",
         )))
-        if (has("(пока|до свидан|спокойной ночи|до завтра|бай)")) return Reply(pick(listOf("До встречи! 👋", "Пока! Не забудьте про ДЗ 😉", "Спокойной ночи! Будильник — ваш лучший друг ⏰")))
-        if (has("(молодец|умница|круто|класс|супер|лучший|люблю)")) return Reply(pick(listOf("Спасибо, стараюсь! 🥰", "Вы тоже супер! 💪")))
-        if (has("(дурак|тупой|глуп|бесполез|плохой)")) return Reply("Я ещё учусь 🙈 Попробуйте спросить по-другому — например, «какие пары завтра?»")
+        if (has("(пока|до свидан|спокойной ночи|до завтра|бай)")) return chat(pick(listOf("До встречи! 👋", "Пока! Не забудьте про ДЗ 😉", "Спокойной ночи! Будильник — ваш лучший друг ⏰")))
+        if (has("(молодец|умница|круто|класс|супер|лучший|люблю)")) return chat(pick(listOf("Спасибо, стараюсь! 🥰", "Вы тоже супер! 💪")))
+        if (has("(дурак|тупой|глуп|бесполез|плохой)")) return chat("Я ещё учусь 🙈 Попробуйте спросить по-другому — например, «какие пары завтра?»")
 
         FAQ.firstOrNull { it.first.containsMatchIn(t) }?.let { return Reply(it.second, think = "Вспоминаю") }
         if (subj != null) {
@@ -537,7 +577,8 @@ object Assistant {
         }
         return Reply(
             pick(listOf("Хм, не совсем понял 🤔", "Я пока не умею отвечать на такое 🙈", "Интересный вопрос, но я ещё учусь 🤖")) +
-                "\nПопробуйте так: «какие пары завтра?», «сколько до пары?», «что задали?» или «что ты умеешь?»"
+                "\nПопробуйте так: «какие пары завтра?», «сколько до пары?», «что задали?» или «что ты умеешь?»",
+            kind = Kind.FALLBACK,
         )
     }
 }

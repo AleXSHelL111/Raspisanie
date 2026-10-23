@@ -21,6 +21,7 @@ object Backup {
             .put("theme", p.getString("theme", "neon"))
             .put("mode", p.getString("theme_mode", "DARK"))
             .put("lang", com.alexshell.raspisanie.ui.I18n.lang)
+            .put("aiRules", p.getString("ai_rules", "").orEmpty())
             .put(
                 "notif", JSONObject()
                     .put("before", n.beforeLesson).put("lead", n.leadMinutes)
@@ -52,6 +53,7 @@ object Backup {
         st.optJSONArray("electives")?.let { a -> e.putStringSet("electives", List(a.length()) { a.getString(it) }.toSet()) }
         st.optString("theme").takeIf { it.isNotEmpty() }?.let { e.putString("theme", it) }
         st.optString("mode").takeIf { it.isNotEmpty() }?.let { e.putString("theme_mode", it) }
+        if (st.has("aiRules")) e.putString("ai_rules", st.optString("aiRules"))
         st.optJSONObject("notif")?.let { n ->
             e.putBoolean("notif_before", n.optBoolean("before", true))
                 .putInt("notif_lead", n.optInt("lead", 15))

@@ -39,7 +39,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -93,7 +96,9 @@ import com.alexshell.raspisanie.ui.tr
 fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
     val chat = vm.ai
     var input by rememberSaveable { mutableStateOf("") }
-    var confirmClear by remember { mutableStateOf(false) }
+    var showModels by rememberSaveable { mutableStateOf(false) }
+    var showChats by rememberSaveable { mutableStateOf(false) }
+    val local = vm.localAi
     val list = rememberLazyListState()
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -123,24 +128,31 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
                     "KGMU AI", fontSize = 21.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp,
                     style = TextStyle(brush = Brush.horizontalGradient(listOf(Neon.Cyan, Neon.Violet, Neon.Magenta))),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(7.dp).shadow(6.dp, CircleShape, ambientColor = Neon.Lime, spotColor = Neon.Lime).clip(CircleShape).background(Neon.Lime))
+                Row(
+                    Modifier.clip(RoundedCornerShape(8.dp)).clickable { showModels = true },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val dot = if (local.usable) Neon.Magenta else Neon.Lime
+                    Box(Modifier.size(7.dp).shadow(6.dp, CircleShape, ambientColor = dot, spotColor = dot).clip(CircleShape).background(dot))
                     Spacer(Modifier.size(6.dp))
-                    Text(tr("онлайн · бета"), color = Neon.Muted, fontSize = 12.sp)
+                    Text(
+                        local.selected?.takeIf { local.usable }?.let { tr("{0} · на устройстве", it.name) } ?: tr("онлайн · бета"),
+                        color = Neon.Muted, fontSize = 12.sp, maxLines = 1,
+                    )
                 }
             }
-            Box(
-                Modifier.size(42.dp).clip(CircleShape).border(1.dp, Neon.Cyan.copy(alpha = 0.5f), CircleShape)
-                    .clickable(enabled = chat.messages.isNotEmpty() && !chat.busy) { confirmClear = true },
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Filled.Delete, tr("Очистить чат"), tint = Neon.Cyan, modifier = Modifier.size(20.dp)) }
+            HeaderButton(Icons.Filled.Menu, tr("Мои чаты")) { showChats = true }
+            Spacer(Modifier.size(6.dp))
+            HeaderButton(Icons.Filled.Settings, tr("Нейросеть"), highlight = !local.usable) { showModels = true }
+            Spacer(Modifier.size(6.dp))
+            HeaderButton(Icons.Filled.Add, tr("Новый чат"), enabled = chat.messages.isNotEmpty() && !chat.busy) { chat.newChat() }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(Neon.Stroke.copy(alpha = 0.6f)))
 
         // Сообщения
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (rows == 0) {
-                EmptyChat(vm)
+                EmptyChat(vm) { showModels = true }
             } else {
                 LazyColumn(
                     state = list,
@@ -150,10 +162,10 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
                 ) {
                     items(chat.messages.size) { i ->
                         val m = chat.messages[i]
-                        if (m.user) UserBubble(m.text) else BotBubble { Text(rich(m.text, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) }
+                        if (m.user) UserBubble(m.text) else BotBubble(ai = m.ai) { Text(rich(m.text, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) }
                     }
                     if (chat.thinking != null) item { BotBubble(spinning = true) { Thinking(tr(chat.thinking.orEmpty())) } }
-                    chat.typing?.let { full -> item { BotBubble { Text(rich(full, chat.typed, caret = true, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) } } }
+                    chat.typing?.let { full -> item { BotBubble(ai = chat.typingAi) { Text(rich(full, chat.typed, caret = true, onLink = onLink), color = Neon.Text, fontSize = 15.sp, lineHeight = 21.sp) } } }
                 }
             }
         }
@@ -203,30 +215,27 @@ fun AiScreen(vm: AppViewModel, padding: PaddingValues) {
             Box(
                 Modifier
                     .size(42.dp)
-                    .alpha(if (input.isBlank() || chat.busy) 0.45f else 1f)
+                    .alpha(if (input.isBlank() && !chat.busy) 0.45f else 1f)
                     .shadow(10.dp, CircleShape, ambientColor = Neon.Violet, spotColor = Neon.Violet)
                     .clip(CircleShape)
                     .background(Brush.linearGradient(listOf(Neon.Cyan, Neon.Violet, Neon.Magenta)))
-                    .clickable { send(input) },
+                    .clickable { if (chat.busy) chat.stop() else send(input) },
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.AutoMirrored.Filled.Send, tr("Отправить"), tint = Neon.OnAccent, modifier = Modifier.size(20.dp)) }
+            ) {
+                // Пока бот отвечает, кнопка останавливает ответ.
+                if (chat.busy) Box(Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)).background(Neon.OnAccent))
+                else Icon(Icons.AutoMirrored.Filled.Send, tr("Отправить"), tint = Neon.OnAccent, modifier = Modifier.size(20.dp))
+            }
         }
     }
 
-    if (confirmClear) {
-        AlertDialog(
-            onDismissRequest = { confirmClear = false },
-            containerColor = Neon.SurfaceHi,
-            title = { Text(tr("Очистить чат?"), color = Neon.Text) },
-            confirmButton = { TextButton({ chat.clear(); confirmClear = false }) { Text(tr("Очистить"), color = Neon.Magenta) } },
-            dismissButton = { TextButton({ confirmClear = false }) { Text(tr("Отмена"), color = Neon.Muted) } },
-        )
-    }
+    if (showModels) ModelsDialog(vm) { showModels = false }
+    if (showChats) ChatsDialog(vm, onDismiss = { showChats = false })
 }
 
 @Composable
-private fun EmptyChat(vm: AppViewModel) {
-    val name = vm.cloud.user?.fullName?.substringBefore(' ').orEmpty()
+private fun EmptyChat(vm: AppViewModel, onSetup: () -> Unit) {
+    val name = Assistant.nameFromRules(vm.aiRules) ?: vm.cloud.user?.fullName?.substringBefore(' ').orEmpty()
     Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         AiOrb(150.dp)
         Spacer(Modifier.height(20.dp))
@@ -240,6 +249,18 @@ private fun EmptyChat(vm: AppViewModel) {
         if (I18n.lang != "ru") {
             Spacer(Modifier.height(8.dp))
             Text(tr("Помощник пока понимает только русский язык"), color = Neon.Dim, fontSize = 12.sp, textAlign = TextAlign.Center)
+        }
+        if (!vm.localAi.usable) {
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "✨ " + tr("Включить нейросеть Gemma 4"),
+                color = Neon.Magenta, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, Neon.Magenta.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                    .clickable(onClick = onSetup)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            )
         }
     }
 }
@@ -259,19 +280,32 @@ private fun UserBubble(text: String) {
 }
 
 @Composable
-private fun BotBubble(spinning: Boolean = false, content: @Composable () -> Unit) {
+private fun BotBubble(spinning: Boolean = false, ai: Boolean = false, content: @Composable () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(end = 28.dp), verticalAlignment = Alignment.Bottom) {
         AiAvatar(30.dp, spinning = spinning)
         Spacer(Modifier.size(8.dp))
         val shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp)
-        Box(
+        Column(
             Modifier
                 .clip(shape)
                 .background(Neon.SurfaceHi)
-                .border(1.dp, Neon.Stroke, shape)
+                .border(1.dp, if (ai) Neon.Violet.copy(alpha = 0.6f) else Neon.Stroke, shape)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
-        ) { content() }
+        ) {
+            content()
+            if (ai) Text("✨ Gemma · " + tr("на устройстве"), color = Neon.Dim, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+        }
     }
+}
+
+@Composable
+private fun HeaderButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, enabled: Boolean = true, highlight: Boolean = false, onClick: () -> Unit) {
+    val c = if (highlight) Neon.Magenta else Neon.Cyan
+    Box(
+        Modifier.size(40.dp).alpha(if (enabled) 1f else 0.4f).clip(CircleShape).border(1.dp, c.copy(alpha = 0.5f), CircleShape)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, label, tint = c, modifier = Modifier.size(20.dp)) }
 }
 
 /** Маленький значок бота; во время «размышления» вокруг него крутится дуга. */
