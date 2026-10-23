@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="theme-color" content="#07070C">
+<title>KGMU AI · тест локальной модели</title>
+<style>
+:root{--bg:#07070C;--surface:#101017;--hi:#181822;--stroke:#2A2A36;--text:#F5F5FA;--muted:#A3A3B5;--dim:#76768A;--cyan:#00E5FF;--pink:#FF2E97;--violet:#B98CFF;--ok:#3DDC97;--warn:#FFC14D;--bad:#FF4D6A}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 30px);max-width:620px;margin:0 auto}
+h1{font-size:24px;font-weight:900;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--stroke);border-radius:20px;padding:16px;margin-top:14px}
+.card h2{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.row{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #ffffff0d;font-size:14px}
+.row:last-child{border-bottom:0}
+.row .k{flex:1;color:var(--muted)}.row .v{text-align:right;max-width:60%;overflow-wrap:anywhere}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.verdict{margin-top:12px;padding:12px;border-radius:14px;font-weight:700;font-size:14px}
+.verdict.ok{background:#3DDC9722}.verdict.warn{background:#FFC14D22}.verdict.bad{background:#FF4D6A22}
+label.opt{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--stroke);border-radius:14px;margin-top:8px;cursor:pointer}
+label.opt input{margin-top:4px;accent-color:var(--cyan)}
+label.opt small{display:block;color:var(--muted)}
+button{font:inherit;border:0;cursor:pointer;color:inherit;background:none}
+.btn{display:block;width:100%;height:50px;border-radius:16px;font-weight:800;margin-top:10px;color:#0A0A10;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink))}
+.btn.ghost{background:var(--hi);color:var(--text);border:1px solid var(--stroke);font-weight:700}
+.btn:disabled{opacity:.4}
+.bar{height:10px;border-radius:5px;background:var(--hi);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width .2s}
+#status{margin-top:8px;font-size:13px;color:var(--muted);white-space:pre-wrap}
+#log{margin-top:8px;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);white-space:pre-wrap;max-height:160px;overflow:auto}
+#chat{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.msg{max-width:88%;padding:10px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.u{align-self:flex-end;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#0A0A10;border-bottom-right-radius:6px}
+.b{align-self:flex-start;background:var(--hi);border:1px solid var(--stroke);border-bottom-left-radius:6px}
+.meta{align-self:flex-start;font-size:11px;color:var(--dim);margin-top:-6px;padding-left:6px}
+.think{color:var(--muted);font-weight:700}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:12px;padding-bottom:4px}
+.chips button{flex:none;padding:7px 12px;border-radius:14px;border:1px solid #00E5FF66;color:var(--cyan);font-size:13px;background:var(--hi)}
+.inrow{display:flex;gap:8px;margin-top:10px;align-items:flex-end}
+textarea{flex:1;min-height:46px;max-height:140px;resize:none;border-radius:16px;border:1px solid var(--stroke);background:var(--hi);color:var(--text);padding:12px 14px;font:inherit;font-size:16px;outline:none}
+textarea:focus{border-color:var(--cyan)}
+.send{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--pink));color:#0A0A10;font-size:20px;font-weight:900;flex:none}
+.note{font-size:12px;color:var(--dim);margin-top:10px}
+a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<h1>KGMU AI · локальная модель</h1>
+<div class="sub">Тестовая страница: нейросеть Gemma 4 работает прямо в браузере, без интернета после загрузки. Ваши сообщения никуда не отправляются.</div>
+
+<div class="card" id="crashCard" hidden>
+  <h2>Прошлый запуск</h2>
+  <div class="bad" id="crashText"></div>
+</div>
+
+<div class="card">
+  <h2>Проверка устройства</h2>
+  <div id="checks">Проверяю…</div>
+  <div class="verdict" id="verdict" hidden></div>
+</div>
+
+<div class="card" id="setup">
+  <h2>Модель</h2>
+  <label class="opt"><input type="radio" name="model" value="e2b" checked><span><b>Gemma 4 E2B</b> — ≈2 ГБ<small>Рекомендуется. Нужно около 1,8 ГБ видеопамяти.</small></span></label>
+  <label class="opt"><input type="radio" name="model" value="e4b"><span><b>Gemma 4 E4B</b> — больше и умнее<small>Только для компьютеров и самых мощных телефонов. На iPhone почти наверняка вылетит.</small></span></label>
+  <button class="btn" id="go">Скачать и запустить</button>
+  <button class="btn ghost" id="goDirect">Запустить без сохранения на устройстве</button>
+  <button class="btn ghost" id="del">Удалить скачанные модели</button>
+  <div class="bar"><i id="bar"></i></div>
+  <div id="status"></div>
+  <div class="note">Совет: подключитесь к Wi-Fi и не блокируйте экран во время загрузки. На iPhone лучше сначала добавить сайт «На экран Домой» — тогда Safari не удалит скачанную модель.</div>
+</div>
+
+<div class="card" id="chatCard" hidden>
+  <h2>Чат</h2>
+  <div id="chat"></div>
+  <div class="chips" id="chips"></div>
+  <div class="inrow"><textarea id="inp" rows="1" placeholder="Спросите что-нибудь…" enterkeyhint="send"></textarea><button class="send" id="send" aria-label="Отправить">➤</button></div>
+</div>
+
+<div class="card">
+  <h2>Отчёт для разработчика</h2>
+  <div class="note" style="margin-top:0">Нажмите кнопку и пришлите текст — по нему видно, как модель работает на вашем телефоне.</div>
+  <button class="btn ghost" id="copy">📋 Скопировать отчёт</button>
+  <div id="log"></div>
+</div>
+
+<script type="module">
+const LIB = 'https://cdn.jsdelivr.net/npm/@litert-lm/core@0.18.0/+esm';
+const MODELS = {
+  e2b: { name: 'Gemma 4 E2B', url: 'https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it-web.litertlm' },
+  e4b: { name: 'Gemma 4 E4B', url: 'https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/resolve/main/gemma-4-E4B-it-web.litertlm' },
+};
+const CACHE = 'kgmu-llm-v1';
+const SYSTEM = 'Ты — KGMU AI, дружелюбный помощник студентов Кировского ГМУ (медицинский университет). Отвечай по-русски, понятно и по делу, без выдумок; если не знаешь — так и скажи.';
+const QUICK = ['Привет! Кто ты?', 'Объясни простыми словами, что такое гомеостаз', 'Составь план подготовки к коллоквиуму по анатомии на 3 дня', 'Придумай 3 вопроса для самопроверки по физиологии сердца'];
+
+const $ = (id) => document.getElementById(id);
+const report = { device: {}, runs: [], errors: [] };
+const log = (s) => { const t = new Date().toLocaleTimeString('ru'); $('log').textContent += `[${t}] ${s}\n`; $('log').scrollTop = 1e9; };
+const status = (s) => { $('status').textContent = s; };
+const mb = (b) => (b / 1048576).toFixed(0) + ' МБ';
+const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} } };
+
+// Если прошлая загрузка не дошла до конца — скорее всего, Safari выгрузил страницу из-за нехватки памяти.
+const crashed = ls.get('aitest.loading');
+if (crashed) {
+  $('crashCard').hidden = false;
+  $('crashText').textContent = `Прошлая попытка запустить модель (${crashed}) оборвалась — страница перезагрузилась. Обычно это значит, что телефону не хватило памяти.`;
+  report.errors.push('previous run crashed during: ' + crashed);
+  ls.set('aitest.loading', null);
+}
+
+/* ---------- Проверка устройства ---------- */
+function iosVersion() {
+  const m = navigator.userAgent.match(/OS (\d+)_(\d+)/);
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    ? (m ? +m[1] + '.' + m[2] : 'да') : null;
+}
+async function cachedSize() {
+  try { const c = await caches.open(CACHE); const keys = await c.keys(); return keys.length; } catch { return 0; }
+}
+async function check() {
+  const rows = [], d = report.device;
+  const add = (k, v, cls = '') => rows.push(`<div class="row"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`);
+  d.ua = navigator.userAgent;
+  const ios = iosVersion(); d.ios = ios;
+  if (ios) add('iOS', ios, parseFloat(ios) >= 26 ? 'ok' : 'bad');
+  add('Браузер', navigator.userAgent.match(/(CriOS|FxiOS|EdgiOS|Chrome|Firefox|Edg|Version)\/[\d.]+/)?.[0]?.replace('Version', 'Safari') || '—');
+  d.deviceMemory = navigator.deviceMemory || null;
+  if (navigator.deviceMemory) add('Память устройства (по данным браузера)', '≥ ' + navigator.deviceMemory + ' ГБ', navigator.deviceMemory >= 8 ? 'ok' : 'warn');
+  let gpuOk = false;
+  if (!navigator.gpu) { add('WebGPU', 'нет', 'bad'); d.webgpu = false; }
+  else {
+    try {
+      const a = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+      if (!a) { add('WebGPU', 'есть, но видеокарта недоступна', 'bad'); d.webgpu = 'no adapter'; }
+      else {
+        gpuOk = true; d.webgpu = true;
+        const info = a.info || {};
+        d.gpu = [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(' / ');
+        d.f16 = a.features.has('shader-f16');
+        d.maxBuffer = a.limits.maxBufferSize; d.maxStorage = a.limits.maxStorageBufferBindingSize;
+        add('WebGPU', 'есть', 'ok');
+        if (d.gpu) add('Видеокарта', d.gpu);
+        add('shader-f16', d.f16 ? 'да' : 'нет', d.f16 ? 'ok' : 'warn');
+        add('Макс. буфер GPU', mb(d.maxBuffer), d.maxBuffer >= 1 << 30 ? 'ok' : 'warn');
+      }
+    } catch (e) { add('WebGPU', 'ошибка: ' + e.message, 'bad'); d.webgpu = 'error ' + e.message; }
+  }
+  try {
+    const est = await navigator.storage.estimate();
+    d.quota = est.quota; d.usage = est.usage;
+    add('Место для сайта', `${mb(est.quota || 0)} (занято ${mb(est.usage || 0)})`, (est.quota || 0) > 2.5e9 ? 'ok' : 'warn');
+  } catch { add('Место для сайта', 'неизвестно', 'warn'); }
+  const n = await cachedSize(); d.cached = n;
+  add('Скачанные модели', n ? 'есть (' + n + ')' : 'нет');
+  d.standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (ios) add('Открыт с экрана «Домой»', d.standalone ? 'да' : 'нет', d.standalone ? 'ok' : 'warn');
+  $('checks').innerHTML = rows.join('');
+  const v = $('verdict'); v.hidden = false;
+  if (!gpuOk) { v.className = 'verdict bad'; v.textContent = ios && parseFloat(ios) < 26 ? '❌ Нужна iOS 26 или новее — в старых версиях Safari нет WebGPU.' : '❌ Браузер не поддерживает WebGPU — локальная модель здесь не запустится. Попробуйте свежий Chrome или Safari на iOS 26+.'; }
+  else if (ios) { v.className = 'verdict warn'; v.textContent = '⚠️ iPhone: модель может запуститься на iPhone 15 Pro и новее. На других моделях Safari, скорее всего, перезагрузит страницу из-за нехватки памяти — это и проверим.'; }
+  else { v.className = 'verdict ok'; v.textContent = '✅ WebGPU есть — можно пробовать.'; }
+  log('device: ' + JSON.stringify(d));
+}
+
+/* ---------- Загрузка ---------- */
+let engine = null, chat = null, wake = null;
+const model = () => MODELS[document.querySelector('input[name=model]:checked').value];
+async function keepAwake() { try { wake = await navigator.wakeLock?.request('screen'); } catch {} }
+const release = () => { try { wake?.release(); } catch {} wake = null; };
+function busy(on) { ['go', 'goDirect', 'del'].forEach((id) => { $(id).disabled = on; }); }
+
+/** Скачать модель в кэш браузера с прогрессом (поток пишется сразу на диск, не в память). */
+async function download(m) {
+  const cache = await caches.open(CACHE);
+  if (await cache.match(m.url)) { log('model already cached'); return cache; }
+  try { const p = await navigator.storage.persist?.(); log('persist: ' + p); } catch {}
+  status('Подключаюсь…');
+  const t0 = performance.now();
+  const r = await fetch(m.url);
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' при скачивании модели');
+  const total = +r.headers.get('content-length') || 0;
+  let got = 0, lastT = t0, lastGot = 0, speed = 0;
+  const counter = new TransformStream({
+    transform(chunk, ctl) {
+      got += chunk.byteLength; ctl.enqueue(chunk);
+      const now = performance.now();
+      if (now - lastT > 700) { speed = (got - lastGot) / ((now - lastT) / 1000); lastT = now; lastGot = got; }
+      $('bar').style.width = total ? (got / total * 100).toFixed(1) + '%' : '50%';
+      status(`Скачивание: ${mb(got)}${total ? ' из ' + mb(total) : ''} · ${(speed / 1048576).toFixed(1)} МБ/с`);
+    },
+  });
+  await cache.put(m.url, new Response(r.body.pipeThrough(counter), { headers: { 'content-type': 'application/octet-stream', 'content-length': String(total || got) } }));
+  const sec = (performance.now() - t0) / 1000;
+  log(`downloaded ${mb(got)} in ${sec.toFixed(0)} s`);
+  report.runs.push({ step: 'download', mb: Math.round(got / 1048576), sec: Math.round(sec) });
+  return cache;
+}
+
+async function start(direct) {
+  if (engine) return;
+  const m = model();
+  busy(true); await keepAwake();
+  try {
+    let source = m.url;
+    if (!direct) {
+      const cache = await download(m);
+      const res = await cache.match(m.url);
+      if (!res) throw new Error('Модель не сохранилась в кэше');
+      source = res.body;
+    }
+    $('bar').style.width = '100%';
+    status('Загружаю модель в видеопамять… Это может занять до минуты.');
+    ls.set('aitest.loading', m.name + (direct ? ' (без сохранения)' : ''));
+    const t0 = performance.now();
+    const { Engine } = await import(LIB);
+    log('library loaded');
+    engine = await Engine.create({ model: source, mainExecutorSettings: { maxNumTokens: 4096 } });
+    chat = await engine.createConversation({ preface: { messages: [{ role: 'system', content: SYSTEM }] } });
+    const sec = (performance.now() - t0) / 1000;
+    ls.set('aitest.loading', null);
+    log(`engine ready in ${sec.toFixed(1)} s`);
+    report.runs.push({ step: 'init', model: m.name, direct, sec: +sec.toFixed(1) });
+    status(`✅ ${m.name} запущена за ${sec.toFixed(0)} с. Можно писать!`);
+    $('chatCard').hidden = false;
+    $('chatCard').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    ls.set('aitest.loading', null);
+    report.errors.push(String(e && e.stack || e));
+    log('ERROR ' + (e && e.message || e));
+    status('❌ Ошибка: ' + (e && e.message || e));
+    engine = null;
+  } finally { busy(false); release(); check(); }
+}
+
+/* ---------- Чат ---------- */
+let sending = false;
+async function send(text) {
+  text = text.trim();
+  if (!text || !chat || sending) return;
+  sending = true; $('inp').value = ''; $('inp').blur();
+  const box = $('chat');
+  box.insertAdjacentHTML('beforeend', `<div class="msg u"></div>`); box.lastElementChild.textContent = text;
+  box.insertAdjacentHTML('beforeend', `<div class="msg b"><span class="think">Думаю…</span></div>`);
+  const out = box.lastElementChild;
+  const meta = document.createElement('div'); meta.className = 'meta'; box.appendChild(meta);
+  const t0 = performance.now(); let first = 0, chunks = 0, acc = '';
+  try {
+    for await (const chunk of chat.sendMessageStreaming(text)) {
+      for (const item of chunk.content || []) {
+        if (item.type !== 'text' || !item.text) continue;
+        if (!first) { first = performance.now(); out.textContent = ''; }
+        chunks++; acc += item.text; out.textContent = acc;
+      }
+      meta.textContent = `печатает… ${chunks} ток.`;
+      out.scrollIntoView({ block: 'end' });
+    }
+    const total = (performance.now() - t0) / 1000, ttft = first ? (first - t0) / 1000 : total, gen = Math.max(0.001, total - ttft);
+    const run = { step: 'answer', ttft: +ttft.toFixed(2), tokPerSec: +(chunks / gen).toFixed(1), chars: acc.length, sec: +total.toFixed(1) };
+    report.runs.push(run);
+    meta.textContent = `первое слово через ${run.ttft} с · ≈${run.tokPerSec} ток/с · всего ${run.sec} с`;
+    log('answer ' + JSON.stringify(run));
+  } catch (e) {
+    out.textContent = '❌ ' + (e && e.message || e);
+    report.errors.push(String(e && e.stack || e)); log('ERROR ' + (e && e.message || e));
+  } finally { sending = false; }
+}
+
+/* ---------- Кнопки ---------- */
+$('go').onclick = () => start(false);
+$('goDirect').onclick = () => start(true);
+$('del').onclick = async () => {
+  if (!confirm('Удалить скачанные модели с этого устройства?')) return;
+  try { await caches.delete(CACHE); status('Скачанные модели удалены.'); log('cache deleted'); } catch (e) { status('Не удалось удалить: ' + e.message); }
+  check();
+};
+$('send').addEventListener('pointerdown', (e) => e.preventDefault());
+$('send').onclick = () => send($('inp').value);
+$('inp').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(e.target.value); } });
+$('inp').addEventListener('input', (e) => { e.target.style.height = ''; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; });
+$('chips').innerHTML = QUICK.map((q) => `<button>${q}</button>`).join('');
+$('chips').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+$('chips').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) send(b.textContent); });
+$('copy').onclick = async () => {
+  const text = 'KGMU AI test report\n' + JSON.stringify(report, null, 1) + '\n\nLOG:\n' + $('log').textContent;
+  try { await navigator.clipboard.writeText(text); $('copy').textContent = '✅ Скопировано'; }
+  catch { prompt('Скопируйте отчёт:', text); }
+  setTimeout(() => { $('copy').textContent = '📋 Скопировать отчёт'; }, 2000);
+};
+document.addEventListener('visibilitychange', () => { if (!document.hidden && $('go').disabled) keepAwake(); });
+check();
+</script>
+</body>
+</html>
