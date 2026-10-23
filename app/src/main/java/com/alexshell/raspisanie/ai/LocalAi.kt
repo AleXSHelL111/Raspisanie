@@ -81,6 +81,9 @@ class LocalAi(private val app: Application, private val scope: CoroutineScope) {
     private val engineLock = Mutex()
     private val polls = mutableMapOf<String, Job>()
 
+    /** Движок нейросети есть только для 64-битных процессоров ARM. */
+    val deviceSupported: Boolean = android.os.Build.SUPPORTED_ABIS.contains("arm64-v8a")
+
     /** Память телефона в ГБ (округлённо вверх, как пишут в характеристиках). */
     val ramGb: Int = run {
         val mi = ActivityManager.MemoryInfo()
@@ -104,7 +107,7 @@ class LocalAi(private val app: Application, private val scope: CoroutineScope) {
     val selected: Model? get() = MODELS.firstOrNull { it.id == selectedId }
 
     /** Нейросеть включена и модель скачана. */
-    val usable: Boolean get() = selected?.let { downloads[it.id] == Download.Ready } == true
+    val usable: Boolean get() = deviceSupported && selected?.let { downloads[it.id] == Download.Ready } == true
 
     fun setSelected(id: String?) {
         if (id == selectedId) return

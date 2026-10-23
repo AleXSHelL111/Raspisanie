@@ -94,7 +94,10 @@ fun ModelsDialog(vm: AppViewModel, onDismiss: () -> Unit) {
             subtitle = tr("Мгновенно отвечает про пары и ДЗ, без нейросети"),
         ) { ai.setSelected(null) }
 
-        LocalAi.MODELS.forEach { m ->
+        if (!ai.deviceSupported) {
+            Spacer(Modifier.height(10.dp))
+            Text("⚠️ " + tr("Нейросеть работает только на телефонах с 64-битным процессором ARM. На этом устройстве доступен только простой бот."), color = Neon.Amber, fontSize = 13.sp)
+        } else LocalAi.MODELS.forEach { m ->
             Spacer(Modifier.height(10.dp))
             ModelCard(ai, m)
         }

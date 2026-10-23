@@ -12,8 +12,8 @@ android {
         applicationId = "com.alexshell.raspisanie"
         minSdk = 26
         targetSdk = 35
-        versionCode = 26
-        versionName = "2.5"
+        versionCode = 27
+        versionName = "2.5.1"
     }
 
     // Постоянный ключ, чтобы новые сборки устанавливались поверх старых.
@@ -45,6 +45,10 @@ android {
     }
     androidResources {
         noCompress += "xlsx"
+    }
+    packaging {
+        // Нейросеть нужна только на телефонах (arm64): версия для эмуляторов x86_64 лишь утяжеляет APK.
+        jniLibs.excludes += "lib/x86_64/liblitertlm_jni.so"
     }
 }
 

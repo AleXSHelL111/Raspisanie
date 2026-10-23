@@ -1743,6 +1743,14 @@
   "fr": "L'IA fonctionne ({0})",
   "zh": "神经网络运行中（{0}）"
  },
+ "Нейросеть работает только на телефонах с 64-битным процессором ARM. На этом устройстве доступен только простой бот.": {
+  "ar": "يعمل الذكاء الاصطناعي فقط على الهواتف ذات معالج ARM بنظام 64 بت. على هذا الجهاز يتوفر البوت البسيط فقط.",
+  "de": "Die KI läuft nur auf Handys mit 64-Bit-ARM-Prozessor. Auf diesem Gerät gibt es nur den einfachen Bot.",
+  "en": "The AI only works on phones with a 64-bit ARM processor. Only the simple bot is available on this device.",
+  "es": "La IA solo funciona en móviles con procesador ARM de 64 bits. En este dispositivo solo está el bot simple.",
+  "fr": "L'IA ne fonctionne que sur les téléphones à processeur ARM 64 bits. Seul le bot simple est disponible sur cet appareil.",
+  "zh": "神经网络仅支持 64 位 ARM 处理器的手机。此设备只能使用简单机器人。"
+ },
  "Неон": {
   "ar": "نيون",
   "de": "Neon",
