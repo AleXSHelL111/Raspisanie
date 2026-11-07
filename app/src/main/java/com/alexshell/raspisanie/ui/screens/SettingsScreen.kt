@@ -293,7 +293,7 @@ private fun SecondScheduleCard(vm: AppViewModel, onImportSecond: () -> Unit) {
             SegmentedTabs(
                 items = labels.map { it to true },
                 selected = if (vm.primary == Repository.SLOT_SECOND) 1 else 0,
-                onSelect = { vm.setPrimary(slots[it]) },
+                onSelect = { vm.setPrimarySlot(slots[it]) },
             )
         }
     }

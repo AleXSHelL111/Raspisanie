@@ -531,7 +531,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      * Какое расписание основное. Основное используется везде: «Сегодня», ДЗ,
      * редактор, виджеты, уведомления, ИИ. Второе — только блок на «Неделе».
      */
-    fun setPrimary(slot: String) {
+    fun setPrimarySlot(slot: String) {
         if (slot == primary) return
         val app = getApplication<Application>()
         if (!Repository.fileFor(app, slot).exists()) return
