@@ -2,6 +2,7 @@ name: Build APK
 
 on:
   push:
+    branches: [main, dev]
     paths-ignore:
       - "web/**"
       - ".github/workflows/pages.yml"
@@ -39,6 +40,8 @@ jobs:
           path: KGMU-raspisanie.apk
 
       - name: Publish release
+        # публикуем только проверенное: сборки из рабочей ветки dev остаются артефактами
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
