@@ -194,6 +194,19 @@ private fun App(vm: AppViewModel) {
             )
         )
     }
+    // Второе расписание — отдельный файл, показывается только на вкладке «Неделя».
+    val importerSecond = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(vm::importSecondSchedule)
+    }
+    val launchImportSecond = {
+        importerSecond.launch(
+            arrayOf(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel",
+                "application/octet-stream",
+            )
+        )
+    }
 
     Box(Modifier.fillMaxSize()) {
     when {
@@ -208,7 +221,7 @@ private fun App(vm: AppViewModel) {
         }
         vm.group == null -> Onboarding(vm)
         vm.needsStream -> StreamOnboarding(vm)
-        else -> MainScaffold(vm, now, launchImport)
+        else -> MainScaffold(vm, now, launchImport, launchImportSecond)
     }
     com.alexshell.raspisanie.ui.screens.RestoreAskDialog(vm)
     // Сообщения показываем поверх всего — и на экране входа, и над настройками.
@@ -400,7 +413,7 @@ private fun Onboarding(vm: AppViewModel) {
 }
 
 @Composable
-private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> Unit) {
+private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> Unit, onImportSecond: () -> Unit) {
     // Приложение открывается на чате с KGMU AI.
     var tab by rememberSaveable { mutableIntStateOf(Tab.AI.ordinal) }
     var proDialog by rememberSaveable { mutableStateOf(false) }
@@ -513,7 +526,7 @@ private fun MainScaffold(vm: AppViewModel, now: LocalDateTime, onImport: () -> U
         exit = slideOutHorizontally { -it } + fadeOut(),
     ) {
         BackHandler { showSettings = false }
-        SettingsOverlay(vm, onImport, onBack = { showSettings = false }, startSection = settingsSection)
+        SettingsOverlay(vm, onImport, onImportSecond, onBack = { showSettings = false }, startSection = settingsSection)
     }
 
     openedLesson?.let {

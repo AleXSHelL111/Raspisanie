@@ -55,7 +55,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var loadError by mutableStateOf<String?>(null)
         private set
-    var group by mutableStateOf(prefs.getString("group", null))
+    /** Какое расписание основное: Repository.SLOT_MAIN или Repository.SLOT_SECOND. */
+    var primary by mutableStateOf(Repository.primarySlot(app))
+        private set
+
+    /** Группа основного расписания — по ней работают ДЗ, правки, виджеты и уведомления. */
+    var group by mutableStateOf(Repository.groupFor(app, Repository.primarySlot(app)))
         private set
     var homework by mutableStateOf(hwStore.load())
         private set
@@ -99,14 +104,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var chosenElectives by mutableStateOf(prefs.getStringSet("electives", emptySet())!!.toSet())
         private set
 
-    val isImported: Boolean get() = importedFile.exists()
+    val isImported: Boolean get() = Repository.fileFor(getApplication(), primary).exists()
+
+    /** Второе расписание: только показ на вкладке «Неделя», без ДЗ и правок. */
+    var secondSchedule by mutableStateOf<Schedule?>(null)
+        private set
+    var secondGroup by mutableStateOf<String?>(null)
+        private set
+    var secondLessons by mutableStateOf<List<Lesson>>(emptyList())
+        private set
+
+    /** Второе расписание загружено и для него выбрана группа. */
+    val hasSecond: Boolean get() = secondSchedule != null && secondGroup != null
 
     /** Занятия выбранной группы, отсортированные по времени. */
     var lessons by mutableStateOf<List<Lesson>>(emptyList())
         private set
 
     /** Файл расписания ещё не загружен — показываем экран загрузки. */
-    var needsFile by mutableStateOf(!importedFile.exists())
+    var needsFile by mutableStateOf(!Repository.fileFor(app, Repository.primarySlot(app)).exists())
         private set
     /** Идёт разбор файла. */
     var importing by mutableStateOf(false)
@@ -137,21 +153,24 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun reload() {
-        if (!importedFile.exists()) {
+        val app = getApplication<Application>()
+        if (!Repository.fileFor(app, primary).exists()) {
             needsFile = true
             return
         }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    Repository.loadSchedule(getApplication())
+                    Repository.loadSlot(app, primary)
                 }
             }
             result.onSuccess {
                 schedule = it
                 loadError = null
                 if (group != null && group !in it.groups) group = null
+                needsFile = false
                 refreshLessons()
+                refreshSecond()
             }.onFailure {
                 loadError = tr("Не удалось прочитать расписание: {0}", it.message)
             }
@@ -165,6 +184,33 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         else Repository.lessonsFor(sch, g, edits, chosenElectives, stream)
         // Любое изменение расписания/ДЗ/настроек — пересчитываем ближайшее уведомление.
         Notifier.reschedule(getApplication())
+    }
+
+    /** Перечитывает второе расписание (файл другого слота) — только для показа на «Неделе». */
+    private fun refreshSecond() {
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            val slot = Repository.secondarySlot(app)
+            if (!Repository.fileFor(app, slot).exists()) {
+                secondSchedule = null
+                secondGroup = null
+                secondLessons = emptyList()
+                return@launch
+            }
+            val sch = secondSchedule ?: withContext(Dispatchers.IO) {
+                runCatching { Repository.loadSlot(app, slot) }.getOrNull()
+            }
+            secondSchedule = sch
+            if (sch == null) {
+                secondGroup = null
+                secondLessons = emptyList()
+                return@launch
+            }
+            var g = secondGroup ?: Repository.groupFor(app, slot)
+            if (g != null && g !in sch.groups) g = null
+            secondGroup = g
+            secondLessons = if (g == null) emptyList() else sch.lessonsFor(g)
+        }
     }
 
     // ---------- Дисциплины по выбору ----------
@@ -285,7 +331,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun selectGroup(g: String) {
         group = g
-        prefs.edit().putString("group", g).apply()
+        prefs.edit().putString(Repository.groupKey(primary), g).apply()
         refreshLessons()
         cloud.changed()
     }
@@ -301,7 +347,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         ?: error(tr("Файл недоступен"))
                     val parsed = ScheduleParser.parse(bytes.inputStream())
                     require(parsed.lessons.isNotEmpty()) { tr("В файле не найдено ни одного занятия") }
-                    importedFile.writeBytes(bytes)
+                    Repository.fileFor(app, primary).writeBytes(bytes)
                     parsed
                 }
             }
@@ -321,10 +367,21 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Удалить загруженный файл — приложение снова попросит загрузить расписание. */
     fun removeSchedule() {
-        importedFile.delete()
+        val app = getApplication<Application>()
+        Repository.fileFor(app, primary).delete()
+        // Если удалили второе, а оно было основным — возвращаемся к первому.
+        if (primary != Repository.SLOT_MAIN && Repository.fileFor(app, Repository.SLOT_MAIN).exists()) {
+            primary = Repository.SLOT_MAIN
+            prefs.edit().putString("primary", Repository.SLOT_MAIN).apply()
+            group = Repository.groupFor(app, primary)
+        }
         schedule = null
-        needsFile = true
+        needsFile = !Repository.fileFor(app, primary).exists()
+        secondSchedule = null
+        secondGroup = null
+        secondLessons = emptyList()
         refreshLessons()
+        refreshSecond()
     }
 
     fun lessonsOn(date: LocalDate): List<Lesson> = lessons.filter { it.date == date }
@@ -381,8 +438,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Перечитать всё после восстановления копии. [fallbackGroup] — если в копии не было группы. */
     fun reloadAll(fallbackGroup: String?) {
         val app = getApplication<Application>()
-        if (prefs.getString("group", null) == null && fallbackGroup != null) prefs.edit().putString("group", fallbackGroup).apply()
-        group = prefs.getString("group", null)
+        primary = Repository.primarySlot(app)
+        if (Repository.groupFor(app, primary) == null && fallbackGroup != null) {
+            prefs.edit().putString(Repository.groupKey(primary), fallbackGroup).apply()
+        }
+        group = Repository.groupFor(app, primary)
+        secondSchedule = null
+        secondGroup = null
+        secondLessons = emptyList()
         homework = hwStore.load()
         edits = editStore.load()
         notif = Notifier.settings(app)
@@ -394,7 +457,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         themeMode = runCatching { com.alexshell.raspisanie.ui.theme.ThemeMode.valueOf(prefs.getString("theme_mode", null) ?: "DARK") }
             .getOrDefault(com.alexshell.raspisanie.ui.theme.ThemeMode.DARK)
         com.alexshell.raspisanie.ui.theme.Neon.mode = themeMode
-        needsFile = !importedFile.exists()
+        needsFile = !Repository.fileFor(app, primary).exists()
         schedule = null
         reload()
         com.alexshell.raspisanie.widget.Widgets.updateAll(app)
@@ -459,6 +522,80 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun lessonByKey(key: String): Lesson? = lessons.firstOrNull { it.key == key }
+
+    // ---------- Второе расписание ----------
+
+    fun groupOfSlot(slot: String): String? = Repository.groupFor(getApplication(), slot)
+
+    /**
+     * Какое расписание основное. Основное используется везде: «Сегодня», ДЗ,
+     * редактор, виджеты, уведомления, ИИ. Второе — только блок на «Неделе».
+     */
+    fun setPrimary(slot: String) {
+        if (slot == primary) return
+        val app = getApplication<Application>()
+        if (!Repository.fileFor(app, slot).exists()) return
+        primary = slot
+        prefs.edit().putString("primary", slot).apply()
+        group = Repository.groupFor(app, slot)
+        secondSchedule = null
+        secondGroup = null
+        secondLessons = emptyList()
+        reload()
+        com.alexshell.raspisanie.widget.Widgets.updateAll(app)
+        message = tr("Основное расписание изменено")
+        cloud.changed()
+    }
+
+    /** Выбор группы для второго расписания. */
+    fun selectSecondGroup(g: String) {
+        val app = getApplication<Application>()
+        secondGroup = g
+        prefs.edit().putString(Repository.groupKey(Repository.secondarySlot(app)), g).apply()
+        refreshSecond()
+    }
+
+    /** Импорт второго файла: он хранится отдельно и не заменяет основное. */
+    fun importSecondSchedule(uri: Uri) {
+        importing = true
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            val slot = Repository.secondarySlot(app)
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val bytes = app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        ?: error(tr("Файл недоступен"))
+                    val parsed = ScheduleParser.parse(bytes.inputStream())
+                    require(parsed.lessons.isNotEmpty()) { tr("В файле не найдено ни одного занятия") }
+                    Repository.fileFor(app, slot).writeBytes(bytes)
+                    parsed
+                }
+            }
+            importing = false
+            result.onSuccess { parsed ->
+                secondSchedule = parsed
+                val g = secondGroup?.takeIf { it in parsed.groups } ?: parsed.groups.firstOrNull()
+                secondGroup = g
+                if (g != null) prefs.edit().putString(Repository.groupKey(slot), g).apply()
+                secondLessons = if (g == null) emptyList() else parsed.lessonsFor(g)
+                message = tr("Второе расписание загружено: {0} занятий", parsed.lessons.size)
+            }.onFailure {
+                message = tr("Ошибка импорта: {0}", it.message)
+            }
+        }
+    }
+
+    /** Убрать второе расписание — основное остаётся нетронутым. */
+    fun removeSecondSchedule() {
+        val app = getApplication<Application>()
+        val slot = Repository.secondarySlot(app)
+        Repository.fileFor(app, slot).delete()
+        prefs.edit().remove(Repository.groupKey(slot)).apply()
+        secondSchedule = null
+        secondGroup = null
+        secondLessons = emptyList()
+        message = tr("Второе расписание удалено")
+    }
 
     // Инициализация — в самом конце, когда все свойства уже созданы.
     init {

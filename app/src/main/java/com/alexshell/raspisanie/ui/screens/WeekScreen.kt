@@ -170,6 +170,27 @@ fun WeekScreen(
                 Text(tr("Добавить занятие на {0}", "${selected.weekdayShort().lowercase()}, ${selected.dayMonth()}"), color = Neon.Cyan, fontWeight = FontWeight.SemiBold)
             }
         }
+
+        // Второе расписание: только просмотр, только на этой вкладке.
+        if (vm.hasSecond) {
+            val secondDay = vm.secondLessons.filter { it.date == selected }
+            item {
+                SectionTitle(
+                    tr("Группа {0} · второе расписание", vm.secondGroup.orEmpty()),
+                    color = Neon.Violet,
+                )
+            }
+            if (secondDay.isEmpty()) {
+                item {
+                    NeonCard(accent = Neon.Violet) {
+                        Text(tr("Занятий нет"), color = Neon.Muted)
+                    }
+                }
+            }
+            items(secondDay, key = { "second|" + it.key }) { l ->
+                LessonCard(l, now, 0, false, onClick = {}, duty = null)
+            }
+        }
     }
 }
 

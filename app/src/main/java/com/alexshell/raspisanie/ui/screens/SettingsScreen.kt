@@ -59,13 +59,14 @@ import androidx.compose.ui.platform.LocalDensity
 import com.alexshell.raspisanie.ui.theme.ThemeMode
 import com.alexshell.raspisanie.ui.theme.buildScheme
 import com.alexshell.raspisanie.AppViewModel
+import com.alexshell.raspisanie.data.Repository
 import com.alexshell.raspisanie.ui.components.NeonCard
 import com.alexshell.raspisanie.ui.components.SectionTitle
 import com.alexshell.raspisanie.ui.dayMonth
 import com.alexshell.raspisanie.ui.theme.Neon
 
 @Composable
-fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Unit) {
+fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Unit, onImportSecond: () -> Unit) {
     val schedule = vm.schedule
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -85,6 +86,9 @@ fun SettingsScreen(vm: AppViewModel, padding: PaddingValues, onImport: () -> Uni
             item { SectionTitle(tr("Поток"), color = Neon.Cyan) }
             item { StreamPicker(schedule!!.streams, vm.stream, vm::selectStream) }
         }
+
+        item { SectionTitle(tr("Второе расписание"), color = Neon.Violet) }
+        item { SecondScheduleCard(vm, onImportSecond) }
 
         item { SectionTitle(tr("Уведомления"), color = Neon.Cyan) }
         item { NotificationsCard(vm) }
@@ -236,6 +240,65 @@ fun GroupGrid(groups: List<String>, selected: String?, onSelect: (String) -> Uni
 }
 
 
+/** Второе расписание: отдельный файл, выбор группы и переключение основного. */
+@Composable
+private fun SecondScheduleCard(vm: AppViewModel, onImportSecond: () -> Unit) {
+    val second = vm.secondSchedule
+    NeonCard(accent = Neon.Violet) {
+        Text(
+            tr("Второе расписание видно только на вкладке «Неделя», под занятиями основного. Только просмотр."),
+            color = Neon.Muted, fontSize = 13.sp,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        if (second == null) {
+            Button(
+                onClick = onImportSecond,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Neon.Violet, contentColor = Neon.OnAccent),
+            ) { Text(tr("Загрузить второй .xlsx"), fontWeight = FontWeight.Bold) }
+        } else {
+            Text(second.title, fontWeight = FontWeight.SemiBold)
+            Text(
+                tr("Занятий: {0}", second.lessons.size),
+                color = Neon.Muted, fontSize = 13.sp,
+            )
+            Spacer(Modifier.height(10.dp))
+            GroupGrid(second.groups, vm.secondGroup, vm::selectSecondGroup)
+            Spacer(Modifier.height(10.dp))
+            Button(
+                onClick = onImportSecond,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Neon.Violet, contentColor = Neon.OnAccent),
+            ) { Text(tr("Заменить файл"), fontWeight = FontWeight.Bold) }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = vm::removeSecondSchedule,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, Neon.Muted),
+            ) { Text(tr("Удалить второе расписание"), color = Neon.Text) }
+
+            Spacer(Modifier.height(16.dp))
+            Text(tr("Основное расписание"), fontWeight = FontWeight.SemiBold)
+            Text(
+                tr("Основное используется везде: «Сегодня», ДЗ, виджеты, уведомления."),
+                color = Neon.Dim, fontSize = 12.sp,
+            )
+            Spacer(Modifier.height(8.dp))
+            val slots = listOf(Repository.SLOT_MAIN, Repository.SLOT_SECOND)
+            val labels = slots.map { vm.groupOfSlot(it) ?: tr("не выбрана") }
+            SegmentedTabs(
+                items = labels.map { it to true },
+                selected = if (vm.primary == Repository.SLOT_SECOND) 1 else 0,
+                onSelect = { vm.setPrimary(slots[it]) },
+            )
+        }
+    }
+}
+
 /** Режим (тёмная/светлая/системная) и акцентный цвет. */
 @Composable
 fun ThemePicker(vm: AppViewModel) {
@@ -289,7 +352,7 @@ fun ThemePicker(vm: AppViewModel) {
 
 /** Экран настроек: шапка, разделы «Общие» и «Профиль». */
 @Composable
-fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit, startSection: Int = 0) {
+fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onImportSecond: () -> Unit, onBack: () -> Unit, startSection: Int = 0) {
     var section by rememberSaveable { mutableIntStateOf(startSection) }
     val density = LocalDensity.current
     var headerHeight by remember { mutableStateOf(140.dp) }
@@ -299,7 +362,7 @@ fun SettingsOverlay(vm: AppViewModel, onImport: () -> Unit, onBack: () -> Unit, 
         Box(Modifier.fillMaxSize()) {
             NeonBackground {
                 val pad = PaddingValues(top = headerHeight, bottom = bottom)
-                if (section == 0) SettingsScreen(vm, pad, onImport) else ProfileScreen(vm, pad)
+                if (section == 0) SettingsScreen(vm, pad, onImport, onImportSecond) else ProfileScreen(vm, pad)
             }
         }
         Column(
