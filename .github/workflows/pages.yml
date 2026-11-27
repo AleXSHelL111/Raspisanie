@@ -6,6 +6,10 @@ on:
     paths:
       - "web/**"
       - ".github/workflows/pages.yml"
+      - ".github/refresh-university.cjs"
+      - ".github/university-snapshot.json"
+  schedule:
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -22,11 +26,24 @@ jobs:
     # сайт выкатывается только из main
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Update university timetable snapshot
+        run: |
+          cp .github/university-snapshot.json web/university-snapshot.json
+          if ! node .github/refresh-university.cjs web/university-snapshot.json; then
+            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+              exit 1
+            fi
+            echo "::warning::The university site is unavailable. Deploying the bundled timetable snapshot."
+          fi
       - uses: actions/configure-pages@v5
         with:
           enablement: true
